@@ -1,0 +1,14 @@
+{
+  "name": "MyCareer.AI",
+  "short_name": "MyCareer.AI",
+  "description": "Your AI placement companion — finds jobs that fit you and stays with you until you're placed.",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#ffffff",
+  "theme_color": "#0a7399",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

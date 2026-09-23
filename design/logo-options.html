@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MyCareer.AI brand sheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root { --ink:#0a2230; --brand:#0a7399; --accent:#07a384; --gold:#f0bf4c; --muted:#5b6b79; --line:#dde7ec; }
+  body { margin:0; color:var(--ink); font-family:Inter, system-ui, sans-serif;
+    background: radial-gradient(900px 600px at 0% -10%, rgb(11 141 179 / .14), transparent 60%), radial-gradient(800px 500px at 100% 0%, rgb(7 163 132 / .13), transparent 60%), #f4f8f9; min-height:100vh; }
+  main { max-width:1080px; margin:0 auto; padding:32px 16px 64px; }
+  h1 { font-family:"Plus Jakarta Sans"; margin:0 0 4px; }
+  .lead { color:var(--muted); margin:0 0 28px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:20px; padding:24px; margin-bottom:20px; }
+  .card h2 { font-family:"Plus Jakarta Sans"; font-size:18px; margin:0 0 4px; }
+  .card p { color:var(--muted); margin:0 0 18px; font-size:14px; max-width:760px; }
+  .row { display:flex; flex-wrap:wrap; align-items:center; gap:28px; }
+  .sizes { display:flex; align-items:flex-end; gap:14px; }
+  .sizes span { display:block; text-align:center; font-size:11px; color:var(--muted); margin-top:4px; }
+  .lockup { display:flex; align-items:center; gap:12px; font-family:"Plus Jakarta Sans"; font-weight:800; font-size:28px; letter-spacing:-.02em; }
+  .lockup b { background:linear-gradient(90deg,var(--brand),var(--accent)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .tab { display:flex; align-items:center; gap:8px; background:#e6eef1; border-radius:10px 10px 0 0; padding:8px 14px; font-size:13px; width:max-content; }
+  .dark { background:#0a2230; border-radius:14px; padding:14px 18px; } .dark .lockup { color:#fff; }
+  .swatches { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:10px; }
+  .sw { border-radius:14px; padding:44px 10px 10px; font-size:12px; color:#fff; font-weight:600; }
+  .sw.light { color:var(--ink); border:1px solid var(--line); }
+  .glassdemo { position:relative; border-radius:20px; padding:28px; overflow:hidden; background: radial-gradient(300px 200px at 20% 30%, #0b8db3 0, transparent 70%), radial-gradient(300px 200px at 80% 70%, #07a384 0, transparent 70%), radial-gradient(200px 160px at 60% 20%, #f0bf4c 0, transparent 70%), #e8f3f6; }
+  .glass { background:rgb(255 255 255 / .62); backdrop-filter:blur(18px) saturate(160%); -webkit-backdrop-filter:blur(18px) saturate(160%); border:1px solid rgb(255 255 255 / .75); border-radius:18px; padding:18px; box-shadow:inset 0 1px 0 rgb(255 255 255 / .7), 0 12px 32px -12px rgb(10 60 90 / .25); max-width:360px; }
+  .btn { display:inline-block; background:linear-gradient(135deg,#0a7399,#07a384); color:#fff; border-radius:12px; padding:9px 14px; font-weight:600; font-size:14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>MyCareer.AI — brand sheet</h1>
+  <p class="lead">Peacock palette (India's national bird) + three logo concepts. Concept 1 is applied in the app now; switching is a one-file change.</p>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0b5d7e"/><stop offset="1" stop-color="#07a384"/></linearGradient>
+      <path id="drop" d="M0 -20 C7 -11 12 -4 12 4 A12 12 0 1 1 -12 4 C-12 -4 -7 -11 0 -20 Z"/>
+      <!-- Concept 1: the peacock-feather eye as the target, an arrow in its heart -->
+      <symbol id="c1" viewBox="0 0 64 64">
+        <rect width="64" height="64" rx="16" fill="url(#tile)"/>
+        <g transform="translate(37 27) rotate(35)">
+          <use href="#drop" fill="#f0bf4c"/>
+          <use href="#drop" fill="#0fb38f" transform="translate(0 4) scale(.78) translate(0 -4)"/>
+          <use href="#drop" fill="#0b8db3" transform="translate(0 4) scale(.56) translate(0 -4)"/>
+          <ellipse cx="0" cy="5" rx="3.6" ry="4.2" fill="#0a2a55"/>
+          <circle cx="-1.2" cy="3.4" r="1.1" fill="#fff" opacity=".75"/>
+        </g>
+        <path d="M10 54 L33 31.5" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+        <path d="M13 51 L13 57 M13 51 L7 51 M17 47 L17 53 M17 47 L11 47" stroke="#f0bf4c" stroke-width="3" stroke-linecap="round"/>
+      </symbol>
+      <!-- Concept 2: M with a growth arrow into a target -->
+      <symbol id="c2" viewBox="0 0 64 64">
+        <rect width="64" height="64" rx="16" fill="url(#tile)"/>
+        <path d="M15 48 V23 L32 39 L49 23 V48" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="32" cy="13" r="7.5" fill="#f0bf4c"/><circle cx="32" cy="13" r="4.4" fill="#0b5d7e"/><circle cx="32" cy="13" r="1.8" fill="#fff"/>
+        <path d="M32 36 L32 19 M28 23 L32 18.5 L36 23" fill="none" stroke="#f0bf4c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      </symbol>
+      <!-- Concept 3: the C of Career is a drawn bow -->
+      <symbol id="c3" viewBox="0 0 64 64">
+        <rect width="64" height="64" rx="16" fill="url(#tile)"/>
+        <path d="M39.9 19 A17 17 0 1 0 39.9 45" fill="none" stroke="#fff" stroke-width="5.5" stroke-linecap="round"/>
+        <path d="M39.9 19 L23 32 L39.9 45" fill="none" stroke="#f0bf4c" stroke-width="1.6" stroke-linejoin="round"/>
+        <circle cx="52" cy="32" r="7" fill="#f0bf4c"/><circle cx="52" cy="32" r="4" fill="#0a2a55"/><circle cx="52" cy="32" r="1.6" fill="#fff"/>
+        <path d="M23 32 L48 32" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+        <path d="M26 32 L23 29 M26 32 L23 35" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <div class="card">
+    <h2>Concept 1 — Peacock Eye (applied, recommended)</h2>
+    <p>The eye of a peacock feather <i>is</i> a natural bullseye: gold, green, blue, and a deep-navy heart. An arrow lands right in it — "we hit the right job for you". Instantly Indian, ownable, and nothing like the usual blue job-site logos.</p>
+    <div class="row">
+      <div class="sizes"><div><svg width="16" height="16"><use href="#c1"/></svg><span>16</span></div><div><svg width="32" height="32"><use href="#c1"/></svg><span>32</span></div><div><svg width="64" height="64"><use href="#c1"/></svg><span>64</span></div><div><svg width="120" height="120"><use href="#c1"/></svg><span>120</span></div></div>
+      <div class="lockup"><svg width="44" height="44"><use href="#c1"/></svg>MyCareer<b>.AI</b></div>
+      <div class="dark"><div class="lockup"><svg width="40" height="40"><use href="#c1"/></svg>MyCareer<b>.AI</b></div></div>
+      <div class="tab"><svg width="16" height="16"><use href="#c1"/></svg>MyCareer.AI — Jobs that fit you</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Concept 2 — Growth M</h2>
+    <p>The M of MyCareer with an arrow rising from its heart into a target — career growth, aimed. Clean and corporate; less distinctive.</p>
+    <div class="row">
+      <div class="sizes"><div><svg width="16" height="16"><use href="#c2"/></svg><span>16</span></div><div><svg width="32" height="32"><use href="#c2"/></svg><span>32</span></div><div><svg width="64" height="64"><use href="#c2"/></svg><span>64</span></div><div><svg width="120" height="120"><use href="#c2"/></svg><span>120</span></div></div>
+      <div class="lockup"><svg width="44" height="44"><use href="#c2"/></svg>MyCareer<b>.AI</b></div>
+      <div class="tab"><svg width="16" height="16"><use href="#c2"/></svg>MyCareer.AI — Jobs that fit you</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Concept 3 — Career Bow</h2>
+    <p>The C of Career is a drawn bow, the arrow aimed at a target. Tells the archer story literally; a little busy at 16px.</p>
+    <div class="row">
+      <div class="sizes"><div><svg width="16" height="16"><use href="#c3"/></svg><span>16</span></div><div><svg width="32" height="32"><use href="#c3"/></svg><span>32</span></div><div><svg width="64" height="64"><use href="#c3"/></svg><span>64</span></div><div><svg width="120" height="120"><use href="#c3"/></svg><span>120</span></div></div>
+      <div class="lockup"><svg width="44" height="44"><use href="#c3"/></svg>MyCareer<b>.AI</b></div>
+      <div class="tab"><svg width="16" height="16"><use href="#c3"/></svg>MyCareer.AI — Jobs that fit you</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Peacock palette</h2>
+    <p>Peacock blue leads (buttons, links, focus), peacock green accents (highlights, gradients, success moments), deep peacock navy for text, gold sparingly (the arrow, celebrations).</p>
+    <div class="swatches">
+      <div class="sw" style="background:#0b5d7e">Peacock blue 700<br>#0B5D7E</div>
+      <div class="sw" style="background:#0a7399">Peacock blue 600<br>#0A7399</div>
+      <div class="sw" style="background:#0b8db3">Peacock blue 500<br>#0B8DB3</div>
+      <div class="sw" style="background:#03846d">Peacock green 600<br>#03846D</div>
+      <div class="sw" style="background:#07a384">Peacock green 500<br>#07A384</div>
+      <div class="sw" style="background:#0a2230">Ink<br>#0A2230</div>
+      <div class="sw light" style="background:#f0bf4c">Feather gold<br>#F0BF4C</div>
+      <div class="sw light" style="background:#ecf8fb">Mist<br>#ECF8FB</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Glass surfaces</h2>
+    <p>Frosted glass is used for the app's chrome — header, sidebar, assistant, dialogs, command palette, mobile bar — over a soft peacock-tinted background. Job cards stay solid white so long lists stay crisp and fast.</p>
+    <div class="glassdemo">
+      <div class="glass">
+        <div class="lockup" style="font-size:20px"><svg width="32" height="32"><use href="#c1"/></svg>MyCareer<b>.AI</b></div>
+        <p style="margin:10px 0 14px;color:#334155">4 excellent · 334 good matches. See what would turn more of them into excellent ones.</p>
+        <span class="btn">Ask the assistant</span>
+      </div>
+    </div>
+  </div>
+</main>
+</body>
+</html>

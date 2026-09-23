@@ -1,0 +1,1590 @@
+[
+ {
+  "name": "3M",
+  "ats": "workday",
+  "board": "3m|wd1|Search",
+  "industries": [
+   "manufacturing"
+  ]
+ },
+ {
+  "name": "Adobe",
+  "ats": "workday",
+  "board": "adobe|wd5|external_experienced",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Adyen",
+  "ats": "greenhouse",
+  "board": "adyen",
+  "industries": [
+   "fintech"
+  ]
+ },
+ {
+  "name": "Agoda",
+  "ats": "greenhouse",
+  "board": "agoda",
+  "industries": [
+   "travel"
+  ]
+ },
+ {
+  "name": "Airbnb",
+  "ats": "greenhouse",
+  "board": "airbnb"
+ },
+ {
+  "name": "Airwallex",
+  "ats": "ashby",
+  "board": "airwallex",
+  "industries": [
+   "fintech"
+  ]
+ },
+ {
+  "name": "Amplitude",
+  "ats": "greenhouse",
+  "board": "amplitude",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Analog Devices",
+  "ats": "workday",
+  "board": "analogdevices|wd1|External",
+  "industries": [
+   "semiconductors"
+  ]
+ },
+ {
+  "name": "Anaplan",
+  "ats": "greenhouse",
+  "board": "anaplan",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Anthropic",
+  "ats": "greenhouse",
+  "board": "anthropic",
+  "industries": [
+   "ai"
+  ]
+ },
+ {
+  "name": "Anyscale",
+  "ats": "ashby",
+  "board": "anyscale",
+  "industries": [
+   "ai"
+  ]
+ },
+ {
+  "name": "Apna",
+  "ats": "workable",
+  "board": "apna",
+  "industries": [
+   "hr"
+  ]
+ },
+ {
+  "name": "Appian",
+  "ats": "greenhouse",
+  "board": "appian",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Applied Materials",
+  "ats": "workday",
+  "board": "amat|wd1|External",
+  "industries": [
+   "semiconductors"
+  ]
+ },
+ {
+  "name": "Aptos Labs",
+  "ats": "greenhouse",
+  "board": "aptoslabs",
+  "industries": [
+   "web3"
+  ]
+ },
+ {
+  "name": "Arista Networks",
+  "ats": "smartrecruiters",
+  "board": "aristanetworks",
+  "industries": [
+   "technology"
+  ]
+ },
+ {
+  "name": "Aspora",
+  "ats": "ashby",
+  "board": "aspora",
+  "industries": [
+   "fintech"
+  ]
+ },
+ {
+  "name": "AstraZeneca",
+  "ats": "workday",
+  "board": "astrazeneca|wd3|Careers",
+  "industries": [
+   "pharma"
+  ]
+ },
+ {
+  "name": "Atlan",
+  "ats": "ashby",
+  "board": "atlan",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Autodesk",
+  "ats": "workday",
+  "board": "autodesk|wd1|Ext",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Baker Hughes",
+  "ats": "workday",
+  "board": "bakerhughes|wd5|BakerHughes",
+  "industries": [
+   "energy"
+  ]
+ },
+ {
+  "name": "Barclays",
+  "ats": "workday",
+  "board": "barclays|wd3|External_Career_Site_Barclays",
+  "industries": [
+   "banking"
+  ]
+ },
+ {
+  "name": "Binance",
+  "ats": "lever",
+  "board": "binance",
+  "industries": [
+   "fintech"
+  ]
+ },
+ {
+  "name": "BlackRock",
+  "ats": "workday",
+  "board": "blackrock|wd1|BlackRock_Professional",
+  "industries": [
+   "finance"
+  ]
+ },
+ {
+  "name": "Boeing",
+  "ats": "workday",
+  "board": "boeing|wd1|EXTERNAL_CAREERS",
+  "industries": [
+   "aerospace"
+  ]
+ },
+ {
+  "name": "Bosch",
+  "ats": "smartrecruiters",
+  "board": "BoschGroup"
+ },
+ {
+  "name": "Broadridge",
+  "ats": "workday",
+  "board": "broadridge|wd5|Careers",
+  "industries": [
+   "fintech"
+  ]
+ },
+ {
+  "name": "Buffer",
+  "ats": "ashby",
+  "board": "buffer",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Bugcrowd",
+  "ats": "greenhouse",
+  "board": "bugcrowd",
+  "industries": [
+   "security"
+  ]
+ },
+ {
+  "name": "Cadence",
+  "ats": "workday",
+  "board": "cadence|wd1|External_Careers",
+  "industries": [
+   "semiconductors"
+  ]
+ },
+ {
+  "name": "Canva",
+  "ats": "smartrecruiters",
+  "board": "canva",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Cargomatic",
+  "ats": "greenhouse",
+  "board": "cargomatic",
+  "industries": [
+   "logistics"
+  ]
+ },
+ {
+  "name": "Cars24",
+  "ats": "smartrecruiters",
+  "board": "cars24",
+  "industries": [
+   "automotive"
+  ]
+ },
+ {
+  "name": "Celonis",
+  "ats": "greenhouse",
+  "board": "celonis",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Ciena",
+  "ats": "workday",
+  "board": "ciena|wd5|Careers",
+  "industries": [
+   "technology"
+  ]
+ },
+ {
+  "name": "Circle",
+  "ats": "ashby",
+  "board": "circle",
+  "industries": [
+   "fintech"
+  ]
+ },
+ {
+  "name": "Cisco",
+  "ats": "workday",
+  "board": "cisco|wd5|Cisco_Careers",
+  "industries": [
+   "technology"
+  ]
+ },
+ {
+  "name": "Clickhouse",
+  "ats": "ashby",
+  "board": "clickhouse",
+  "industries": [
+   "data"
+  ]
+ },
+ {
+  "name": "Cloudflare",
+  "ats": "greenhouse",
+  "board": "cloudflare"
+ },
+ {
+  "name": "CloudSEK",
+  "ats": "greenhouse",
+  "board": "cloudsek",
+  "industries": [
+   "security"
+  ]
+ },
+ {
+  "name": "Cockroach Labs",
+  "ats": "greenhouse",
+  "board": "cockroachlabs",
+  "industries": [
+   "data"
+  ]
+ },
+ {
+  "name": "Cohere",
+  "ats": "ashby",
+  "board": "cohere"
+ },
+ {
+  "name": "Coinbase",
+  "ats": "greenhouse",
+  "board": "coinbase",
+  "industries": [
+   "fintech"
+  ]
+ },
+ {
+  "name": "Commvault",
+  "ats": "greenhouse",
+  "board": "commvault",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Composio",
+  "ats": "ashby",
+  "board": "composio",
+  "industries": [
+   "ai"
+  ]
+ },
+ {
+  "name": "Confluent",
+  "ats": "ashby",
+  "board": "confluent",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Contentstack",
+  "ats": "greenhouse",
+  "board": "contentstack",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Continental",
+  "ats": "smartrecruiters",
+  "board": "Continental",
+  "industries": [
+   "automotive"
+  ]
+ },
+ {
+  "name": "Coupa",
+  "ats": "lever",
+  "board": "coupa",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Coursera",
+  "ats": "greenhouse",
+  "board": "coursera",
+  "industries": [
+   "edtech"
+  ]
+ },
+ {
+  "name": "CRED",
+  "ats": "lever",
+  "board": "cred"
+ },
+ {
+  "name": "Databricks",
+  "ats": "greenhouse",
+  "board": "databricks"
+ },
+ {
+  "name": "Datadog",
+  "ats": "greenhouse",
+  "board": "datadog"
+ },
+ {
+  "name": "Deliveroo",
+  "ats": "greenhouse",
+  "board": "deliveroo",
+  "industries": [
+   "consumer"
+  ]
+ },
+ {
+  "name": "Deutsche Bank",
+  "ats": "workday",
+  "board": "db|wd3|DBWebSite",
+  "industries": [
+   "banking"
+  ]
+ },
+ {
+  "name": "Discord",
+  "ats": "greenhouse",
+  "board": "discord",
+  "industries": [
+   "media"
+  ]
+ },
+ {
+  "name": "Docker",
+  "ats": "ashby",
+  "board": "docker",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Dremio",
+  "ats": "greenhouse",
+  "board": "dremio",
+  "industries": [
+   "data"
+  ]
+ },
+ {
+  "name": "Dropbox",
+  "ats": "greenhouse",
+  "board": "dropbox"
+ },
+ {
+  "name": "Druva",
+  "ats": "greenhouse",
+  "board": "druva"
+ },
+ {
+  "name": "eBay",
+  "ats": "workday",
+  "board": "ebay|wd5|apply",
+  "industries": [
+   "ecommerce"
+  ]
+ },
+ {
+  "name": "Elastic",
+  "ats": "greenhouse",
+  "board": "elastic"
+ },
+ {
+  "name": "ElevenLabs",
+  "ats": "ashby",
+  "board": "elevenlabs",
+  "industries": [
+   "ai"
+  ]
+ },
+ {
+  "name": "Endava",
+  "ats": "smartrecruiters",
+  "board": "endava",
+  "industries": [
+   "it_services"
+  ]
+ },
+ {
+  "name": "Epic Games",
+  "ats": "greenhouse",
+  "board": "epicgames",
+  "industries": [
+   "gaming"
+  ]
+ },
+ {
+  "name": "Equifax",
+  "ats": "workday",
+  "board": "equifax|wd5|External",
+  "industries": [
+   "fintech"
+  ]
+ },
+ {
+  "name": "Experian",
+  "ats": "smartrecruiters",
+  "board": "Experian"
+ },
+ {
+  "name": "Fampay",
+  "ats": "lever",
+  "board": "fampay",
+  "industries": [
+   "fintech"
+  ]
+ },
+ {
+  "name": "Fastly",
+  "ats": "greenhouse",
+  "board": "fastly",
+  "industries": [
+   "technology"
+  ]
+ },
+ {
+  "name": "Figma",
+  "ats": "greenhouse",
+  "board": "figma",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "FIS",
+  "ats": "workday",
+  "board": "fis|wd5|SearchJobs",
+  "industries": [
+   "fintech"
+  ]
+ },
+ {
+  "name": "Fivetran",
+  "ats": "greenhouse",
+  "board": "fivetran",
+  "industries": [
+   "data"
+  ]
+ },
+ {
+  "name": "Flexport",
+  "ats": "greenhouse",
+  "board": "flexport",
+  "industries": [
+   "logistics"
+  ]
+ },
+ {
+  "name": "Fly",
+  "ats": "lever",
+  "board": "fly",
+  "industries": [
+   "cloud"
+  ]
+ },
+ {
+  "name": "FourKites",
+  "ats": "greenhouse",
+  "board": "fourkites",
+  "industries": [
+   "logistics"
+  ]
+ },
+ {
+  "name": "Freshworks",
+  "ats": "smartrecruiters",
+  "board": "Freshworks"
+ },
+ {
+  "name": "GitLab",
+  "ats": "greenhouse",
+  "board": "gitlab"
+ },
+ {
+  "name": "Glance",
+  "ats": "greenhouse",
+  "board": "glance"
+ },
+ {
+  "name": "Grab",
+  "ats": "smartrecruiters",
+  "board": "grab",
+  "industries": [
+   "consumer"
+  ]
+ },
+ {
+  "name": "Grafana Labs",
+  "ats": "greenhouse",
+  "board": "grafanalabs",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Greenhouse",
+  "ats": "greenhouse",
+  "board": "greenhouse",
+  "industries": [
+   "hr"
+  ]
+ },
+ {
+  "name": "Groww",
+  "ats": "greenhouse",
+  "board": "groww"
+ },
+ {
+  "name": "GSK",
+  "ats": "workday",
+  "board": "gsk|wd5|GSKCareers",
+  "industries": [
+   "pharma"
+  ]
+ },
+ {
+  "name": "Hackerone",
+  "ats": "ashby",
+  "board": "hackerone",
+  "industries": [
+   "security"
+  ]
+ },
+ {
+  "name": "HackerRank",
+  "ats": "greenhouse",
+  "board": "hackerrank",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "HackerRank",
+  "ats": "smartrecruiters",
+  "board": "hackerrank",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Hevo Data",
+  "ats": "lever",
+  "board": "hevodata",
+  "industries": [
+   "data"
+  ]
+ },
+ {
+  "name": "HighRadius",
+  "ats": "greenhouse",
+  "board": "highradius",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Hightouch",
+  "ats": "greenhouse",
+  "board": "hightouch",
+  "industries": [
+   "data"
+  ]
+ },
+ {
+  "name": "Hootsuite",
+  "ats": "greenhouse",
+  "board": "hootsuite",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "HP",
+  "ats": "workday",
+  "board": "hp|wd5|ExternalCareerSite",
+  "industries": [
+   "technology"
+  ]
+ },
+ {
+  "name": "InMobi",
+  "ats": "greenhouse",
+  "board": "inmobi"
+ },
+ {
+  "name": "Instahyre",
+  "ats": "smartrecruiters",
+  "board": "instahyre",
+  "industries": [
+   "hr"
+  ]
+ },
+ {
+  "name": "Intel",
+  "ats": "workday",
+  "board": "intel|wd1|External",
+  "industries": [
+   "semiconductors"
+  ]
+ },
+ {
+  "name": "ixigo",
+  "ats": "smartrecruiters",
+  "board": "ixigo",
+  "industries": [
+   "travel"
+  ]
+ },
+ {
+  "name": "JetBrains",
+  "ats": "greenhouse",
+  "board": "jetbrains",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "JPMorgan Chase",
+  "ats": "oracle",
+  "board": "jpmc.fa.oraclecloud.com|CX_1001",
+  "industries": [
+   "banking"
+  ]
+ },
+ {
+  "name": "KLA",
+  "ats": "workday",
+  "board": "kla|wd1|Search",
+  "industries": [
+   "semiconductors"
+  ]
+ },
+ {
+  "name": "Kong",
+  "ats": "ashby",
+  "board": "kong",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Labelbox",
+  "ats": "greenhouse",
+  "board": "labelbox",
+  "industries": [
+   "ai"
+  ]
+ },
+ {
+  "name": "Later",
+  "ats": "greenhouse",
+  "board": "later",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Lendingkart",
+  "ats": "smartrecruiters",
+  "board": "lendingkart",
+  "industries": [
+   "fintech"
+  ]
+ },
+ {
+  "name": "LinkedIn",
+  "ats": "lever",
+  "board": "linkedin",
+  "industries": [
+   "hr"
+  ]
+ },
+ {
+  "name": "Lowe's",
+  "ats": "workday",
+  "board": "lowes|wd5|LWS_External_CS",
+  "industries": [
+   "retail"
+  ]
+ },
+ {
+  "name": "Lyft",
+  "ats": "greenhouse",
+  "board": "lyft",
+  "industries": [
+   "mobility"
+  ]
+ },
+ {
+  "name": "Maersk",
+  "ats": "workday",
+  "board": "maersk|wd3|Maersk_Careers",
+  "industries": [
+   "logistics"
+  ]
+ },
+ {
+  "name": "Marvell",
+  "ats": "workday",
+  "board": "marvell|wd1|MarvellCareers",
+  "industries": [
+   "semiconductors"
+  ]
+ },
+ {
+  "name": "Mastercard",
+  "ats": "workday",
+  "board": "mastercard|wd1|CorporateCareers",
+  "industries": [
+   "fintech"
+  ]
+ },
+ {
+  "name": "Meesho",
+  "ats": "lever",
+  "board": "meesho"
+ },
+ {
+  "name": "Micron",
+  "ats": "workday",
+  "board": "micron|wd1|External",
+  "industries": [
+   "semiconductors"
+  ]
+ },
+ {
+  "name": "MindTickle",
+  "ats": "lever",
+  "board": "mindtickle"
+ },
+ {
+  "name": "MindTickle",
+  "ats": "smartrecruiters",
+  "board": "mindtickle",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Mixpanel",
+  "ats": "greenhouse",
+  "board": "mixpanel",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Mondelez",
+  "ats": "workday",
+  "board": "mdlz|wd3|External",
+  "industries": [
+   "fmcg"
+  ]
+ },
+ {
+  "name": "MongoDB",
+  "ats": "greenhouse",
+  "board": "mongodb"
+ },
+ {
+  "name": "Morgan Stanley",
+  "ats": "workday",
+  "board": "ms|wd5|External",
+  "industries": [
+   "banking"
+  ]
+ },
+ {
+  "name": "Motorola Solutions",
+  "ats": "workday",
+  "board": "motorolasolutions|wd5|Careers",
+  "industries": [
+   "technology"
+  ]
+ },
+ {
+  "name": "Mozilla",
+  "ats": "greenhouse",
+  "board": "mozilla",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Neo4j",
+  "ats": "greenhouse",
+  "board": "neo4j",
+  "industries": [
+   "data"
+  ]
+ },
+ {
+  "name": "Neon",
+  "ats": "ashby",
+  "board": "neon",
+  "industries": [
+   "data"
+  ]
+ },
+ {
+  "name": "Netlify",
+  "ats": "greenhouse",
+  "board": "netlify",
+  "industries": [
+   "cloud"
+  ]
+ },
+ {
+  "name": "Netskope",
+  "ats": "greenhouse",
+  "board": "netskope",
+  "industries": [
+   "security"
+  ]
+ },
+ {
+  "name": "Netskope",
+  "ats": "smartrecruiters",
+  "board": "netskope",
+  "industries": [
+   "security"
+  ]
+ },
+ {
+  "name": "New Relic",
+  "ats": "greenhouse",
+  "board": "newrelic",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Newsela",
+  "ats": "greenhouse",
+  "board": "newsela",
+  "industries": [
+   "edtech"
+  ]
+ },
+ {
+  "name": "Nike",
+  "ats": "workday",
+  "board": "nike|wd1|nke",
+  "industries": [
+   "retail"
+  ]
+ },
+ {
+  "name": "Nium",
+  "ats": "lever",
+  "board": "nium",
+  "industries": [
+   "fintech"
+  ]
+ },
+ {
+  "name": "NoBroker",
+  "ats": "smartrecruiters",
+  "board": "nobroker",
+  "industries": [
+   "realestate"
+  ]
+ },
+ {
+  "name": "Notion",
+  "ats": "ashby",
+  "board": "notion"
+ },
+ {
+  "name": "Novartis",
+  "ats": "workday",
+  "board": "novartis|wd3|Novartis_Careers",
+  "industries": [
+   "pharma"
+  ]
+ },
+ {
+  "name": "NVIDIA",
+  "ats": "workday",
+  "board": "nvidia|wd5|NVIDIAExternalCareerSite",
+  "industries": [
+   "technology"
+  ]
+ },
+ {
+  "name": "NXP Semiconductors",
+  "ats": "workday",
+  "board": "nxp|wd3|careers",
+  "industries": [
+   "semiconductors"
+  ]
+ },
+ {
+  "name": "Observe.AI",
+  "ats": "greenhouse",
+  "board": "observeai",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Okta",
+  "ats": "greenhouse",
+  "board": "okta"
+ },
+ {
+  "name": "OKX",
+  "ats": "greenhouse",
+  "board": "okx",
+  "industries": [
+   "fintech"
+  ]
+ },
+ {
+  "name": "OpenAI",
+  "ats": "ashby",
+  "board": "openai",
+  "industries": [
+   "ai"
+  ]
+ },
+ {
+  "name": "Oracle",
+  "ats": "oracle",
+  "board": "eeho.fa.us2.oraclecloud.com|CX_45001",
+  "industries": [
+   "technology"
+  ]
+ },
+ {
+  "name": "Outreach",
+  "ats": "lever",
+  "board": "outreach",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Paxos",
+  "ats": "ashby",
+  "board": "paxos",
+  "industries": [
+   "fintech"
+  ]
+ },
+ {
+  "name": "Payoneer",
+  "ats": "greenhouse",
+  "board": "payoneer",
+  "industries": [
+   "fintech"
+  ]
+ },
+ {
+  "name": "PayPal",
+  "ats": "workday",
+  "board": "paypal|wd1|jobs",
+  "industries": [
+   "fintech"
+  ]
+ },
+ {
+  "name": "Paytm",
+  "ats": "lever",
+  "board": "paytm"
+ },
+ {
+  "name": "Pfizer",
+  "ats": "workday",
+  "board": "pfizer|wd1|PfizerCareers",
+  "industries": [
+   "pharma"
+  ]
+ },
+ {
+  "name": "Philips",
+  "ats": "workday",
+  "board": "philips|wd3|jobs-and-careers",
+  "industries": [
+   "healthcare"
+  ]
+ },
+ {
+  "name": "Picsart",
+  "ats": "smartrecruiters",
+  "board": "picsart",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "PlanetScale",
+  "ats": "greenhouse",
+  "board": "planetscale",
+  "industries": [
+   "data"
+  ]
+ },
+ {
+  "name": "Pocket FM",
+  "ats": "lever",
+  "board": "pocketfm",
+  "industries": [
+   "media"
+  ]
+ },
+ {
+  "name": "Poshmark",
+  "ats": "ashby",
+  "board": "poshmark",
+  "industries": [
+   "ecommerce"
+  ]
+ },
+ {
+  "name": "PostHog",
+  "ats": "ashby",
+  "board": "posthog",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "project44",
+  "ats": "greenhouse",
+  "board": "project44",
+  "industries": [
+   "logistics"
+  ]
+ },
+ {
+  "name": "PwC",
+  "ats": "workday",
+  "board": "pwc|wd3|Global_Experienced_Careers",
+  "industries": [
+   "consulting"
+  ]
+ },
+ {
+  "name": "Railway",
+  "ats": "ashby",
+  "board": "railway",
+  "industries": [
+   "cloud"
+  ]
+ },
+ {
+  "name": "Ramp",
+  "ats": "ashby",
+  "board": "ramp"
+ },
+ {
+  "name": "Redis",
+  "ats": "ashby",
+  "board": "redis",
+  "industries": [
+   "data"
+  ]
+ },
+ {
+  "name": "Refyne",
+  "ats": "smartrecruiters",
+  "board": "refyne",
+  "industries": [
+   "fintech"
+  ]
+ },
+ {
+  "name": "Remote.com",
+  "ats": "greenhouse",
+  "board": "remotecom",
+  "industries": [
+   "hr"
+  ]
+ },
+ {
+  "name": "Replit",
+  "ats": "ashby",
+  "board": "replit",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Roblox",
+  "ats": "greenhouse",
+  "board": "roblox",
+  "industries": [
+   "gaming"
+  ]
+ },
+ {
+  "name": "Rubrik",
+  "ats": "greenhouse",
+  "board": "rubrik",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Salesforce",
+  "ats": "workday",
+  "board": "salesforce|wd12|External_Career_Site",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Samsara",
+  "ats": "greenhouse",
+  "board": "samsara",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Samsung",
+  "ats": "workday",
+  "board": "sec|wd3|Samsung_Careers",
+  "industries": [
+   "technology"
+  ]
+ },
+ {
+  "name": "Sanofi",
+  "ats": "workday",
+  "board": "sanofi|wd3|SanofiCareers",
+  "industries": [
+   "pharma"
+  ]
+ },
+ {
+  "name": "Sarvam",
+  "ats": "ashby",
+  "board": "sarvam",
+  "industries": [
+   "ai"
+  ]
+ },
+ {
+  "name": "Scale AI",
+  "ats": "greenhouse",
+  "board": "scaleai",
+  "industries": [
+   "ai"
+  ]
+ },
+ {
+  "name": "Scopely",
+  "ats": "greenhouse",
+  "board": "scopely",
+  "industries": [
+   "gaming"
+  ]
+ },
+ {
+  "name": "ServiceNow",
+  "ats": "smartrecruiters",
+  "board": "ServiceNow",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Shell",
+  "ats": "workday",
+  "board": "shell|wd3|ShellCareers",
+  "industries": [
+   "energy"
+  ]
+ },
+ {
+  "name": "Sigmoid",
+  "ats": "greenhouse",
+  "board": "sigmoid",
+  "industries": [
+   "data"
+  ]
+ },
+ {
+  "name": "SingleStore",
+  "ats": "greenhouse",
+  "board": "singlestore",
+  "industries": [
+   "data"
+  ]
+ },
+ {
+  "name": "Snowflake",
+  "ats": "ashby",
+  "board": "snowflake"
+ },
+ {
+  "name": "Spotdraft",
+  "ats": "ashby",
+  "board": "spotdraft",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Starburst",
+  "ats": "greenhouse",
+  "board": "starburst",
+  "industries": [
+   "data"
+  ]
+ },
+ {
+  "name": "State Street",
+  "ats": "workday",
+  "board": "statestreet|wd1|Global",
+  "industries": [
+   "banking"
+  ]
+ },
+ {
+  "name": "Stripe",
+  "ats": "greenhouse",
+  "board": "stripe"
+ },
+ {
+  "name": "Sumo Logic",
+  "ats": "greenhouse",
+  "board": "sumologic",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Supabase",
+  "ats": "ashby",
+  "board": "supabase",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "SurveyMonkey",
+  "ats": "ashby",
+  "board": "surveymonkey",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Swiggy",
+  "ats": "smartrecruiters",
+  "board": "swiggy",
+  "industries": [
+   "consumer"
+  ]
+ },
+ {
+  "name": "Tekion",
+  "ats": "ashby",
+  "board": "tekion",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Temporal",
+  "ats": "ashby",
+  "board": "temporal",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Thoughtworks",
+  "ats": "ashby",
+  "board": "thoughtworks",
+  "industries": [
+   "it_services"
+  ]
+ },
+ {
+  "name": "Thoughtworks",
+  "ats": "greenhouse",
+  "board": "thoughtworks",
+  "industries": [
+   "it_services"
+  ]
+ },
+ {
+  "name": "Toast",
+  "ats": "greenhouse",
+  "board": "toast",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Turing",
+  "ats": "greenhouse",
+  "board": "turing",
+  "industries": [
+   "staffing"
+  ]
+ },
+ {
+  "name": "Turtlemint",
+  "ats": "smartrecruiters",
+  "board": "turtlemint",
+  "industries": [
+   "insurance"
+  ]
+ },
+ {
+  "name": "Twilio",
+  "ats": "greenhouse",
+  "board": "twilio"
+ },
+ {
+  "name": "Typeface",
+  "ats": "greenhouse",
+  "board": "typeface",
+  "industries": [
+   "ai"
+  ]
+ },
+ {
+  "name": "Ubisoft",
+  "ats": "smartrecruiters",
+  "board": "Ubisoft2",
+  "industries": [
+   "gaming"
+  ]
+ },
+ {
+  "name": "UiPath",
+  "ats": "ashby",
+  "board": "uipath",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Unacademy",
+  "ats": "smartrecruiters",
+  "board": "unacademy",
+  "industries": [
+   "edtech"
+  ]
+ },
+ {
+  "name": "Unilever",
+  "ats": "workday",
+  "board": "unilever|wd3|Unilever_Experienced_Professionals",
+  "industries": [
+   "fmcg"
+  ]
+ },
+ {
+  "name": "Upstox",
+  "ats": "smartrecruiters",
+  "board": "upstox",
+  "industries": [
+   "fintech"
+  ]
+ },
+ {
+  "name": "Veeva",
+  "ats": "lever",
+  "board": "veeva",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Vegrow",
+  "ats": "smartrecruiters",
+  "board": "vegrow",
+  "industries": [
+   "agritech"
+  ]
+ },
+ {
+  "name": "Vercel",
+  "ats": "greenhouse",
+  "board": "vercel",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Via",
+  "ats": "greenhouse",
+  "board": "via",
+  "industries": [
+   "mobility"
+  ]
+ },
+ {
+  "name": "Vonage",
+  "ats": "greenhouse",
+  "board": "vonage",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Vultr",
+  "ats": "ashby",
+  "board": "vultr",
+  "industries": [
+   "cloud"
+  ]
+ },
+ {
+  "name": "Whatfix",
+  "ats": "smartrecruiters",
+  "board": "whatfix",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Wikimedia",
+  "ats": "greenhouse",
+  "board": "wikimedia",
+  "industries": [
+   "media"
+  ]
+ },
+ {
+  "name": "Wise",
+  "ats": "smartrecruiters",
+  "board": "wise",
+  "industries": [
+   "fintech"
+  ]
+ },
+ {
+  "name": "Workato",
+  "ats": "greenhouse",
+  "board": "workato",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Workday",
+  "ats": "workday",
+  "board": "workday|wd5|Workday",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Yugabyte",
+  "ats": "greenhouse",
+  "board": "yugabyte",
+  "industries": [
+   "data"
+  ]
+ },
+ {
+  "name": "Zapier",
+  "ats": "ashby",
+  "board": "zapier"
+ },
+ {
+  "name": "Zenoti",
+  "ats": "greenhouse",
+  "board": "zenoti",
+  "industries": [
+   "saas"
+  ]
+ },
+ {
+  "name": "Zeta",
+  "ats": "lever",
+  "board": "zeta"
+ },
+ {
+  "name": "Zscaler",
+  "ats": "greenhouse",
+  "board": "zscaler",
+  "industries": [
+   "security"
+  ]
+ }
+]

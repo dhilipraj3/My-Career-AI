@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en-IN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MyCareer.AI — AI job search that finds jobs that fit you | Free</title>
+    <meta name="description" content="MyCareer.AI finds the right job for you across thousands of Indian employers, explains every match honestly, prepares truthful applications and stays with you until you're placed. Free for freshers, professionals and skilled workers." />
+    <link rel="canonical" href="https://app.tiaslab.in/" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="application-name" content="MyCareer.AI" />
+    <meta name="theme-color" content="#0a7399" />
+
+    <!-- Icons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
+    <link rel="apple-touch-icon" href="/icons/icon-180.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Social sharing -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="MyCareer.AI" />
+    <meta property="og:title" content="MyCareer.AI — hit the right job, first time" />
+    <meta property="og:description" content="AI that understands you, finds jobs across India that truly fit, explains every match and stays with you until you're placed. Free." />
+    <meta property="og:url" content="https://app.tiaslab.in/" />
+    <meta property="og:image" content="https://app.tiaslab.in/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="MyCareer.AI — an archer hitting the centre of a target" />
+    <meta property="og:locale" content="en_IN" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="MyCareer.AI — hit the right job, first time" />
+    <meta name="twitter:description" content="AI job search for India: honest match scores, live jobs from company careers sites, truthful resumes. Free." />
+    <meta name="twitter:image" content="https://app.tiaslab.in/og-image.png" />
+
+    <!-- Structured data: who we are, site search, the app itself, FAQ -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://app.tiaslab.in/#org",
+            "name": "MyCareer.AI",
+            "url": "https://app.tiaslab.in/",
+            "logo": { "@type": "ImageObject", "url": "https://app.tiaslab.in/icons/icon-512.png", "width": 512, "height": 512 }
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://app.tiaslab.in/#website",
+            "name": "MyCareer.AI",
+            "url": "https://app.tiaslab.in/",
+            "inLanguage": "en-IN",
+            "publisher": { "@id": "https://app.tiaslab.in/#org" },
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": { "@type": "EntryPoint", "urlTemplate": "https://app.tiaslab.in/jobs?q={search_term_string}" },
+              "query-input": "required name=search_term_string"
+            }
+          },
+          {
+            "@type": "WebApplication",
+            "name": "MyCareer.AI",
+            "url": "https://app.tiaslab.in/",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Any (web browser)",
+            "browserRequirements": "Requires JavaScript",
+            "description": "AI placement companion for job seekers in India: finds matching jobs, explains the match, tailors truthful resumes and tracks applications.",
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "INR" },
+            "publisher": { "@id": "https://app.tiaslab.in/#org" }
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              { "@type": "Question", "name": "Is MyCareer.AI free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. MyCareer.AI is free to use. Everyone gets a daily AI allowance, and you can add your own free Google AI key for unlimited AI help." } },
+              { "@type": "Question", "name": "Where do the jobs come from?", "acceptedAnswer": { "@type": "Answer", "text": "Directly from company careers sites (Workday, Greenhouse, Lever and more) and licensed job boards. Sites that don't allow it are never scraped; jobs you find elsewhere can be added with one paste." } },
+              { "@type": "Question", "name": "Does MyCareer.AI apply to jobs for me?", "acceptedAnswer": { "@type": "Answer", "text": "No, deliberately. It prepares everything and opens the employer's page; you stay in control and submit yourself." } },
+              { "@type": "Question", "name": "Will my resume be shared?", "acceptedAnswer": { "@type": "Answer", "text": "No. Your resume and profile are private to you. Nothing is shared with an employer unless you apply." } },
+              { "@type": "Question", "name": "Does it work without a resume?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. You can paste text or answer a few questions, and your profile is built from that." } }
+            ]
+          }
+        ]
+      }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>
+      <h1>MyCareer.AI — AI job search for India</h1>
+      <p>MyCareer.AI finds jobs that fit you across thousands of Indian employers and stays with you until you're placed. Please enable JavaScript to use the app, or <a href="/jobs">browse live jobs</a>.</p>
+    </noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

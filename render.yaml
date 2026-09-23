@@ -1,0 +1,34 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# New → Blueprint → pick this repo. Fill in the "sync: false" values when Render asks.
+services:
+  - type: web
+    name: mycareer-ai
+    runtime: node
+    plan: free
+    region: singapore # closest Render region to India
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 22.12.0
+      - key: SITE_URL
+        value: https://app.tiaslab.in
+      # Encrypts stored AI/source keys. Generated once by Render; never change it after launch.
+      - key: APP_SECRET
+        generateValue: true
+      # Firebase → Project settings → Service accounts → Generate new private key; paste the whole JSON on one line.
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        value: my-career-ai
+      - key: ADMIN_EMAILS
+        sync: false
+      # Optional: the owner's shared AI pool (users can also add their own free Google key in the app).
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: DISCOVERY_INTERVAL_MINUTES
+        value: "60"

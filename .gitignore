@@ -1,0 +1,22 @@
+# Dependencies and build output
+node_modules
+dist
+dist-shots
+
+# Local data: users, jobs, keys — never commit
+data
+*.tmp
+
+# Secrets (keep the template)
+.env
+.env.*
+!.env.example
+*service-account*.json
+
+# Local screenshots (contain real account data)
+screenshots
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db
