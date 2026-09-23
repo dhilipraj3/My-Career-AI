@@ -25,7 +25,7 @@ export interface Me {
   unreadNotifications: number;
 }
 
-export const Logo = ({ className = "h-9 w-9" }: { className?: string }) => <img src="/favicon.svg" alt="" className={className} />;
+export const Logo = ({ className = "h-9 w-9" }: { className?: string }) => <img src="/favicon.svg?v=3" alt="" className={className} />;
 /** "MyCareer.AI" with the brand-coloured ".AI". */
 export const Wordmark = ({ className = "text-lg" }: { className?: string }) => (
   <span className={`font-display font-bold tracking-tight text-ink ${className}`}>MyCareer<span className="text-peacock">.AI</span></span>

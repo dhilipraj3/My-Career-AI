@@ -167,9 +167,9 @@ export function page(o: PageOptions): string {
 <link rel="canonical" href="${esc(url)}">
 <meta name="robots" content="${o.index ? "index, follow, max-image-preview:large" : "noindex, follow"}">
 <meta name="theme-color" content="${BRAND.themeColor}">
-<link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png">
-<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png?v=3">
+<link rel="apple-touch-icon" href="/icons/icon-180.png?v=3">
 <meta property="og:type" content="${o.ogType || "website"}">
 <meta property="og:site_name" content="${BRAND.name}">
 <meta property="og:title" content="${esc(o.title)}">
@@ -185,7 +185,7 @@ ${ld}
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <a class="brand" href="/"><img src="/favicon.svg" alt="" width="30" height="30"><span>MyCareer<b>.AI</b></span></a>
+  <a class="brand" href="/"><img src="/favicon.svg?v=3" alt="" width="30" height="30"><span>MyCareer<b>.AI</b></span></a>
   <nav><a href="/jobs">Browse jobs</a><a class="btn" href="/" data-track="sign_up_click">Get matched — free</a></nav>
 </div></header>
 <main class="wrap">
@@ -197,7 +197,7 @@ ${o.body}
     <div><h4>Popular searches</h4><ul>${foot.roles.map(([n, p]) => `<li><a href="${esc(p)}">${esc(n)}</a></li>`).join("")}</ul></div>
     <div><h4>${BRAND.name}</h4><ul><li><a href="/">How it works</a></li><li><a href="/jobs">All jobs</a></li><li><a href="/fresher-jobs">Fresher jobs</a></li><li><a href="/remote-jobs">Remote jobs</a></li></ul></div>
   </div>` : ""}
-  <p class="fine"><img src="/favicon.svg" alt="" width="18" height="18"> ${BRAND.name} — ${BRAND.tagline}. Jobs come from company careers sites and licensed job boards; always apply on the employer's own page.</p>
+  <p class="fine"><img src="/favicon.svg?v=3" alt="" width="18" height="18"> ${BRAND.name} — ${BRAND.tagline}. Jobs come from company careers sites and licensed job boards; always apply on the employer's own page.</p>
 </div></footer>
 <div id="consent" class="consent" hidden role="dialog" aria-label="Analytics consent">
   <p><b>Help us improve ${BRAND.name}?</b> We'd like to use Google Analytics to count page visits. No personal details are sent.</p>

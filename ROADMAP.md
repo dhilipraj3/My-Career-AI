@@ -127,7 +127,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 
 ### Brand
 - [x] Name **MyCareer.AI** everywhere; hosted at https://app.tiaslab.in (`SITE_URL`)
-- [x] Logo: archer hitting the bullseye — app mark (`public/favicon.svg`), archer illustration (`public/brand/archer.svg`), PNG icons + 1200×630 share image (`npx tsx scripts/brand-assets.ts`); options sheet in `design/logo-options.html`
+- [x] Logo "Career Target" (chosen 2026-09-24): freestanding peacock rings opening like a C, arrow landing in a gold centre — app mark (`public/favicon.svg`), archer illustration (`public/brand/archer.svg`), PNG icons + 1200×630 share image (`npx tsx scripts/brand-assets.ts`); options sheet in `design/logo-options.html`
 
 ### Assistant 2.0
 - [x] Docked side panel (the page stays usable), expand to a focused wide view, full screen on phones

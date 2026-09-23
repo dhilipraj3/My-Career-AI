@@ -13,10 +13,13 @@ const mark = read("favicon.svg");
 const inner = (svg: string) => svg.replace(/^[\s\S]*?<svg[^>]*>/, "").replace(/<\/svg>\s*$/, "").replace(/<title>.*?<\/title>/, "");
 
 fs.mkdirSync(new URL("../public/icons", import.meta.url), { recursive: true });
-for (const size of [32, 180, 192, 512]) write(`icons/icon-${size}.png`, render(mark, size));
-// Maskable icon: the mark on a full-bleed tile with safe padding (Android crops to a circle).
-const maskable = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" fill="#0b5d7e"/><g transform="translate(8 8)">${inner(mark)}</g></svg>`;
-write("icons/maskable-512.png", render(maskable, 512));
+// Browser tabs and the web manifest: the freestanding mark on a transparent background.
+for (const size of [32, 192, 512]) write(`icons/icon-${size}.png`, render(mark, size));
+// Home-screen icons can't be transparent (iOS fills it black): the mark on white, with room around it.
+const onWhite = (pad: number) => { const size = 64 + pad * 2; return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}"><rect width="${size}" height="${size}" fill="#ffffff"/><g transform="translate(${pad} ${pad})">${inner(mark)}</g></svg>`; };
+write("icons/icon-180.png", render(onWhite(10), 180));
+// Android "maskable": the launcher may crop to a circle, so keep the mark inside the central safe zone.
+write("icons/maskable-512.png", render(onWhite(22), 512));
 
 // 1200×630 share image: brand, promise, archer illustration.
 const archer = inner(read("brand/archer.svg"));
