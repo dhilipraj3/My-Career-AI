@@ -4,6 +4,8 @@ import type { CandidatePreferences, FeedSummary, SkillEntry, WorkMode } from "@s
 import type { Me } from "../App";
 import { api, errMsg } from "../lib/api";
 import { POPULAR_CITIES } from "../lib/labels";
+import UnderstandingCard from "../components/UnderstandingCard";
+import RolePaths from "../components/RolePaths";
 import { Badge, Button, Card, Chip, PageHeader, Progress, cn, titleCase, useToast } from "../ui";
 
 const SOURCE_LABEL: Record<string, string> = { resume: "From your resume", user: "Added by you", ai_derived: "Guessed by AI — confirm before it's used", imported: "Imported" };
@@ -74,6 +76,9 @@ export default function ProfilePage({ me, refresh }: { me: Me; refresh: () => Pr
     <div className="space-y-5">
       <PageHeader title="Your profile" subtitle="What I know about you — it drives every match. Keep it accurate."
         actions={<div className="w-44"><div className="mb-1 flex justify-between text-xs"><span className="text-slate-500">Profile strength</span><span className="font-semibold text-ink">{p.completeness.score}%</span></div><Progress value={p.completeness.score} tone={p.completeness.score >= 90 ? "green" : "amber"} /></div>} />
+
+      <UnderstandingCard onChanged={() => void refresh()} />
+      <RolePaths onChanged={() => void refresh()} />
 
       <Card className="hero-gradient flex flex-col gap-4 p-6 sm:flex-row sm:items-center">
         <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-brand-600 font-display text-2xl font-bold text-white">{(p.fullName || "?").split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase()}</div>

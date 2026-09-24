@@ -1,9 +1,11 @@
-import { CheckCircle2, FileText, Loader2, MessageSquareText, ShieldCheck, Upload } from "lucide-react";
+import { CheckCircle2, FileText, Loader2, MessageSquareText, Mic, ShieldCheck, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Logo, Wordmark, type Me } from "../App";
 import { api, errMsg } from "../lib/api";
 import { track } from "../lib/analytics";
 import { firstName } from "../lib/labels";
+import InterviewFlow from "../components/InterviewFlow";
+import { useI18n } from "../lib/i18n";
 import { Button, Card, ErrorNote, Progress, cn } from "../ui";
 
 const QUICK: Record<string, string[]> = {
@@ -24,6 +26,8 @@ export default function Onboarding({ me, refresh }: { me: Me; refresh: () => Pro
   const [pasting, setPasting] = useState(false);
   const [pasted, setPasted] = useState("");
   const [dragging, setDragging] = useState(false);
+  const [talking, setTalking] = useState(false);
+  const { t } = useI18n();
   const fileRef = useRef<HTMLInputElement>(null);
 
   // While the server parses in the background, poll until it's done.
@@ -77,6 +81,8 @@ export default function Onboarding({ me, refresh }: { me: Me; refresh: () => Pro
             <p className="font-display text-lg font-semibold text-ink">Reading your resume…</p>
             <p className="text-sm text-slate-500">Finding your experience, skills and education. This takes a few seconds.</p>
           </Card>
+        ) : p.status === "empty" && talking ? (
+          <InterviewFlow onDone={refresh} onBack={() => setTalking(false)} />
         ) : p.status === "empty" ? (
           <Card className="space-y-5 p-6">
             <div
@@ -89,7 +95,12 @@ export default function Onboarding({ me, refresh }: { me: Me; refresh: () => Pro
               <Button size="lg" loading={busy} onClick={() => fileRef.current?.click()}><FileText className="h-5 w-5" />Choose file</Button>
             </div>
             <ErrorNote error={error} />
-            <div className="text-center"><button className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:underline" onClick={() => setPasting(!pasting)}><MessageSquareText className="h-4 w-4" />No file? Paste your resume text</button></div>
+            <button onClick={() => setTalking(true)} className="group flex w-full items-center gap-4 rounded-2xl border border-accent-200 bg-gradient-to-br from-accent-50 to-brand-50 p-4 text-left transition hover:border-accent-400 hover:shadow-sm">
+              <span className="bg-peacock flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white shadow-md"><Mic className="h-5 w-5" /></span>
+              <span className="min-w-0 flex-1"><span className="block font-display font-semibold text-ink">{t("iv.title")}</span><span className="block text-sm text-slate-600">{t("iv.sub")}</span></span>
+              <span className="hidden rounded-xl bg-white px-3 py-1.5 text-sm font-medium text-brand-700 shadow-sm group-hover:bg-brand-600 group-hover:text-white sm:block">{t("iv.start")}</span>
+            </button>
+            <div className="text-center"><button className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:underline" onClick={() => setPasting(!pasting)}><MessageSquareText className="h-4 w-4" />Have your resume as text? Paste it</button></div>
             {pasting && (
               <div className="space-y-2 animate-fade-in">
                 <textarea value={pasted} onChange={(e) => setPasted(e.target.value)} rows={8} className="w-full rounded-xl border border-slate-200 p-3 text-sm focus:border-brand-400 focus:outline-none" placeholder="Paste your full resume here…" />

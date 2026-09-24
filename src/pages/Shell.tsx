@@ -7,6 +7,7 @@ import CommandPalette, { type Command } from "../components/CommandPalette";
 import WelcomeTour from "../components/WelcomeTour";
 import { api, devUser } from "../lib/api";
 import { trackPage } from "../lib/analytics";
+import { useI18n, type StringKey } from "../lib/i18n";
 import { signOutUser } from "../lib/firebase";
 import { firstName } from "../lib/labels";
 import { NavCtx, hrefFor, parseHash, type Nav, type Page } from "../lib/nav";
@@ -39,15 +40,17 @@ const ME: Item[] = [
 const TITLES: Record<Page, string> = { home: "Home", matches: "For you", search: "Search jobs", applications: "Applications", resume: "Resumes", profile: "Profile", settings: "Settings", admin: "Admin" };
 
 function NavLink({ item, active, onClick }: { item: Item; active: boolean; onClick: () => void }) {
+  const { t } = useI18n();
   return (
     <a href={hrefFor(item.page)} onClick={(e) => { e.preventDefault(); onClick(); }} aria-current={active ? "page" : undefined}
       className={cn("group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition", active ? "bg-brand-50 text-brand-700" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900")}>
-      <item.icon className={cn("h-[18px] w-[18px]", active ? "text-brand-600" : "text-slate-400 group-hover:text-slate-600")} />{item.label}
+      <item.icon className={cn("h-[18px] w-[18px]", active ? "text-brand-600" : "text-slate-400 group-hover:text-slate-600")} />{t(`nav.${item.page}` as StringKey)}
     </a>
   );
 }
 
 export default function Shell({ me, refresh }: { me: Me; refresh: () => Promise<void> }) {
+  const { t, lang, setLang } = useI18n();
   const [route, setRoute] = useState(parseHash);
   useEffect(() => { const on = () => setRoute(parseHash()); window.addEventListener("hashchange", on); return () => window.removeEventListener("hashchange", on); }, []);
   const [chat, setChat] = useState<{ open: boolean; prompt?: string; key?: number }>({ open: false });
@@ -90,7 +93,7 @@ export default function Shell({ me, refresh }: { me: Me; refresh: () => Promise<
     ]);
 
   const page = route.page;
-  const current = route.jobId ? "Job details" : TITLES[page];
+  const current = route.jobId ? t("nav.jobDetails") : t(`nav.${page}` as StringKey) || TITLES[page];
   useEffect(() => trackPage(route.jobId ? "job" : page, current), [page, route.jobId, current]);
   const initials = (me.profile.fullName || me.user.email || "?").split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
 
@@ -99,14 +102,14 @@ export default function Shell({ me, refresh }: { me: Me; refresh: () => Promise<
       <a href="#" onClick={(e) => { e.preventDefault(); nav.go("home"); }} className="flex items-center gap-2.5 px-2"><Logo className="h-8 w-8" /><Wordmark /></a>
       <nav className="space-y-1" aria-label="Main">{MAIN.map((i) => <NavLink key={i.page} item={i} active={!route.jobId && page === i.page} onClick={() => nav.go(i.page)} />)}</nav>
       <div>
-        <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">You</p>
+        <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t("nav.you")}</p>
         <nav className="space-y-1" aria-label="Account">{items.map((i) => <NavLink key={i.page} item={i} active={!route.jobId && page === i.page} onClick={() => nav.go(i.page)} />)}</nav>
       </div>
       <div className="mt-auto space-y-3">
         {!ai.ownKey && (
           <button onClick={() => setAiWizard(true)} className="relative w-full overflow-hidden rounded-2xl bg-peacock p-4 text-left text-white shadow-lg shadow-brand-600/25">
-            <p className="flex items-center gap-1.5 text-sm font-semibold"><Sparkles className="h-4 w-4" />Unlock unlimited AI</p>
-            <p className="mt-1 text-xs text-brand-100">Add your free Google key in about a minute.</p>
+            <p className="flex items-center gap-1.5 text-sm font-semibold"><Sparkles className="h-4 w-4" />{t("chrome.unlockAi")}</p>
+            <p className="mt-1 text-xs text-brand-100">{t("chrome.unlockAiHint")}</p>
           </button>
         )}
         <div className="flex items-center gap-3 rounded-2xl px-2 py-1.5">
@@ -133,9 +136,12 @@ export default function Shell({ me, refresh }: { me: Me; refresh: () => Promise<
             <button aria-label="Menu" onClick={() => setDrawer(true)} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 lg:hidden"><Menu className="h-5 w-5" /></button>
             <p className="font-display text-base font-semibold text-ink lg:hidden">{current}</p>
             <button onClick={() => setPaletteOpen(true)} className="ml-auto hidden h-10 w-full max-w-md items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-500 transition hover:border-slate-300 hover:bg-white sm:flex lg:ml-0">
-              <Search className="h-4 w-4" /><span className="flex-1 text-left">Search jobs, pages…</span><Kbd>Ctrl K</Kbd>
+              <Search className="h-4 w-4" /><span className="flex-1 text-left">{t("chrome.search")}</span><Kbd>Ctrl K</Kbd>
             </button>
             <div className="ml-auto flex items-center gap-1">
+              <div className="mr-1 flex rounded-lg bg-slate-100/80 p-0.5 text-xs font-semibold" role="group" aria-label="Language / भाषा">
+                {(["en", "hi"] as const).map((l) => <button key={l} onClick={() => setLang(l)} aria-pressed={lang === l} className={cn("rounded-md px-2 py-1", lang === l ? "bg-white text-brand-700 shadow-sm" : "text-slate-500 hover:text-slate-700")}>{l === "en" ? "EN" : "हिं"}</button>)}
+              </div>
               <button aria-label="Search" onClick={() => setPaletteOpen(true)} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 sm:hidden"><Search className="h-5 w-5" /></button>
               <div className="relative">
                 <button aria-label="Notifications" onClick={() => { setBellOpen(!bellOpen); if (!bellOpen && unread) void api("/notifications/read", { body: {} }).then(loadNotes); }} className="relative rounded-lg p-2 text-slate-600 hover:bg-slate-100">
@@ -157,7 +163,7 @@ export default function Shell({ me, refresh }: { me: Me; refresh: () => Promise<
                 )}
               </div>
               <button onClick={() => nav.openChat()} className="ml-1 hidden h-10 items-center gap-2 rounded-xl bg-peacock px-3.5 text-sm font-medium text-white shadow-md shadow-brand-600/25 transition hover:brightness-110 sm:flex">
-                <MessageCircle className="h-4 w-4" />Assistant
+                <MessageCircle className="h-4 w-4" />{t("chrome.assistant")}
               </button>
             </div>
           </div>
@@ -180,7 +186,7 @@ export default function Shell({ me, refresh }: { me: Me; refresh: () => Promise<
         <nav className="glass-strong fixed inset-x-0 bottom-0 z-30 flex border-t pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label="Main mobile">
           {[...MAIN, ...ME].filter((i) => i.mobile).map((i) => (
             <button key={i.page} onClick={() => nav.go(i.page)} className={cn("flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium", !route.jobId && page === i.page ? "text-brand-600" : "text-slate-500")}>
-              <i.icon className="h-5 w-5" />{i.label === "Search jobs" ? "Search" : i.label}
+              <i.icon className="h-5 w-5" />{i.page === "search" && lang === "en" ? "Search" : t(`nav.${i.page}` as StringKey)}
             </button>
           ))}
         </nav>

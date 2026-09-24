@@ -21,7 +21,8 @@ export type Collection =
   | "userKeys"
   | "discoveryRuns"
   | "agentUndo"
-  | "agentFeedback";
+  | "agentFeedback"
+  | "plans";
 
 export interface QueryOptions {
   where?: Record<string, string | number | boolean>;

@@ -106,7 +106,8 @@ export function applyParsedResume(p: CandidateProfile, parsed: ParsedResume, res
     currentRole: setStr("currentRole"), summary: setStr("summary"),
     links: { ...p.links, ...Object.fromEntries(Object.entries(parsed.links).filter(([, v]) => v)) },
     experience, skills, education: parsed.education, certifications: parsed.certifications, projects: parsed.projects,
-    totalExperienceYears: totalExperienceYears(experience),
+    // A number the user told us wins over one computed from resume dates.
+    totalExperienceYears: prov.totalExperienceYears === "user" ? p.totalExperienceYears : totalExperienceYears(experience),
     insights: parsed.insights, preferences, provenance: { ...prov, insights: "ai_derived" },
     resumeId, status: "empty",
   };
@@ -157,7 +158,7 @@ export const EDITABLE_SCALARS = ["fullName", "email", "phone", "city", "state", 
 
 export async function editProfile(
   uid: string,
-  edit: { scalars?: Partial<Record<(typeof EDITABLE_SCALARS)[number], string>>; addSkills?: string[]; removeSkills?: string[]; discoveryPaused?: boolean; automationLevel?: 0 | 1 | 2 | 3 },
+  edit: { scalars?: Partial<Record<(typeof EDITABLE_SCALARS)[number], string>>; addSkills?: string[]; removeSkills?: string[]; discoveryPaused?: boolean; automationLevel?: 0 | 1 | 2 | 3; language?: "en" | "hi"; emailDigest?: "off" | "daily" | "weekly" },
 ): Promise<CandidateProfile> {
   const p = await getProfile(uid);
   if (!p) throw new Error("Profile not found");
@@ -180,6 +181,8 @@ export async function editProfile(
   }
   if (edit.discoveryPaused !== undefined) next.discoveryPaused = edit.discoveryPaused;
   if (edit.automationLevel !== undefined) next.automationLevel = edit.automationLevel;
+  if (edit.language) next.language = edit.language;
+  if (edit.emailDigest) next.emailDigest = edit.emailDigest;
   const saved = await saveProfile(next);
   await audit(uid, "profile.edited", { fields: Object.keys(edit) });
   return saved;

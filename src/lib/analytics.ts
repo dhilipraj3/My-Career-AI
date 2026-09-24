@@ -72,4 +72,5 @@ export function trackPage(page: string, title: string) {
 export type EventName =
   | "page_view" | "sign_up" | "login" | "resume_uploaded" | "onboarding_complete" | "ai_key_added"
   | "search" | "filter_used" | "job_view" | "job_save" | "apply_click" | "application_applied" | "application_interview" | "application_offer" | "application_status"
-  | "assistant_open" | "assistant_message" | "assistant_feedback" | "assistant_undo" | "assistant_action" | "share";
+  | "assistant_open" | "assistant_message" | "assistant_feedback" | "assistant_undo" | "assistant_action" | "share"
+  | "onboarding_answer" | "understanding_answer" | "role_targeted" | "resume_built" | "plan_tick" | "placed";

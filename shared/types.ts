@@ -61,6 +61,8 @@ export interface CandidatePreferences {
   willingToRelocate?: boolean;
   excludedCompanies: string[];
   excludedKeywords: string[];
+  /** What matters most in the next job (growth, pay, stability…). */
+  motivations?: string[];
 }
 
 export type ProfileStatus = "empty" | "parsing" | "needs_info" | "ready";
@@ -97,6 +99,10 @@ export interface CandidateProfile {
   automationLevel: 0 | 1 | 2 | 3;
   resumeId?: string;
   lastSeenFeedAt?: string; // for "new since your last visit"
+  lastActiveAt?: string; // last time the user opened the app (for gentle nudges)
+  placement?: import("./career.js").Placement; // set when the user tells us they got placed
+  emailDigest?: import("./career.js").DigestFrequency;
+  language?: "en" | "hi";
   createdAt: string;
   updatedAt: string;
 }

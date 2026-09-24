@@ -64,6 +64,8 @@
 }
 
 html, body, #root { height: 100%; }
+/* Large-text mode (Settings): everything is sized in rem, so this scales text, spacing and buttons together. */
+html.large-text { font-size: 112.5%; }
 body {
   /* A soft peacock mesh behind everything, so glass surfaces have something to frost. */
   background:

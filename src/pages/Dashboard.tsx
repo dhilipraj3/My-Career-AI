@@ -4,6 +4,7 @@ import type { ApplicationRecord, FeedSummary, JobSearchHit, JobSearchResult } fr
 import type { AiState, Me } from "../App";
 import JobCard from "../components/JobCard";
 import SyncBadge from "../components/SyncBadge";
+import UnderstandingCard from "../components/UnderstandingCard";
 import { api } from "../lib/api";
 import { firstName } from "../lib/labels";
 import { CountUp } from "../lib/motion";
@@ -92,6 +93,7 @@ export default function Dashboard({ me, ai }: { me: Me; ai: AiState }) {
         </Section>
 
         <div className="space-y-6">
+          <UnderstandingCard onChanged={() => void nav.refresh()} />
           <Section title="Your next steps">
             <Card className="divide-y divide-slate-100 p-0">
               {steps.length === 0 && <p className="p-5 text-sm text-slate-500">You're all caught up. 🎉</p>}

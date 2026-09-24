@@ -5,6 +5,7 @@ import { api, devUser, errMsg } from "./lib/api";
 import { auth, signInWithGoogle } from "./lib/firebase";
 import { track, trackPage } from "./lib/analytics";
 import ConsentBanner from "./components/ConsentBanner";
+import { I18nProvider } from "./lib/i18n";
 import { Button, ErrorNote, Spinner, ToastProvider } from "./ui";
 import Landing from "./pages/Landing";
 // The signed-in app loads on demand, so first-time visitors only download the landing page.
@@ -86,5 +87,11 @@ export default function App() {
   else if (error && !me) body = <div className="mx-auto max-w-md space-y-4 p-8"><ErrorNote error={error} /><Button onClick={refresh}>Try again</Button></div>;
   else if (!me) body = <Spinner label="Loading your profile…" className="min-h-full" />;
   else body = ["empty", "parsing", "needs_info"].includes(me.profile.status) ? <Onboarding me={me} refresh={refresh} /> : <Shell me={me} refresh={refresh} />;
-  return <ToastProvider><Suspense fallback={<Spinner label="Loading…" className="min-h-full" />}>{body}</Suspense><ConsentBanner /></ToastProvider>;
+  // The chosen language is also saved on the profile, so the assistant and questions follow it on every device.
+  const saveLang = useCallback((l: "en" | "hi") => { if (signedIn) void api("/profile", { method: "PATCH", body: { language: l } }).catch(() => undefined); }, [signedIn]);
+  return (
+    <I18nProvider onChange={saveLang}>
+      <ToastProvider><Suspense fallback={<Spinner label="Loading…" className="min-h-full" />}>{body}</Suspense><ConsentBanner /></ToastProvider>
+    </I18nProvider>
+  );
 }

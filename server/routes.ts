@@ -37,6 +37,7 @@ import { RECOMMENDABLE } from "./jobs/normalize.js";
 import { portalLinks } from "./search/portals.js";
 import { feedSummary, markFeedSeen } from "./matching/feed.js";
 import { publicSearch, publicStats } from "./public.js";
+import { careerRouter } from "./career/routes.js";
 
 const wrap = (fn: (req: Request, res: Response) => Promise<unknown>): RequestHandler => (req, res, next) => {
   fn(req, res).catch(next);
@@ -77,6 +78,7 @@ export function buildRouter(): express.Router {
   }));
 
   r.use(requireAuth);
+  r.use(careerRouter());
 
   // ---------------- account / profile ----------------
   r.get("/me", wrap(async (req, res) => {
@@ -125,6 +127,7 @@ export function buildRouter(): express.Router {
       scalars: z.record(z.enum(EDITABLE_SCALARS), z.string().max(1500)).optional(),
       addSkills: z.array(z.string().min(1).max(60)).max(30).optional(), removeSkills: z.array(z.string().min(1).max(60)).max(30).optional(),
       discoveryPaused: z.boolean().optional(), automationLevel: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]).optional(),
+      language: z.enum(["en", "hi"]).optional(), emailDigest: z.enum(["off", "daily", "weekly"]).optional(),
     }).strict().parse(req.body);
     await getOrCreateProfile(req.user!);
     const profile = await editProfile(req.user!.uid, body as any);
