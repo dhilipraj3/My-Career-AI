@@ -6,12 +6,14 @@ import { backupStatus } from "./db/store.js";
 export function configWarnings(): string[] {
   if (!config.isProd) return [];
   const w: string[] = [];
-  if (!config.firebaseServiceAccountJson && !config.googleCredentialsPath)
+  if (config.googleCredentialsMissing)
+    w.push(`GOOGLE_APPLICATION_CREDENTIALS points to "${config.googleCredentialsMissing}", but that file doesn't exist. On Render, add it under Environment → Secret Files with exactly that file name.`);
+  else if (!config.firebaseServiceAccountJson && !config.googleCredentialsPath)
     w.push("FIREBASE_SERVICE_ACCOUNT_JSON is not set: user accounts, profiles and jobs are lost on every restart or deploy.");
   if (!process.env.APP_SECRET) w.push("APP_SECRET is not set: users can't save their AI keys.");
   if (!config.adminEmails.length) w.push("ADMIN_EMAILS is not set: nobody can open Admin.");
   const b = backupStatus();
-  if (b.enabled && b.lastError) w.push(`Firestore backup is failing: ${b.lastError.slice(0, 160)}`);
+  if (b.lastError) w.push(b.enabled ? `Firestore backup is failing: ${b.lastError.slice(0, 160)}` : b.lastError.slice(0, 240));
   return w;
 }
 

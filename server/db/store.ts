@@ -249,6 +249,7 @@ export class FirestoreStore implements Store {
 
 let instance: Store | null = null;
 let backup: import("./snapshot.js").SnapshotWriter | null = null;
+let backupProblem: string | null = null;
 
 /** Save pending backups now (graceful shutdown). */
 export async function flushBackups(): Promise<void> {
@@ -256,7 +257,7 @@ export async function flushBackups(): Promise<void> {
   await backup?.flushAll();
 }
 
-export const backupStatus = () => (backup ? { enabled: true, lastError: backup.lastError } : { enabled: false, lastError: null });
+export const backupStatus = () => (backup ? { enabled: true, lastError: backup.lastError } : { enabled: false, lastError: backupProblem });
 
 export function setStore(s: Store) {
   instance = s;
@@ -265,7 +266,8 @@ export function setStore(s: Store) {
 export async function getStore(): Promise<Store> {
   if (instance) return instance;
   const hasCreds = Boolean(config.firebaseServiceAccountJson || config.googleCredentialsPath);
-  const mode = config.storeMode || (hasCreds ? "snapshot" : "file");
+  // Only production backs up to Firestore by default: a developer's machine must never overwrite the live backup.
+  const mode = config.storeMode || (hasCreds && config.isProd ? "snapshot" : "file");
   if (mode === "firestore" && hasCreds) {
     const { getFirestoreDb } = await import("./firebaseAdmin.js");
     instance = new FirestoreStore(getFirestoreDb());
@@ -276,18 +278,23 @@ export async function getStore(): Promise<Store> {
     const { SnapshotWriter, firestoreBackend, restoreSnapshot } = await import("./snapshot.js");
     const file = path.join(config.dataDir, "store.json");
     const remote = firestoreBackend(getFirestoreDb());
+    let restoredOk = true;
     try {
       const r = await restoreSnapshot(remote, file);
       console.log(r.restored ? `[store] Restored ${r.docs} records from the Firestore backup` : "[store] Using the existing local data file");
-    } catch (err) {
-      // Never start on top of a half-restored backup: fail loudly so the platform restarts us.
-      console.error("[store] Could not restore the Firestore backup", err);
-      throw err;
+    } catch (err: any) {
+      // Can't read the backup (wrong key, no database yet, network). Start without it rather than crash-looping, and
+      // do NOT back up: saving now would overwrite the good backup with an empty one.
+      restoredOk = false;
+      backupProblem = `Could not read the Firestore backup: ${String(err?.message || err).slice(0, 200)}`;
+      console.error(`[store] ${backupProblem}`);
     }
     const fileStore = new FileStore(file);
-    backup = new SnapshotWriter(fileStore, remote);
+    if (restoredOk) {
+      backup = new SnapshotWriter(fileStore, remote);
+      console.log("[store] Local file store with Firestore backup");
+    } else console.error("[store] Running WITHOUT a backup — data will be lost on restart until this is fixed.");
     instance = fileStore;
-    console.log("[store] Local file store with Firestore backup");
   } else {
     if (config.isProd) console.warn("[store] WARNING: no Firebase credentials in production; using local file store");
     instance = new FileStore(path.join(config.dataDir, "store.json"));

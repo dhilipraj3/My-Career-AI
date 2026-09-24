@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import dotenv from "dotenv";
 import { BRAND } from "../shared/brand.js";
 import { isSmallServer } from "./memory.js";
@@ -10,6 +12,21 @@ const num = (v: string | undefined, d: number) => {
   const n = Number(v);
   return v !== undefined && v !== "" && Number.isFinite(n) ? n : d;
 };
+/**
+ * GOOGLE_APPLICATION_CREDENTIALS may point at a file that isn't where it says (e.g. a Render "Secret File" that lives in
+ * /etc/secrets). Look in the usual places; if it's nowhere, drop the setting so the Google libraries don't crash on it.
+ */
+function resolveCredentialsFile(): { path: string; missing: string } {
+  const given = process.env.GOOGLE_APPLICATION_CREDENTIALS || "";
+  if (!given) return { path: "", missing: "" };
+  const name = path.basename(given);
+  const found = [given, path.join("/etc/secrets", name), path.resolve(name)].find((p) => { try { return fs.statSync(p).isFile(); } catch { return false; } });
+  if (found) { process.env.GOOGLE_APPLICATION_CREDENTIALS = found; return { path: found, missing: "" }; }
+  delete process.env.GOOGLE_APPLICATION_CREDENTIALS;
+  return { path: "", missing: given };
+}
+const creds = resolveCredentialsFile();
+
 const list = (v: string | undefined) => (v || "").split(",").map((s) => s.trim()).filter(Boolean);
 
 export const config = {
@@ -19,7 +36,9 @@ export const config = {
   isProd: process.env.NODE_ENV === "production",
   firebaseProjectId: process.env.FIREBASE_PROJECT_ID || "my-career-ai",
   firebaseServiceAccountJson: process.env.FIREBASE_SERVICE_ACCOUNT_JSON || "",
-  googleCredentialsPath: process.env.GOOGLE_APPLICATION_CREDENTIALS || "",
+  googleCredentialsPath: creds.path,
+  /** Set when GOOGLE_APPLICATION_CREDENTIALS names a file that doesn't exist (shown as a configuration warning). */
+  googleCredentialsMissing: creds.missing,
   devAuthBypass: process.env.DEV_AUTH_BYPASS === "true" && process.env.NODE_ENV !== "production",
   gemini: {
     apiKey: process.env.GEMINI_API_KEY || "",
