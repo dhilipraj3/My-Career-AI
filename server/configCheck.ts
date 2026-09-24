@@ -1,13 +1,17 @@
 // Production configuration checks: problems the owner must fix in the hosting settings. Printed loudly at startup
 // and listed on /api/health (no secret values, only what's missing).
+import fs from "node:fs";
 import { config } from "./config.js";
 import { backupStatus } from "./db/store.js";
 
 export function configWarnings(): string[] {
   if (!config.isProd) return [];
   const w: string[] = [];
-  if (config.googleCredentialsMissing)
-    w.push(`GOOGLE_APPLICATION_CREDENTIALS points to "${config.googleCredentialsMissing}", but that file doesn't exist. On Render, add it under Environment → Secret Files with exactly that file name.`);
+  if (config.googleCredentialsMissing) {
+    let seen = "none";
+    try { seen = fs.readdirSync("/etc/secrets").map((f) => JSON.stringify(f)).join(", ") || "none"; } catch { /* folder absent: no secret files at all */ }
+    w.push(`GOOGLE_APPLICATION_CREDENTIALS points to "${config.googleCredentialsMissing}", but that file doesn't exist. Secret files this server can see: ${seen}. On Render, add it under Environment → Secret Files with exactly that file name — or instead set FIREBASE_SERVICE_ACCOUNT_JSON to the file's contents.`);
+  }
   else if (!config.firebaseServiceAccountJson && !config.googleCredentialsPath)
     w.push("FIREBASE_SERVICE_ACCOUNT_JSON is not set: user accounts, profiles and jobs are lost on every restart or deploy.");
   if (!process.env.APP_SECRET) w.push("APP_SECRET is not set: users can't save their AI keys.");
