@@ -7,11 +7,19 @@ import { config } from "../config.js";
 
 let masterKey: Buffer | null = null;
 
+/** The server is missing configuration the owner has to add (shown to users as a clear 503, not a crash). */
+export class ConfigError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ConfigError";
+  }
+}
+
 function master(): Buffer {
   if (masterKey) return masterKey;
   let secret = process.env.APP_SECRET || "";
   if (!secret) {
-    if (config.isProd) throw new Error("APP_SECRET must be set in production to store API keys.");
+    if (config.isProd) throw new ConfigError("This server can't store API keys yet: the owner needs to set APP_SECRET in the hosting settings.");
     const file = path.join(config.dataDir, ".app-secret");
     try {
       secret = fs.readFileSync(file, "utf8").trim();

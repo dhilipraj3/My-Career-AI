@@ -280,3 +280,22 @@ describe("profile readiness (scope §11-12)", () => {
     expect(again.status).toBe("ready");
   });
 });
+
+describe("pruning long-dead jobs", () => {
+  it("forgets jobs unseen for 45+ days, but keeps ones someone applied to or saved", async () => {
+    const { pruneDeadJobs } = await import("../server/jobs/ingest.js");
+    await ingestRawJobs([rawJob(), rawJob({ sourceJobId: "2", company: "Other Co", url: "https://boards.greenhouse.io/other/jobs/2" }), rawJob({ sourceJobId: "3", company: "Third Co", url: "https://boards.greenhouse.io/third/jobs/3" })]);
+    const store = await getStore();
+    const jobs = await store.query<Job>("jobs");
+    const old = new Date(Date.now() - 60 * 86400000).toISOString();
+    for (const j of jobs) await store.update<Job>("jobs", j.id, { status: "expired", lastVerifiedAt: old });
+    await store.put("applications", "app1", { id: "app1", uid: "u1", jobId: jobs[0].id });
+    await store.put("matches", `u1_${jobs[1].id}`, { id: `u1_${jobs[1].id}`, uid: "u1", jobId: jobs[1].id, saved: true });
+    await store.put("matches", `u1_${jobs[2].id}`, { id: `u1_${jobs[2].id}`, uid: "u1", jobId: jobs[2].id, saved: false });
+    expect(await pruneDeadJobs()).toBe(1);
+    expect(await store.get("jobs", jobs[2].id)).toBeNull();
+    expect(await store.get("matches", `u1_${jobs[2].id}`)).toBeNull();
+    expect(await store.get("jobs", jobs[0].id)).not.toBeNull();
+    expect(await store.get("jobs", jobs[1].id)).not.toBeNull();
+  });
+});

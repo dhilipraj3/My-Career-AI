@@ -1,3 +1,4 @@
+import { config } from "../config.js";
 import type { ConnectorHealth } from "../../shared/types.js";
 import { getStore } from "../db/store.js";
 import { parseLocation } from "../nlp/location.js";
@@ -160,7 +161,16 @@ export function runDiscovery(opts: { keywords?: string[]; connectorIds?: string[
       }
       chosen.push(c);
     }
-    const results = await Promise.all(chosen.map((c) => runConnector(c, opts.keywords || [])));
+    // A few sources at a time: each one can hold thousands of raw postings in memory until they're ingested, and
+    // running all of them at once is what ran small (512 MB) servers out of memory.
+    const results: Array<Awaited<ReturnType<typeof runConnector>>> = new Array(chosen.length);
+    let nextIdx = 0;
+    await Promise.all(Array.from({ length: Math.max(1, Math.min(config.sources.concurrency, chosen.length)) }, async () => {
+      while (nextIdx < chosen.length) {
+        const i = nextIdx++;
+        results[i] = await runConnector(chosen[i], opts.keywords || []);
+      }
+    }));
     const expiredChanged = await refreshFreshness();
     const touched = [...new Set(results.flatMap((r) => r.touched))];
     // Every job link we just saw may reveal a company careers board we don't know yet: add it, so coverage grows by itself.

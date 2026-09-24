@@ -8,6 +8,8 @@ import { startBackgroundSearch } from "./agent/tools.js";
 import { aiAvailable, aiStatus, getUsage, generateJSON, AiQuotaError, AiUnavailableError } from "./ai/gateway.js";
 import { KeyTestError, addPoolKey, countUserKeys, deleteUserKey, getUserKey, listPool, removePoolKey, retestPoolKey, saveUserKey, updatePoolKey } from "./ai/keys.js";
 import { COMPAT_PRESETS } from "./ai/providers.js";
+import { ConfigError } from "./ai/secrets.js";
+import { configWarnings } from "./configCheck.js";
 import { AppError, addNote, getApplication, getJobForUser, listApplications, prepareApplication, startDirectApply, updateStatus } from "./applications/service.js";
 import { audit } from "./audit.js";
 import { requireAuth } from "./auth.js";
@@ -66,7 +68,7 @@ export function buildRouter(): express.Router {
   const r = express.Router();
 
   r.get("/health", wrap(async (_req, res) => {
-    res.json({ status: "ok", time: new Date().toISOString(), ai: { configured: (await aiStatus()).some((p) => p.configured) } });
+    res.json({ status: "ok", time: new Date().toISOString(), ai: { configured: (await aiStatus()).some((p) => p.configured) }, warnings: configWarnings(), memoryMB: { rss: Math.round(process.memoryUsage().rss / 1048576), heap: Math.round(process.memoryUsage().heapUsed / 1048576) } });
   }));
 
   // ---- public (signed-out) endpoints for the landing page ----
@@ -670,7 +672,7 @@ export function buildRouter(): express.Router {
   }));
   r.get("/admin/stats", requireAdmin, wrap(async (_req, res) => {
     const store = await getStore();
-    const jobs = await store.query<Job>("jobs");
+    const jobs = await store.query<Job>("jobs", { readOnly: true });
     const byStatus: Record<string, number> = {};
     const bySource: Record<string, number> = {};
     const byCity: Record<string, number> = {};
@@ -702,6 +704,7 @@ export function errorHandler(err: any, _req: Request, res: Response, _next: Next
   if (err instanceof multer.MulterError) return res.status(err.code === "LIMIT_FILE_SIZE" ? 413 : 400).json({ error: err.code === "LIMIT_FILE_SIZE" ? "File is too large (max 8 MB)." : "Upload failed." });
   if (err instanceof AiQuotaError) return res.status(429).json({ error: "You've used today's AI credits. Non-AI features still work; credits reset tomorrow.", code: "ai_quota" });
   if (err instanceof AiUnavailableError) return res.status(503).json({ error: "AI is temporarily unavailable. Please try again shortly.", code: "ai_unavailable" });
+  if (err instanceof ConfigError) { console.error("[config]", err.message); return res.status(503).json({ error: err.message, code: "server_config" }); }
   // body-parser and friends signal client mistakes (bad JSON, payload too large) with a 4xx status.
   if (Number.isInteger(err?.status) && err.status >= 400 && err.status < 500)
     return res.status(err.status).json({ error: err.type === "entity.too.large" ? "Request is too large." : err.type === "entity.parse.failed" ? "Invalid JSON in request body." : "Bad request." });

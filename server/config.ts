@@ -1,5 +1,8 @@
 import dotenv from "dotenv";
 import { BRAND } from "../shared/brand.js";
+import { isSmallServer } from "./memory.js";
+
+const small = isSmallServer();
 
 dotenv.config();
 
@@ -36,7 +39,9 @@ export const config = {
   sources: {
     disabled: list(process.env.SOURCES_DISABLED),
     // Company boards fetched per connector per cycle; the registry rotates through the rest on later cycles.
-    boardsPerRun: num(process.env.BOARDS_PER_RUN, 40),
+    boardsPerRun: num(process.env.BOARDS_PER_RUN, small ? 20 : 40),
+    // How many sources fetch at the same time during a discovery run (memory vs. speed).
+    concurrency: num(process.env.DISCOVERY_CONCURRENCY, small ? 1 : 2),
     maxJobsPerBoard: num(process.env.MAX_JOBS_PER_BOARD, 120),
     registryTimeoutMs: num(process.env.REGISTRY_CONNECTOR_TIMEOUT_MS, 240_000),
   },

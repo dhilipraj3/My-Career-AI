@@ -1,7 +1,8 @@
-import { CheckCircle2, FileText, Loader2, MessageSquareText, Mic, ShieldCheck, Upload } from "lucide-react";
+import { CheckCircle2, FileText, Loader2, LogOut, MessageSquareText, Mic, ShieldCheck, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Logo, Wordmark, type Me } from "../App";
-import { api, errMsg } from "../lib/api";
+import { api, devUser, errMsg } from "../lib/api";
+import { signOutUser } from "../lib/firebase";
 import { track } from "../lib/analytics";
 import { firstName } from "../lib/labels";
 import InterviewFlow from "../components/InterviewFlow";
@@ -60,7 +61,17 @@ export default function Onboarding({ me, refresh }: { me: Me; refresh: () => Pro
   return (
     <div className="min-h-full hero-gradient">
       <div className="mx-auto flex min-h-full max-w-2xl flex-col gap-8 px-5 py-10">
-        <div className="flex items-center gap-2.5"><Logo className="h-8 w-8" /><Wordmark /></div>
+        <div className="flex items-center gap-2.5">
+          <Logo className="h-8 w-8" /><Wordmark />
+          <div className="ml-auto flex items-center gap-2 text-sm">
+            <span className="hidden max-w-[16rem] truncate text-slate-500 sm:block" title={me.user.email}>{me.user.email}</span>
+            {!devUser && (
+              <button onClick={() => void signOutUser().then(() => { location.hash = ""; })} className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/80 px-3 py-1.5 font-medium text-slate-700 transition hover:border-slate-300 hover:bg-white">
+                <LogOut className="h-4 w-4" />Sign out
+              </button>
+            )}
+          </div>
+        </div>
 
         <div>
           <h1 className="text-3xl font-extrabold">Welcome{p.fullName ? `, ${firstName(p.fullName)}` : ""} 👋</h1>

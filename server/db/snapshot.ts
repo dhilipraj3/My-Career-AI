@@ -10,10 +10,40 @@ import fs from "node:fs";
 import path from "node:path";
 import { promisify } from "node:util";
 import zlib from "node:zlib";
-import type { Collection, FileStore } from "./store.js";
+import { writeJsonFile, type Collection, type FileStore } from "./store.js";
 
-const gzip = promisify(zlib.gzip);
 const gunzip = promisify(zlib.gunzip);
+
+/** Compress {collection: {id: doc}} as JSON, one document at a time (no giant intermediate string). */
+async function gzipJson(data: Record<string, Record<string, unknown>>): Promise<Buffer> {
+  const z = zlib.createGzip({ level: 6 });
+  const out: Buffer[] = [];
+  z.on("data", (c: Buffer) => out.push(c));
+  const done = new Promise<void>((resolve, reject) => { z.on("end", resolve); z.on("error", reject); });
+  let buf = "";
+  const write = async (s: string) => {
+    buf += s;
+    if (buf.length < 256_000) return;
+    const ok = z.write(buf);
+    buf = "";
+    if (!ok) await new Promise((r) => z.once("drain", r));
+  };
+  await write("{");
+  let firstCol = true;
+  for (const [col, docs] of Object.entries(data)) {
+    await write(`${firstCol ? "" : ","}${JSON.stringify(col)}:{`);
+    firstCol = false;
+    let firstDoc = true;
+    for (const [id, doc] of Object.entries(docs)) {
+      await write(`${firstDoc ? "" : ","}${JSON.stringify(id)}:${JSON.stringify(doc)}`);
+      firstDoc = false;
+    }
+    await write("}");
+  }
+  z.end(buf + "}");
+  await done;
+  return Buffer.concat(out);
+}
 
 /** Firestore documents max out at 1 MiB; stay well under it. */
 const CHUNK_BYTES = 900_000;
@@ -75,7 +105,7 @@ export async function restoreSnapshot(backend: SnapshotBackend, filePath: string
   }
   if (!found) return { restored: false, docs: 0 };
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, JSON.stringify(data));
+  writeJsonFile(filePath, data as Record<string, Record<string, unknown>>);
   return { restored: true, docs };
 }
 
@@ -130,14 +160,14 @@ export class SnapshotWriter {
   }
 
   private async upload(part: SnapshotPart): Promise<void> {
-    const cols = this.store.exportCollections(PARTS[part].collections);
+    const cols = { ...this.store.exportCollections(PARTS[part].collections) };
     if (cols.audit) {
       // The audit log only needs recent history in the backup.
       const rows = Object.entries(cols.audit).sort((a, b) => String((b[1] as any)?.at || "").localeCompare(String((a[1] as any)?.at || ""))).slice(0, AUDIT_KEEP);
       cols.audit = Object.fromEntries(rows);
     }
     const docs = Object.values(cols).reduce((n, c) => n + Object.keys(c).length, 0);
-    const zipped = await gzip(Buffer.from(JSON.stringify(cols), "utf8"), { level: 6 });
+    const zipped = await gzipJson(cols);
     const version = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
     const chunks = Math.max(1, Math.ceil(zipped.length / CHUNK_BYTES));
     for (let i = 0; i < chunks; i++) await this.backend.set(chunkId(part, version, i), { data: zipped.subarray(i * CHUNK_BYTES, (i + 1) * CHUNK_BYTES) });

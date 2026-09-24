@@ -23,7 +23,7 @@ let cache: { at: number; stats: PublicStats } | null = null;
 export async function publicStats(): Promise<PublicStats> {
   if (cache && Date.now() - cache.at < 5 * 60_000) return cache.stats;
   const store = await getStore();
-  const jobs = (await store.query<Job>("jobs")).filter((j) => !j.ownerUid && RECOMMENDABLE.includes(j.status) && !j.quality.suspicious);
+  const jobs = (await store.query<Job>("jobs", { readOnly: true })).filter((j) => !j.ownerUid && RECOMMENDABLE.includes(j.status) && !j.quality.suspicious);
   const cityCount = new Map<string, number>();
   for (const j of jobs) for (const c of j.cities?.length ? j.cities : j.city ? [j.city] : []) cityCount.set(c, (cityCount.get(c) || 0) + 1);
   const health = await store.query<ConnectorHealth>("connectors");

@@ -29,7 +29,9 @@ const SCHEMA = {
 
 type Doc = { [K in keyof typeof SCHEMA]: any };
 
-const BODY_CHARS = 1500;
+// Titles, companies and skills are indexed in full; a short slice of the description is enough for relevance and
+// keeps the index small (the full text made the index the largest thing in memory).
+const BODY_CHARS = 500;
 
 function toDoc(j: Job): Doc {
   return {
@@ -57,7 +59,7 @@ async function getIndex(): Promise<Index> {
   if (!p) {
     p = (async () => {
       const db = create({ schema: SCHEMA, components: { tokenizer: { stemming: false } } });
-      const jobs = (await store.query<Job>("jobs")).filter(searchable);
+      const jobs = (await store.query<Job>("jobs", { readOnly: true })).filter(searchable);
       await insertMultiple(db, jobs.map(toDoc), 500);
       return { db, ids: new Set(jobs.map((j) => j.id)) };
     })();

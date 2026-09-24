@@ -21,6 +21,12 @@ An AI placement companion for job seekers in India: **upload a resume → answer
 
 **Free-plan limits.** Render's free instance sleeps after 15 minutes without visitors; while asleep, hourly job discovery and alerts pause, and the first visit takes ~30–60 s to wake it. Discovery runs again 15 s after every wake-up. To keep it awake (one free service fits Render's 750 free hours a month), point a free uptime monitor such as UptimeRobot or cron-job.org at `https://app.tiaslab.in/api/health` every 10 minutes — or move to the Starter plan when you have users.
 
+**Check it's healthy:** open `/api/health` on the live site. `warnings` must be empty (it lists missing settings such as `FIREBASE_SERVICE_ACCOUNT_JSON` or `APP_SECRET`), and `memoryMB` shows current memory use. The same warnings are printed at the top of the Render log on every start.
+
+**Copy your local data to the live site (one time).** Add the same `FIREBASE_SERVICE_ACCOUNT_JSON` to your local `.env`, then run `npx tsx scripts/upload-local-data.ts` (dry run) and `npx tsx scripts/upload-local-data.ts --yes`. Do this **before** adding the Firebase variable on Render, then redeploy: the new instance restores your profiles, applications and jobs. AI keys aren't copied (they're encrypted per server) — add yours again in the live app.
+
+**Memory.** `npm start` runs `scripts/start.mjs`, which sizes Node's heap to the container (about 60% of its memory). On small servers (≤ 1 GB, e.g. Render free) discovery fetches one source at a time and 20 company boards per run; override with `DISCOVERY_CONCURRENCY` and `BOARDS_PER_RUN`.
+
 ## Quick start (local development)
 
 ```powershell

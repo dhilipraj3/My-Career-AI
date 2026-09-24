@@ -7,6 +7,7 @@ import { flushBackups, getStore } from "./db/store.js";
 import { startScheduler } from "./scheduler.js";
 import { loadDiscoverySettings } from "./jobs/settings.js";
 import { notFoundHtml } from "./seo/pages.js";
+import { printConfigWarnings } from "./configCheck.js";
 
 async function main() {
   const store = await getStore();
@@ -35,6 +36,7 @@ async function main() {
     console.log(`MyCareer.AI running on http://localhost:${config.port}  (store: ${store.kind}, public site: ${config.siteUrl})`);
     if (config.devAuthBypass) console.warn("WARNING: DEV_AUTH_BYPASS is on — never enable it in production.");
   });
+  printConfigWarnings();
   await loadDiscoverySettings();
   startScheduler();
 

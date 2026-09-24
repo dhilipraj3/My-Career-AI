@@ -27,6 +27,11 @@ export type Collection =
 export interface QueryOptions {
   where?: Record<string, string | number | boolean>;
   limit?: number;
+  /**
+   * The caller promises not to modify the results. The file store then returns its own objects instead of copies —
+   * scanning every job without copying 4,000+ documents is what keeps the server inside a small memory limit.
+   */
+  readOnly?: boolean;
 }
 
 export interface Store {
@@ -43,6 +48,34 @@ export interface Store {
 /** Firestore rejects `undefined`; JSON files drop it. Normalise both ways. */
 export function clean<T>(value: T): T {
   return JSON.parse(JSON.stringify(value));
+}
+
+/**
+ * Write {collection: {id: doc}} to a file one document at a time. Building the whole file as one string needs
+ * ~2× the data size in memory at once (60 MB+ for our job pool), which is what pushed small servers over the edge.
+ */
+export function writeJsonFile(filePath: string, data: Record<string, Record<string, unknown>>) {
+  const fd = fs.openSync(filePath, "w");
+  try {
+    let buf = "";
+    const put = (s: string) => { buf += s; if (buf.length > 256_000) { fs.writeSync(fd, buf); buf = ""; } };
+    put("{");
+    let firstCol = true;
+    for (const [col, docs] of Object.entries(data)) {
+      put(`${firstCol ? "" : ","}${JSON.stringify(col)}:{`);
+      firstCol = false;
+      let firstDoc = true;
+      for (const [id, doc] of Object.entries(docs || {})) {
+        put(`${firstDoc ? "" : ","}${JSON.stringify(id)}:${JSON.stringify(doc)}`);
+        firstDoc = false;
+      }
+      put("}");
+    }
+    put("}");
+    if (buf) fs.writeSync(fd, buf);
+  } finally {
+    fs.closeSync(fd);
+  }
 }
 
 function matches(doc: any, where?: Record<string, unknown>): boolean {
@@ -68,9 +101,9 @@ export class FileStore implements Store {
     for (const l of this.listeners) l(col, patch);
   }
 
-  /** A deep copy of whole collections (for backups). */
+  /** Whole collections, by reference (for backups — callers must only read them). */
   exportCollections(cols: Collection[]): Record<string, Record<string, unknown>> {
-    return clean(Object.fromEntries(cols.map((c) => [c, this.data[c] || {}])));
+    return Object.fromEntries(cols.map((c) => [c, this.data[c] || {}]));
   }
 
   constructor(private filePath?: string) {
@@ -91,10 +124,12 @@ export class FileStore implements Store {
   private schedule() {
     if (!this.filePath) return;
     if (this.timer) return;
+    // Batch writes: discovery touches thousands of jobs; saving once every few seconds is plenty (and the backup
+    // and graceful shutdown cover the rest).
     this.timer = setTimeout(() => {
       this.timer = null;
       this.flush();
-    }, 2000);
+    }, 8000);
     this.timer.unref?.();
   }
 
@@ -103,7 +138,7 @@ export class FileStore implements Store {
     try {
       fs.mkdirSync(path.dirname(this.filePath), { recursive: true });
       const tmp = `${this.filePath}.tmp`;
-      fs.writeFileSync(tmp, JSON.stringify(this.data));
+      writeJsonFile(tmp, this.data);
       fs.renameSync(tmp, this.filePath);
     } catch (err: any) {
       // Windows: antivirus, backup tools or an open editor can briefly lock the file (EPERM/EBUSY). Retry, then write in place.
@@ -112,7 +147,7 @@ export class FileStore implements Store {
         return;
       }
       try {
-        fs.writeFileSync(this.filePath, JSON.stringify(this.data));
+        writeJsonFile(this.filePath, this.data);
       } catch (e) {
         console.error("[store] could not save the local data file", e);
       }
@@ -121,7 +156,7 @@ export class FileStore implements Store {
 
   async get<T>(col: Collection, id: string): Promise<T | null> {
     const v = this.col(col)[id];
-    return v ? (clean(v) as T) : null;
+    return v ? (structuredClone(v) as T) : null;
   }
 
   async put<T extends object>(col: Collection, id: string, data: T): Promise<void> {
@@ -141,7 +176,7 @@ export class FileStore implements Store {
     const out: T[] = [];
     for (const doc of Object.values(this.col(col))) {
       if (matches(doc, opts.where)) {
-        out.push(clean(doc) as T);
+        out.push((opts.readOnly ? doc : structuredClone(doc)) as T);
         if (opts.limit && out.length >= opts.limit) break;
       }
     }

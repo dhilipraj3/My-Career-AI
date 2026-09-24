@@ -9,6 +9,7 @@ import { fetchAshbyBoard, fetchGreenhouseBoard, fetchLeverSite, fetchSmartRecrui
 import { syncJobs } from "../search/index.js";
 import { detectFromText } from "./detect.js";
 import { companyKey, sha, type RawJob } from "./normalize.js";
+import { regionOk } from "./discovery.js";
 
 export interface SeedCompany {
   name: string;
@@ -167,7 +168,7 @@ export async function closeMissing(c: CompanyRecord, fetched: RawJob[]): Promise
   if (!COMPLETE_BOARDS.includes(c.ats)) return 0;
   const store = await getStore();
   const live = new Set(fetched.map((j) => String(j.sourceJobId)));
-  const jobs = (await store.query<Job>("jobs", { where: { companyKey: companyKey(c.name) } })).filter((j) => !j.ownerUid && j.status !== "closed");
+  const jobs = (await store.query<Job>("jobs", { where: { companyKey: companyKey(c.name) }, readOnly: true })).filter((j) => !j.ownerUid && j.status !== "closed");
   // An empty answer from a board that had several live jobs is more likely an API glitch than a mass closure.
   if (!fetched.length && jobs.filter((j) => j.sources.some((s) => s.connector === c.ats)).length > 3) return 0;
   let closed = 0;
@@ -233,7 +234,9 @@ export function registryConnector(ats: CompanyAts): JobConnector {
     isConfigured: () => true,
     async fetch() {
       const boards = await pickBoards(ats);
-      const results = await Promise.all(boards.map((b) => fetchCompany(b)));
+      // Keep only India-relevant postings from each board as soon as it arrives: global companies list thousands of
+      // jobs elsewhere, and holding them all until the end of the run is what exhausted memory on small servers.
+      const results = await Promise.all(boards.map(async (b) => { const r = await fetchCompany(b); return { error: r.error, jobs: r.jobs.filter(regionOk) }; }));
       if (boards.length && results.every((r) => r.error)) throw new Error(`All ${boards.length} boards failed; first: ${results[0].error}`);
       return results.flatMap((r) => r.jobs);
     },

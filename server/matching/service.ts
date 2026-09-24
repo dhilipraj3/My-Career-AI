@@ -59,7 +59,7 @@ ${fenceUntrusted("job_posting", `${job.title} at ${job.company}\n${job.descripti
 }
 
 async function candidateJobs(uid: string): Promise<Job[]> {
-  const jobs = await (await getStore()).query<Job>("jobs");
+  const jobs = await (await getStore()).query<Job>("jobs", { readOnly: true });
   return jobs.filter((j) => isCandidateJob(j, uid) && !j.quality.flags.includes("missing_company"));
 }
 

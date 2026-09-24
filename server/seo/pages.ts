@@ -259,7 +259,7 @@ async function renderHub(req: Request, res: Response) {
 // ---------------- sitemaps ----------------
 
 async function publicJobs(): Promise<Job[]> {
-  return (await (await getStore()).query<Job>("jobs")).filter((j) => isPublic(j) && RECOMMENDABLE.includes(j.status));
+  return (await (await getStore()).query<Job>("jobs", { readOnly: true })).filter((j) => isPublic(j) && RECOMMENDABLE.includes(j.status));
 }
 
 const xmlEsc = (s: string) => s.replace(/[<>&'"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" })[c]!);

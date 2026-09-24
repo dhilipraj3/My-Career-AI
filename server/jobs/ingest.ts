@@ -168,7 +168,7 @@ async function ingestRawJobsUnlocked(raws: RawJob[], opts: { ownerUid?: string }
 /** Recompute freshness for every job; returns how many changed state. Run on a schedule. */
 export async function refreshFreshness(): Promise<number> {
   const store = await getStore();
-  const jobs = await store.query<Job>("jobs");
+  const jobs = await store.query<Job>("jobs", { readOnly: true });
   const changed: string[] = [];
   for (const j of jobs) {
     const s = computeFreshness(j);
@@ -178,5 +178,28 @@ export async function refreshFreshness(): Promise<number> {
     }
   }
   await syncJobs(changed).catch((e) => console.warn("[search] index sync failed", e));
+  await pruneDeadJobs().catch((e) => console.warn("[jobs] prune failed", e));
   return changed.length;
+}
+
+/**
+ * Forget closed/expired jobs no source has listed for 45 days, unless someone applied to or saved them (their history
+ * must keep working). Keeps the job pool — and the server's memory — from growing forever.
+ */
+export async function pruneDeadJobs(olderThanDays = 45): Promise<number> {
+  const store = await getStore();
+  const cutoff = new Date(Date.now() - olderThanDays * 86400000).toISOString();
+  const keep = new Set<string>();
+  for (const a of await store.query<{ jobId: string }>("applications", { readOnly: true })) keep.add(a.jobId);
+  for (const m of await store.query<{ jobId: string; saved?: boolean }>("matches", { where: { saved: true }, readOnly: true })) keep.add(m.jobId);
+  const dead = (await store.query<Job>("jobs", { readOnly: true }))
+    .filter((j) => (j.status === "closed" || j.status === "expired") && !j.ownerUid && !keep.has(j.id) && (j.lastVerifiedAt || "") < cutoff)
+    .map((j) => j.id);
+  if (!dead.length) return 0;
+  const gone = new Set(dead);
+  for (const id of dead) await store.del("jobs", id);
+  for (const m of await store.query<{ id: string; jobId: string }>("matches", { readOnly: true })) if (gone.has(m.jobId)) await store.del("matches", m.id);
+  await syncJobs(dead);
+  console.log(`[jobs] pruned ${dead.length} jobs not seen for ${olderThanDays}+ days`);
+  return dead.length;
 }
