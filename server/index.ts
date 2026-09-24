@@ -10,6 +10,18 @@ import { notFoundHtml } from "./seo/pages.js";
 import { printConfigWarnings } from "./configCheck.js";
 
 async function main() {
+  // Open the port first: hosts (Render) wait for it, and restoring the data backup can take a while. Until the app is
+  // ready, health checks get "starting" and everything else a friendly 503.
+  const root = express();
+  let ready = false;
+  root.get("/api/health", (req, res, next) => (ready ? next() : res.json({ status: "starting" })));
+  root.use((req, res, next) => {
+    if (ready) return next();
+    if (req.path.startsWith("/api/")) return res.status(503).json({ error: "MyCareer.AI is starting up — please try again in a few seconds." });
+    res.status(503).set("Retry-After", "10").type("html").send('<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="8"><title>Starting…</title><body style="font-family:system-ui;display:grid;place-items:center;height:90vh;color:#0a2230"><div style="text-align:center"><p style="font-size:20px;font-weight:700">MyCareer.AI is starting up…</p><p>This page will refresh by itself.</p></div>');
+  });
+  const server = root.listen(config.port, "0.0.0.0", () => console.log(`[server] listening on port ${config.port}, getting ready…`));
+
   const store = await getStore();
   const app = createApp();
 
@@ -32,10 +44,10 @@ async function main() {
     app.use(vite.middlewares);
   }
 
-  const server = app.listen(config.port, "0.0.0.0", () => {
-    console.log(`MyCareer.AI running on http://localhost:${config.port}  (store: ${store.kind}, public site: ${config.siteUrl})`);
-    if (config.devAuthBypass) console.warn("WARNING: DEV_AUTH_BYPASS is on — never enable it in production.");
-  });
+  root.use(app);
+  ready = true;
+  console.log(`MyCareer.AI running on http://localhost:${config.port}  (store: ${store.kind}, public site: ${config.siteUrl})`);
+  if (config.devAuthBypass) console.warn("WARNING: DEV_AUTH_BYPASS is on — never enable it in production.");
   printConfigWarnings();
   await loadDiscoverySettings();
   startScheduler();

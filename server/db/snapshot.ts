@@ -92,7 +92,8 @@ export async function restoreSnapshot(backend: SnapshotBackend, filePath: string
   let found = false;
   for (const part of Object.keys(PARTS) as SnapshotPart[]) {
     const info = (await backend.get(manifestId(part))) as Manifest | null;
-    if (!info?.version) continue;
+    if (!info?.version) { console.log(`[backup] no saved ${part} data yet`); continue; }
+    console.log(`[backup] restoring ${part}: ${info.docs} records in ${info.chunks} piece(s), saved ${info.savedAt}`);
     found = true;
     const pieces: Buffer[] = [];
     for (let i = 0; i < info.chunks; i++) {

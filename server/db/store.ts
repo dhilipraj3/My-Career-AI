@@ -280,7 +280,11 @@ export async function getStore(): Promise<Store> {
     const remote = firestoreBackend(getFirestoreDb());
     let restoredOk = true;
     try {
-      const r = await restoreSnapshot(remote, file);
+      console.log("[store] Reading the data backup from Firestore…");
+      const r = await Promise.race([
+        restoreSnapshot(remote, file),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timed out after 120 s (Firestore didn't answer)")), 120_000).unref()),
+      ]);
       console.log(r.restored ? `[store] Restored ${r.docs} records from the Firestore backup` : "[store] Using the existing local data file");
     } catch (err: any) {
       // Can't read the backup (wrong key, no database yet, network). Start without it rather than crash-looping, and
