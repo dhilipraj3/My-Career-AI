@@ -4,7 +4,8 @@ import {
 } from "lucide-react";
 import { useEffect, useState, type ComponentType, type ReactNode } from "react";
 import { Logo, Wordmark } from "../App";
-import HeroBrain, { type HeroJob } from "../components/HeroBrain";
+import type { HeroJob } from "../components/HeroBrain";
+import HeroReveal from "../components/HeroReveal";
 import { errMsg } from "../lib/api";
 import { POPULAR_CITIES } from "../lib/labels";
 import { CountUp, useReveal } from "../lib/motion";
@@ -147,26 +148,26 @@ export default function Landing({ onSignIn, busy, error }: { onSignIn: () => voi
 
       {/* Hero */}
       <section className="hero-gradient relative overflow-hidden">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 pb-16 pt-12 lg:grid-cols-[1.05fr_1fr] lg:pb-24 lg:pt-20">
-          <div className="animate-slide-up">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 pb-16 pt-10 lg:grid-cols-[1fr_1.05fr] lg:pb-24 lg:pt-20">
+          <div className="order-2 animate-slide-up lg:order-1">
             {stats && (
               <p className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
                 <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" /><span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" /></span>
                 Live · {stats.liveJobs.toLocaleString("en-IN")} jobs{stats.updatedAt ? ` · updated ${timeAgo(stats.updatedAt)}` : ""}
               </p>
             )}
-            <h1 className="mt-5 text-[2.5rem] font-extrabold leading-[1.08] sm:text-5xl xl:text-[3.5rem]">Your personal job agent,<br /><span className="text-shimmer">working until you're hired.</span></h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-600">Upload your resume once. MyCareer.AI understands you, searches every source for the right jobs, explains each match honestly, prepares truthful applications — and stays with you until you're placed.</p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <h1 className="mt-5 text-[2.25rem] font-extrabold leading-[1.1] sm:text-5xl xl:text-[3.25rem]">A job agent that <span className="text-shimmer">works until you're hired.</span></h1>
+            <p className="mt-4 max-w-md text-base text-slate-600 sm:text-lg">Upload your resume once. Every match is scored and explained — honestly, like the one on the right.</p>
+            <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3">
               <SignInButton onSignIn={onSignIn} busy={busy} />
-              <Button size="lg" variant="secondary" onClick={() => scrollTo("try")}><Search className="h-5 w-5" />Try it without signing up</Button>
+              <button onClick={() => scrollTo("try")} className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:underline"><Search className="h-4 w-4" />Try it without signing up</button>
             </div>
             <div className="mt-3 max-w-md"><ErrorNote error={error} /></div>
-            <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-600">
-              {["Free to use", "Never applies without you", "No fake or scam jobs"].map((t) => <li key={t} className="flex items-center gap-1.5"><BadgeCheck className="h-4 w-4 text-emerald-600" />{t}</li>)}
+            <ul className="mt-6 flex flex-wrap gap-x-4 gap-y-1.5 text-xs font-medium text-slate-500 sm:text-sm">
+              {["Free to use", "Never applies without you", "No fake or scam jobs"].map((t) => <li key={t} className="flex items-center gap-1"><BadgeCheck className="h-3.5 w-3.5 text-emerald-600" />{t}</li>)}
             </ul>
           </div>
-          <div className="animate-slide-up [animation-delay:120ms]"><HeroBrain jobs={heroJobs} liveJobs={stats?.liveJobs || 0} /></div>
+          <div className="order-1 animate-slide-up [animation-delay:120ms] lg:order-2"><HeroReveal jobs={heroJobs} /></div>
         </div>
       </section>
 
