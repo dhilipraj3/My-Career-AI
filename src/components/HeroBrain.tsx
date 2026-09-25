@@ -23,10 +23,10 @@ const FALLBACK: HeroJob[] = [
 const reducedMotion = () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 /**
- * Resume → AI core → one real, live job scored and explained. The brain is the centrepiece (as before); the card on
- * the right now shows what the AI actually does with a job — score, skill fit, one honest gap — instead of a plain
- * title card, cycling through real jobs. Every element the card occupies is a fixed percentage of this component's
- * own box (which has a fixed aspect ratio), so cycling never changes anything's size — nothing on the page reflows.
+ * Resume → AI core → one real, live job scored and explained. The brain stays the centrepiece; the card on the right
+ * shows what the AI actually does with a job — score, skill fit, one honest gap — instead of a plain title card,
+ * cycling through real jobs every few seconds. Every line in that card is truncated to one line, so its shape (and
+ * height) is identical on every cycle — nothing about the page can reflow, since nothing here ever changes size.
  */
 export default function HeroBrain({ jobs, liveJobs }: { jobs: HeroJob[]; liveJobs: number }) {
   const [tick, setTick] = useState(0);
@@ -67,23 +67,23 @@ export default function HeroBrain({ jobs, liveJobs }: { jobs: HeroJob[]; liveJob
           <linearGradient id="hb-line" x1="0" x2="1"><stop offset="0" stopColor="#0b8db3" stopOpacity=".15" /><stop offset=".5" stopColor="#0b8db3" stopOpacity=".7" /><stop offset="1" stopColor="#07a384" stopOpacity=".5" /></linearGradient>
           <radialGradient id="hb-core" cx=".35" cy=".3"><stop offset="0" stopColor="#34abc8" /><stop offset=".6" stopColor="#0a7399" /><stop offset="1" stopColor="#0d4b66" /></radialGradient>
         </defs>
-        <path d="M150 200 C 190 200, 200 200, 240 200" stroke="url(#hb-line)" strokeWidth="2.5" fill="none" className="animate-flow" />
-        <path d="M270 200 C 320 200, 320 200, 360 200" stroke="url(#hb-line)" strokeWidth="2.5" fill="none" className="animate-flow" />
+        <path d="M150 200 C 190 200, 200 200, 232 200" stroke="url(#hb-line)" strokeWidth="3" fill="none" className="animate-flow" />
+        <path d="M278 200 C 320 200, 320 200, 358 200" stroke="url(#hb-line)" strokeWidth="3" fill="none" className="animate-flow" />
         {/* orbiting neurons */}
-        {[[215, 150], [290, 150], [205, 245], [300, 250], [250, 130], [255, 272]].map(([x, y], i) => (
+        {[[205, 140], [295, 140], [195, 250], [305, 255], [250, 118], [255, 280]].map(([x, y], i) => (
           <g key={i}>
-            <line x1="255" y1="200" x2={x} y2={y} stroke="#0b8db3" strokeOpacity=".25" strokeWidth="1.2" />
-            <circle cx={x} cy={y} r="4" fill="#6cc9dd" className="animate-blink" style={{ animationDelay: `${i * 0.25}s` }} />
+            <line x1="255" y1="200" x2={x} y2={y} stroke="#0a7399" strokeOpacity=".4" strokeWidth="1.5" />
+            <circle cx={x} cy={y} r="5" fill="#6cc9dd" className="animate-blink" style={{ animationDelay: `${i * 0.25}s` }} />
           </g>
         ))}
-        <circle cx="255" cy="200" r="38" fill="#0b8db3" opacity=".25" className="animate-ring" />
-        <circle cx="255" cy="200" r="38" fill="#0b8db3" opacity=".18" className="animate-ring" style={{ animationDelay: "1.2s" }} />
-        <circle cx="255" cy="200" r="34" fill="url(#hb-core)" className="animate-pulse-core" />
+        <circle cx="255" cy="200" r="50" fill="#0b8db3" opacity=".22" className="animate-ring" />
+        <circle cx="255" cy="200" r="50" fill="#0b8db3" opacity=".16" className="animate-ring" style={{ animationDelay: "1.2s" }} />
+        <circle cx="255" cy="200" r="46" fill="url(#hb-core)" className="animate-pulse-core" style={{ filter: "drop-shadow(0 0 16px rgba(11,141,179,.55))" }} />
       </svg>
 
       {/* AI core icon */}
       <div className="absolute left-[51%] top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
-        <Sparkles className="h-7 w-7 text-white" />
+        <Sparkles className="h-9 w-9 text-white" />
       </div>
 
       {/* Resume card */}
@@ -93,28 +93,27 @@ export default function HeroBrain({ jobs, liveJobs }: { jobs: HeroJob[]; liveJob
         <div className="mt-2.5 flex flex-wrap gap-1">{["Skills", "Experience", "Goals"].map((t) => <span key={t} className="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[9px] font-medium text-emerald-700 sm:text-[10px]">{t}</span>)}</div>
       </div>
 
-      {/* One real, live job — scored and explained. A fixed box (top/bottom/left/right in %, not by content), so
-          cycling through jobs only ever changes text/numbers inside it, never its size. */}
-      <div className="absolute left-[57%] right-[1%] top-[9%] bottom-[11%] overflow-hidden rounded-2xl border border-slate-200 bg-white p-2.5 shadow-[var(--shadow-lift)]" key={tick} style={{ animation: "card-in 2.8s ease both" }}>
-        <div className="flex h-full flex-col justify-center gap-2">
-          <div className="flex items-start gap-2">
-            <CompanyMark name={job.company} size={30} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[11px] font-semibold text-ink sm:text-xs">{job.title}</p>
-              <p className="truncate text-[10px] text-slate-500">{job.company} · {job.location}</p>
-            </div>
-            <ScoreRing score={shown} size={38} />
+      {/* One real, live job — scored and explained. Its content is the same shape on every cycle (every line is a
+          fixed single line via `truncate`), so its natural height never changes — no need to force a box size,
+          which is what left the earlier version with a dead gap where the shorter content didn't fill it. */}
+      <div className="absolute right-[1%] top-1/2 w-[44%] -translate-y-1/2 rounded-2xl border border-slate-200 bg-white p-3 shadow-[var(--shadow-lift)]" key={tick} style={{ animation: "card-in 2.8s ease both" }}>
+        <div className="flex items-start gap-2">
+          <CompanyMark name={job.company} size={28} />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[11px] font-semibold text-ink sm:text-xs">{job.title}</p>
+            <p className="truncate text-[10px] text-slate-500">{job.company} · {job.location}</p>
           </div>
-          <div className="space-y-1.5">
-            {bars.map(([label, pct]) => (
-              <div key={label}>
-                <div className="flex justify-between text-[9px] text-slate-500"><span>{label}</span><span className="font-medium text-ink">{pct}%</span></div>
-                <div className="mt-0.5 h-1 rounded-full bg-slate-100"><div className="h-full rounded-full bg-emerald-500 transition-[width] duration-700 ease-out" style={{ width: `${pct}%` }} /></div>
-              </div>
-            ))}
-          </div>
-          <p className="flex items-center gap-1 truncate text-[9px] font-medium text-amber-700"><TriangleAlert className="h-2.5 w-2.5 shrink-0" />{slot.gap}</p>
+          <ScoreRing score={shown} size={36} />
         </div>
+        <div className="mt-2.5 space-y-1.5">
+          {bars.map(([label, pct]) => (
+            <div key={label}>
+              <div className="flex justify-between text-[9px] text-slate-500"><span>{label}</span><span className="font-medium text-ink">{pct}%</span></div>
+              <div className="mt-0.5 h-1 rounded-full bg-slate-100"><div className="h-full rounded-full bg-emerald-500 transition-[width] duration-700 ease-out" style={{ width: `${pct}%` }} /></div>
+            </div>
+          ))}
+        </div>
+        <p className="mt-2.5 flex items-center gap-1 truncate text-[9px] font-medium text-amber-700"><TriangleAlert className="h-2.5 w-2.5 shrink-0" />{slot.gap}</p>
       </div>
 
       {/* Live status ticker */}
