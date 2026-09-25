@@ -4,8 +4,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState, type ComponentType, type ReactNode } from "react";
 import { Logo, Wordmark } from "../App";
-import type { HeroJob } from "../components/HeroBrain";
-import HeroReveal from "../components/HeroReveal";
+import HeroBrain, { type HeroJob } from "../components/HeroBrain";
 import { errMsg } from "../lib/api";
 import { POPULAR_CITIES } from "../lib/labels";
 import { CountUp, useReveal } from "../lib/motion";
@@ -148,7 +147,7 @@ export default function Landing({ onSignIn, busy, error }: { onSignIn: () => voi
 
       {/* Hero */}
       <section className="hero-gradient relative overflow-hidden">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 pb-16 pt-10 lg:grid-cols-[1fr_1.05fr] lg:pb-24 lg:pt-20">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 pb-16 pt-10 lg:grid-cols-[1.05fr_1fr] lg:pb-24 lg:pt-20">
           <div className="order-2 animate-slide-up lg:order-1">
             {stats && (
               <p className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
@@ -157,7 +156,7 @@ export default function Landing({ onSignIn, busy, error }: { onSignIn: () => voi
               </p>
             )}
             <h1 className="mt-5 text-[2.25rem] font-extrabold leading-[1.1] sm:text-5xl xl:text-[3.25rem]">A job agent that <span className="text-shimmer">works until you're hired.</span></h1>
-            <p className="mt-4 max-w-md text-base text-slate-600 sm:text-lg">Upload your resume once. Every match is scored and explained — honestly, like the one on the right.</p>
+            <p className="mt-4 max-w-md text-base text-slate-600 sm:text-lg">Upload your resume once. It understands you, searches every source, and explains each match honestly — like the one on the right.</p>
             <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3">
               <SignInButton onSignIn={onSignIn} busy={busy} />
               <button onClick={() => scrollTo("try")} className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:underline"><Search className="h-4 w-4" />Try it without signing up</button>
@@ -167,7 +166,7 @@ export default function Landing({ onSignIn, busy, error }: { onSignIn: () => voi
               {["Free to use", "Never applies without you", "No fake or scam jobs"].map((t) => <li key={t} className="flex items-center gap-1"><BadgeCheck className="h-3.5 w-3.5 text-emerald-600" />{t}</li>)}
             </ul>
           </div>
-          <div className="order-1 animate-slide-up [animation-delay:120ms] lg:order-2"><HeroReveal jobs={heroJobs} /></div>
+          <div className="order-1 animate-slide-up [animation-delay:120ms] lg:order-2"><HeroBrain jobs={heroJobs} liveJobs={stats?.liveJobs || 0} /></div>
         </div>
       </section>
 

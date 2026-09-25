@@ -5,9 +5,11 @@ import { createApp } from "../server/app.js";
 import { getStore } from "../server/db/store.js";
 import { fetchOracle, fetchRecruitee, fetchWorkable, fetchWorkday, jobLinksFromHtml, jobPostingsFromHtml } from "../server/jobs/ats.js";
 import { detectFromText } from "../server/jobs/detect.js";
-import { boardProblem, closeMissing, companyId, ensureSeeded, fetchCompany, listCompanies, pickBoards, registryConnector } from "../server/jobs/registry.js";
+import { boardProblem, closeMissing, companyId, ensureSeeded, fetchCompany, listCompanies, pickBoards, registryConnector, registryTimeoutMs } from "../server/jobs/registry.js";
 import { ingestRawJobs } from "../server/jobs/ingest.js";
 import { isRejected, normalizeRaw } from "../server/jobs/normalize.js";
+import { httpLimits } from "../server/jobs/http.js";
+import { config } from "../server/config.js";
 import { freshEnv } from "./fixtures.js";
 
 const app = createApp();
@@ -230,6 +232,36 @@ describe("company registry", () => {
     await ensureSeeded(seed);
     mockFetch([]); // every board 404s
     await expect(registryConnector("greenhouse").fetch({ keywords: [] })).rejects.toThrow(/All 2 boards failed/);
+  });
+
+  it("a connector's safety-net timeout always exceeds the real worst case for its own boards, so it never abandons in-flight work under normal load", () => {
+    // A flat timeout smaller than boardsPerRun × per-board worst case (timeout × (retries+1) + backoff, queued
+    // through maxConcurrent) fires routinely on the biggest connectors — and firing it doesn't cancel the underlying
+    // fetches, so they keep running (and writing to the store) unsupervised after we've already moved on. This is
+    // what caused live OOM crashes roughly an hour after every start.
+    const worstCase = (boards: number) => {
+      const backoff = Array.from({ length: httpLimits.retries }, (_, a) => 1000 * 3 ** a).reduce((x, y) => x + y, 0);
+      const perBoard = httpLimits.timeoutMs * (httpLimits.retries + 1) + backoff;
+      return Math.ceil(boards / httpLimits.maxConcurrent) * perBoard;
+    };
+    // Non-HEAVY connectors (greenhouse, lever…) use the full boardsPerRun; HEAVY ones (workday, oracle,
+    // careers_page) use a quarter of it — the timeout must comfortably clear the worst case either way.
+    expect(registryTimeoutMs("greenhouse")).toBeGreaterThan(worstCase(config.sources.boardsPerRun));
+    expect(registryTimeoutMs("workday")).toBeGreaterThan(worstCase(Math.max(1, Math.round(config.sources.boardsPerRun / 4))));
+  });
+
+  it("the timeout re-reads live settings each time, so an Admin change to pace or boards-per-run takes effect immediately", () => {
+    const before = registryTimeoutMs("greenhouse");
+    const savedBoards = config.sources.boardsPerRun;
+    const savedConcurrent = httpLimits.maxConcurrent;
+    try {
+      config.sources.boardsPerRun = savedBoards * 4;
+      httpLimits.maxConcurrent = 1;
+      expect(registryTimeoutMs("greenhouse")).toBeGreaterThan(before);
+    } finally {
+      config.sources.boardsPerRun = savedBoards;
+      httpLimits.maxConcurrent = savedConcurrent;
+    }
   });
 });
 

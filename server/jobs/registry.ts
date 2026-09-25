@@ -8,6 +8,7 @@ import { fetchCareersPage, fetchOracle, fetchRecruitee, fetchTeamtailor, fetchWo
 import { fetchAshbyBoard, fetchGreenhouseBoard, fetchLeverSite, fetchSmartRecruiters, type JobConnector } from "./connectors.js";
 import { syncJobs } from "../search/index.js";
 import { detectFromText } from "./detect.js";
+import { httpLimits } from "./http.js";
 import { companyKey, sha, type RawJob } from "./normalize.js";
 import { regionOk } from "./discovery.js";
 
@@ -145,9 +146,29 @@ export async function removeCompany(id: string): Promise<void> {
 
 // Workday and Oracle need one request per job for details, so they rotate through fewer boards per cycle.
 const HEAVY: CompanyAts[] = ["workday", "oracle", "careers_page"];
+const boardsPerRunFor = (ats: CompanyAts) => (HEAVY.includes(ats) ? Math.max(1, Math.round(config.sources.boardsPerRun / 4)) : config.sources.boardsPerRun);
+
+/**
+ * A safety-net timeout for one connector's whole run, sized to genuinely exceed what its own boards can take.
+ *
+ * Each board already has its own real timeout inside fetchJson (httpLimits.timeoutMs, up to `retries` retries with
+ * backoff between them), and boards queue through a shared pool of `httpLimits.maxConcurrent` requests. A flat outer
+ * ceiling smaller than that natural worst case would fire routinely on the biggest connectors — and firing it
+ * doesn't cancel the underlying fetches, it just stops awaiting them, so they keep running unsupervised in the
+ * background: still writing to the database, still holding memory, until they finish minutes later. Sizing this
+ * from the same numbers that bound the real work keeps it a true safety net (for a fetcher that hangs outside
+ * fetchJson, e.g. careers-page scraping) instead of something that fires under normal load.
+ */
+export function registryTimeoutMs(ats: CompanyAts): number {
+  const boards = boardsPerRunFor(ats);
+  const backoffMs = Array.from({ length: httpLimits.retries }, (_, attempt) => 1000 * 3 ** attempt).reduce((a, b) => a + b, 0);
+  const worstCasePerBoard = httpLimits.timeoutMs * (httpLimits.retries + 1) + backoffMs;
+  const waves = Math.ceil(boards / Math.max(1, httpLimits.maxConcurrent));
+  return Math.max(90_000, Math.round(waves * worstCasePerBoard * 1.3));
+}
 
 /** Next boards to fetch for one ATS: enabled, not dead, never-fetched first, then least recently fetched. */
-export async function pickBoards(ats: CompanyAts, n = HEAVY.includes(ats) ? Math.max(1, Math.round(config.sources.boardsPerRun / 4)) : config.sources.boardsPerRun): Promise<CompanyRecord[]> {
+export async function pickBoards(ats: CompanyAts, n = boardsPerRunFor(ats)): Promise<CompanyRecord[]> {
   await ensureSeeded();
   const all = await (await getStore()).query<CompanyRecord>("companies", { where: { ats } });
   return all
@@ -230,7 +251,9 @@ export function registryConnector(ats: CompanyAts): JobConnector {
   const l = LABELS[ats];
   return {
     id: ats, name: l.name, kind: ats === "careers_page" ? "company_pages" : "ats", access: l.access, terms: l.terms,
-    timeoutMs: config.sources.registryTimeoutMs,
+    // A getter, not a fixed value: recomputed from the live settings each time discovery reads it (boardsPerRun,
+    // concurrency and per-request timeout can all change at runtime from Admin → Discovery).
+    get timeoutMs() { return registryTimeoutMs(ats); },
     isConfigured: () => true,
     async fetch() {
       const boards = await pickBoards(ats);
