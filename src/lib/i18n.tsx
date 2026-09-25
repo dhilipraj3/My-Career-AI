@@ -16,6 +16,7 @@ const STRINGS = {
   "nav.settings": ["Settings", "सेटिंग्स"],
   "nav.admin": ["Admin", "एडमिन"],
   "nav.you": ["You", "आप"],
+  "nav.more": ["More", "और"],
   "nav.jobDetails": ["Job details", "नौकरी का विवरण"],
   "chrome.assistant": ["Assistant", "सहायक"],
   "chrome.search": ["Search jobs, pages…", "नौकरी या पेज खोजें…"],

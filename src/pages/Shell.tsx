@@ -1,4 +1,4 @@
-import { Bell, Briefcase, FileText, Home, LogOut, Menu, MessageCircle, Search, Settings as SettingsIcon, Shield, Sparkles, User, X } from "lucide-react";
+import { Bell, Briefcase, FileText, Home, LogOut, MessageCircle, MoreHorizontal, Search, Settings as SettingsIcon, Shield, Sparkles, User, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, type ComponentType } from "react";
 import type { NotificationRecord } from "@shared/types";
 import { Logo, Wordmark, type AiState, type Me } from "../App";
@@ -32,7 +32,7 @@ const MAIN: Item[] = [
   { page: "applications", label: "Applications", icon: Briefcase, mobile: true },
 ];
 const ME: Item[] = [
-  { page: "profile", label: "Profile", icon: User, mobile: true },
+  { page: "profile", label: "Profile", icon: User },
   { page: "resume", label: "Resumes", icon: FileText },
   { page: "settings", label: "Settings", icon: SettingsIcon },
 ];
@@ -133,7 +133,6 @@ export default function Shell({ me, refresh }: { me: Me; refresh: () => Promise<
 
         <header className="glass sticky top-0 z-20 border-b">
           <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6">
-            <button aria-label="Menu" onClick={() => setDrawer(true)} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 lg:hidden"><Menu className="h-5 w-5" /></button>
             <p className="font-display text-base font-semibold text-ink lg:hidden">{current}</p>
             <button onClick={() => setPaletteOpen(true)} className="ml-auto hidden h-10 w-full max-w-md items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-500 transition hover:border-slate-300 hover:bg-white sm:flex lg:ml-0">
               <Search className="h-4 w-4" /><span className="flex-1 text-left">{t("chrome.search")}</span><Kbd>Ctrl K</Kbd>
@@ -189,6 +188,9 @@ export default function Shell({ me, refresh }: { me: Me; refresh: () => Promise<
               <i.icon className="h-5 w-5" />{i.page === "search" && lang === "en" ? "Search" : t(`nav.${i.page}` as StringKey)}
             </button>
           ))}
+          <button onClick={() => setDrawer(true)} aria-label={t("nav.more")} className={cn("flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium", drawer ? "text-brand-600" : "text-slate-500")}>
+            <MoreHorizontal className="h-5 w-5" />{t("nav.more")}
+          </button>
         </nav>
 
         <button onClick={() => nav.openChat()} aria-label="Ask the assistant" className={cn(chat.open && "hidden", "bg-peacock fixed bottom-20 right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg shadow-brand-600/30 transition hover:brightness-110 sm:hidden")}>

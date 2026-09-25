@@ -6,15 +6,9 @@ import { signOutUser } from "../lib/firebase";
 import { track } from "../lib/analytics";
 import { firstName } from "../lib/labels";
 import InterviewFlow from "../components/InterviewFlow";
+import UnderstandingCard from "../components/UnderstandingCard";
 import { useI18n } from "../lib/i18n";
-import { Button, Card, ErrorNote, Progress, cn } from "../ui";
-
-const QUICK: Record<string, string[]> = {
-  workModes: ["Remote", "Hybrid", "In-office", "Any"],
-  minSalaryLPA: ["Flexible", "₹20k/month", "10 LPA", "15 LPA", "25 LPA"],
-  noticePeriodDays: ["Immediate", "30 days", "60 days", "90 days"],
-  locations: ["Bengaluru", "Chennai", "Hyderabad", "Mumbai", "Pune", "Delhi NCR", "Anywhere in India"],
-};
+import { Button, Card, ErrorNote, cn } from "../ui";
 
 const STEPS = ["Your resume", "A few questions", "Your matches"];
 
@@ -22,8 +16,6 @@ export default function Onboarding({ me, refresh }: { me: Me; refresh: () => Pro
   const p = me.profile;
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [answer, setAnswer] = useState("");
-  const [note, setNote] = useState<string | null>(null);
   const [pasting, setPasting] = useState(false);
   const [pasted, setPasted] = useState("");
   const [dragging, setDragging] = useState(false);
@@ -43,19 +35,6 @@ export default function Onboarding({ me, refresh }: { me: Me; refresh: () => Pro
     try { const form = new FormData(); form.append("resume", file); await api("/resume", { form }); track("resume_uploaded", { method: "file", where: "onboarding" }); await refresh(); } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
   }
 
-  async function submitAnswer(text: string) {
-    if (!text.trim()) return;
-    setBusy(true); setError(null); setNote(null);
-    try {
-      const r = await api<{ understoodAnything: boolean }>("/profile/answer", { body: { text } });
-      setAnswer("");
-      if (!r.understoodAnything) setNote("I didn't catch that — try something like \"Chennai, hybrid, 15 LPA, 30 days notice\".");
-      await refresh();
-    } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
-  }
-
-  const essential = p.completeness.missing.filter((m) => m.essential && m.field !== "resume");
-  const next = essential[0];
   const step = p.status === "empty" || p.status === "parsing" ? 0 : 1;
 
   return (
@@ -125,37 +104,21 @@ export default function Onboarding({ me, refresh }: { me: Me; refresh: () => Pro
           </Card>
         ) : (
           <>
-            <Card className="space-y-4 p-6">
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="mt-0.5 h-6 w-6 shrink-0 text-emerald-600" />
-                <div>
-                  <p className="font-display font-semibold text-ink">Here's what I understood about you</p>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {[p.currentRole, p.totalExperienceYears ? `${p.totalExperienceYears} years experience` : "", p.skills.length ? `${p.skills.length} skills` : "", p.city, p.education[0]?.degree.split(",")[0]].filter(Boolean).map((f, i) => (
-                      <span key={f} className="rounded-lg bg-brand-50 px-2.5 py-1 text-sm font-medium text-brand-800 animate-slide-up" style={{ animationDelay: `${i * 140}ms` }}>{f}</span>
-                    ))}
-                  </div>
-                  <p className="mt-1 text-xs text-slate-500">You can review and correct everything later in your Profile.</p>
+            <Card className="flex items-start gap-3 p-6">
+              <CheckCircle2 className="mt-0.5 h-6 w-6 shrink-0 text-emerald-600" />
+              <div className="min-w-0">
+                <p className="font-display font-semibold text-ink">Here's what I understood about you</p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {[p.currentRole, p.totalExperienceYears ? `${p.totalExperienceYears} years experience` : "", p.skills.length ? `${p.skills.length} skills` : "", p.city, p.education[0]?.degree.split(",")[0]].filter(Boolean).map((f, i) => (
+                    <span key={f} className="rounded-lg bg-brand-50 px-2.5 py-1 text-sm font-medium text-brand-800 animate-slide-up" style={{ animationDelay: `${i * 140}ms` }}>{f}</span>
+                  ))}
                 </div>
+                <p className="mt-1 text-xs text-slate-500">You can review and correct everything later in your Profile.</p>
               </div>
-              <div><div className="mb-1 flex justify-between text-xs"><span className="text-slate-500">Profile readiness</span><span className="font-semibold text-ink">{p.completeness.score}%</span></div><Progress value={p.completeness.score} /></div>
-              <p className="text-sm text-slate-600">{essential.length} quick question{essential.length === 1 ? "" : "s"} left before I start searching.</p>
             </Card>
 
-            {next && (
-              <Card className="space-y-4 border-brand-200 p-6 animate-slide-up" key={next.field}>
-                <p className="font-display text-lg font-semibold text-ink">{next.question}</p>
-                <div className="flex flex-wrap gap-2">
-                  {(QUICK[next.field] || []).map((q) => <button key={q} onClick={() => void submitAnswer(q)} disabled={busy} className="h-9 rounded-full border border-slate-200 bg-white px-4 text-sm transition hover:border-brand-400 hover:bg-brand-50 disabled:opacity-50">{q}</button>)}
-                </div>
-                <form onSubmit={(e) => { e.preventDefault(); void submitAnswer(answer); }} className="flex gap-2">
-                  <input value={answer} onChange={(e) => setAnswer(e.target.value)} className="h-11 flex-1 rounded-xl border border-slate-200 px-3 text-sm focus:border-brand-400 focus:outline-none" placeholder="Or type — you can answer several at once" autoFocus />
-                  <Button size="lg" loading={busy} type="submit">Send</Button>
-                </form>
-                {note && <p className="text-sm text-amber-700">{note}</p>}
-                <ErrorNote error={error} />
-              </Card>
-            )}
+            {/* Same understanding engine used on Home/Profile: it actually knows how to file a role, city, salary or notice-period answer. */}
+            <UnderstandingCard onChanged={() => void refresh()} className="animate-slide-up" />
           </>
         )}
       </div>
