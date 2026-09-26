@@ -174,7 +174,7 @@ async function withGateway<T>(
   json: boolean,
   parse: (text: string) => T,
 ): Promise<T> {
-  const request = { system: opts.system, prompt: opts.prompt, json, maxTokens: opts.maxTokens, files: opts.files };
+  const request = { system: opts.system, prompt: opts.prompt, json, maxTokens: opts.maxTokens, files: opts.files, quick: opts.task === "chat" };
   let streamed = false;
   const call = async (p: AiProvider): Promise<GenerateResponse> => {
     if (streamed) opts.onReset?.();

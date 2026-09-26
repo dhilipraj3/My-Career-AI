@@ -5,6 +5,8 @@ export interface GenerateRequest {
   prompt: string;
   json: boolean;
   maxTokens?: number;
+  /** Answer quickly: keep the model's thinking to a minimum (chat and voice, where a fast reply matters more than a deep one). */
+  quick?: boolean;
   /** Images or PDFs for the model to read (base64). Only vision-capable (Gemini) providers accept these. */
   files?: Array<{ mime: string; base64: string }>;
 }
@@ -30,6 +32,15 @@ export const isAuthError = (err: unknown) => /API_KEY_INVALID|API key not valid|
 
 /** Extra output tokens allowed for a model's thinking on top of what the answer itself needs. */
 export const THINKING_HEADROOM = 2048;
+/** With thinking switched down there is little to make room for. */
+export const QUICK_HEADROOM = 256;
+
+/** How to keep a model's thinking short, by model family (undefined: leave the model as it is). */
+export function quickThinking(model: string): { thinkingBudget?: number; thinkingLevel?: string } | undefined {
+  if (/gemini-2.5-flash/.test(model)) return { thinkingBudget: 0 }; // flash and flash-lite can skip thinking entirely
+  if (/gemini-3/.test(model)) return { thinkingLevel: "LOW" };
+  return undefined; // e.g. 2.5 Pro cannot switch thinking off
+}
 
 export class GeminiProvider implements AiProvider {
   kind = "gemini" as const;
@@ -51,7 +62,8 @@ export class GeminiProvider implements AiProvider {
         ...(req.json ? { responseMimeType: "application/json" } : {}),
         // Newer Gemini models think before answering, and thinking counts against this limit. Leave room for it, or a
         // short answer comes back cut off (even empty).
-        ...(req.maxTokens ? { maxOutputTokens: req.maxTokens + THINKING_HEADROOM } : {}),
+        ...(req.maxTokens ? { maxOutputTokens: req.maxTokens + (req.quick && quickThinking(model) ? QUICK_HEADROOM : THINKING_HEADROOM) } : {}),
+        ...(req.quick && quickThinking(model) ? { thinkingConfig: quickThinking(model) as any } : {}),
         temperature: 0.3,
       },
     };

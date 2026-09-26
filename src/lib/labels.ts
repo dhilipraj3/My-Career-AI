@@ -26,11 +26,7 @@ export function sourceLabel(j: Job): string {
   return agg.length ? `via ${[...new Set(agg)].join(", ")}` : j.sources[0]?.sourceName || "";
 }
 
-/** "K. Priya" → "Priya": skip initials so greetings read naturally. */
-export function firstName(fullName: string): string {
-  const parts = fullName.split(/\s+/).filter(Boolean);
-  return parts.find((p) => p.replace(/\./g, "").length > 2) || parts[0] || "";
-}
+export { firstName } from "@shared/format";
 
 export const salaryText =(j: Job) => j.salaryDisplay || (j.salaryMinLPA || j.salaryMaxLPA ? `₹${j.salaryMinLPA ?? "?"}–${j.salaryMaxLPA ?? "?"} LPA` : null);
 

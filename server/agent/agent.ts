@@ -1,5 +1,6 @@
 import { journeyFor } from "../companion/service.js";
-import { experienceText, wholeYears } from "../../shared/format.js";
+import { experienceText, firstName, wholeYears } from "../../shared/format.js";
+export { firstName };
 import crypto from "node:crypto";
 import { z } from "zod";
 import type { CandidateProfile, ChatMessage, ChatStep, PendingAction } from "../../shared/types.js";
@@ -70,11 +71,6 @@ const DECLINE = /^\s*(no|nope|nah|no thanks?|no thank you|not now|maybe later|la
 const THANKS = /^\s*(thanks?|thank you|thank u|thx|ty|tysm|thanks a lot|great,? thanks?|ok,? thanks?|okay,? thanks?|cool,? thanks?|dhanyavaad|shukriya)[\s!.,🙏👍]*$/i;
 const BYE = /^\s*(bye|goodbye|see you|see ya|good night|gn|tata)[\s!.,👋]*$/i;
 
-/** "K. Priya" → "Priya"; skips initials so greetings sound natural. */
-export function firstName(fullName: string): string {
-  const parts = fullName.split(/\s+/).filter(Boolean);
-  return parts.find((p) => p.replace(/\./g, "").length > 2) || parts[0] || "";
-}
 
 const Step = z.object({
   action: z.enum(["tool", "reply"]).catch("reply"),

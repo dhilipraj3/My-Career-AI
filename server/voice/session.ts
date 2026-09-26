@@ -6,7 +6,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import type { CandidateProfile } from "../../shared/types.js";
-import { experienceText } from "../../shared/format.js";
+import { experienceText, firstName } from "../../shared/format.js";
 import { AppError } from "../applications/service.js";
 import { userKeyRaw } from "../ai/keys.js";
 import { TOOLS } from "../agent/tools.js";

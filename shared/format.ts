@@ -14,3 +14,9 @@ export function experienceText(years: number | undefined | null, opts: { fresher
   const n = wholeYears(y);
   return opts.short ? `${n} yr${n === 1 ? "" : "s"}` : `${n} year${n === 1 ? "" : "s"}`;
 }
+
+/** The name to greet someone by: "K. Priya" → "Priya" (initials are skipped), "Priya Sharma" → "Priya". One rule for the whole app. */
+export function firstName(fullName: string): string {
+  const parts = (fullName || "").split(/\s+/).filter(Boolean);
+  return parts.find((p) => p.replace(/\./g, "").length > 2) || parts[0] || "";
+}
