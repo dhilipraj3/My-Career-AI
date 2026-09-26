@@ -1,0 +1,26 @@
+# Keeps the free Render service awake: it sleeps after 15 minutes without a visit, and waking takes a while.
+# GitHub runs this every 10 minutes and opens the health page. (GitHub can start scheduled runs a few minutes late,
+# so a second pinger such as UptimeRobot, every 5 minutes, makes this more reliable. See the README.)
+# To ping a different address, set a repository variable named SITE_URL (Settings > Secrets and variables > Actions > Variables).
+name: Keep awake
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+permissions: {}
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Open the health page
+        env:
+          SITE: ${{ vars.SITE_URL || 'https://app.tiaslab.in' }}
+        run: |
+          for i in 1 2 3; do
+            code=$(curl -s -o /dev/null -m 60 -w "%{http_code}" "$SITE/api/health" || true)
+            echo "attempt $i: HTTP $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 20
+          done
+          echo "The site did not answer 200 (it may be waking up)."
