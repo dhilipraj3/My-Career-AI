@@ -4,6 +4,7 @@ import { getStore } from "./db/store.js";
 import { isDiscoveryRunning, runDiscovery, type RunTrigger } from "./jobs/discovery.js";
 import { discoverySettings, onSettingsChange } from "./jobs/settings.js";
 import { enrichTop, getFeed, matchCandidate, profileKeywords } from "./matching/service.js";
+import { journeyFor } from "./companion/service.js";
 import { listNotifications, notify } from "./notifications.js";
 
 /** One background cycle: discover → normalise/dedupe → match every active candidate → notify (scope §35). */
@@ -17,6 +18,7 @@ export async function runCycle(trigger: RunTrigger = "schedule"): Promise<{ user
       await enrichTop(p.uid, 5);
       await dailySummary(p);
       await followUpReminders(p.uid);
+      await quietNudge(p.uid);
     } catch (err) {
       console.warn(`[scheduler] user cycle failed for ${p.uid}`, err);
     }
@@ -49,6 +51,19 @@ async function followUpReminders(uid: string) {
     await notify(uid, { kind: "reminder", title: "Time to follow up", body: `It's been a week since you applied to ${a.role} at ${a.company}. Want me to draft a follow-up?`, jobId: a.jobId });
     void today;
   }
+}
+
+/** After 5 quiet days, the companion starts the conversation with the single most useful thing to do (at most once every 5 days). */
+export async function quietNudge(uid: string, now = Date.now()) {
+  const recent = await listNotifications(uid, 50);
+  if (recent.some((n) => n.kind === "system" && n.title.startsWith("Let's pick up") && Date.now() - new Date(n.createdAt).getTime() < 5 * 86_400_000)) return;
+  const store = await getStore();
+  const trail = await store.query<{ at: string }>("audit", { where: { uid } });
+  const last = trail.map((a) => a.at).sort().pop();
+  if (!last || now - new Date(last).getTime() < 5 * 86_400_000) return;
+  const top = (await journeyFor(uid, now).catch(() => null))?.actions[0];
+  if (!top) return;
+  await notify(uid, { kind: "system", title: "Let's pick up where you left off", body: `${top.title}. ${top.detail}` });
 }
 
 // ---------------- schedule (interval and pause are live settings from Admin) ----------------

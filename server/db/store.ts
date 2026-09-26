@@ -22,7 +22,10 @@ export type Collection =
   | "discoveryRuns"
   | "agentUndo"
   | "agentFeedback"
-  | "plans";
+  | "plans"
+  | "placements"
+  | "interviewPrep"
+  | "mockInterviews";
 
 export interface QueryOptions {
   where?: Record<string, string | number | boolean>;

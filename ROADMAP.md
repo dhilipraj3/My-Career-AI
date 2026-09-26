@@ -194,16 +194,16 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 
 ## Phase 2 — Placement Companion
 
-- [ ] Placement journey stages: Understanding → Searching → Applying → Interviewing → Offer → Placed (visible progress)
-- [ ] **Mission Control dashboard:** today's plan, journey progress, new strong matches, upcoming interviews, application pulse, agent activity timeline
-- [ ] Next-best-actions engine (ranked): interview prep, follow-ups due, unfinished applications, new strong matches, profile gaps, resume fixes, skill to learn
-- [ ] Proactive assistant: the agent starts conversations (new matches, reminders, nudges after silence)
-- [ ] Weekly plan: goals (apply X, practise Y, learn Z), auto-adjusted from results
-- [ ] Diagnosis from outcomes: many applications / no responses → fix the resume or change level; interviews / no offers → interview coaching
-- [ ] Agent activity timeline: everything the agent did, and why (transparency)
-- [ ] Streaming chat replies (SSE) + tool progress ("Searching 18 sources…")
-- [ ] Chrome built-in Gemini Nano on the user's device for light chat, when available
-- [ ] "I got placed" flow: celebrate, confirm details, pause search, career-growth mode
+- [x] Placement journey stages: Understanding → Searching → Applying → Interviewing → Offer → Placed (visible progress)
+- [x] **Mission Control dashboard:** today's plan, journey progress, new strong matches, upcoming interviews, application pulse, agent activity timeline
+- [x] Next-best-actions engine (ranked): interview prep, follow-ups due, unfinished applications, new strong matches, profile gaps, resume fixes, skill to learn
+- [x] Proactive assistant: the agent starts conversations (new matches, reminders, nudges after silence)
+- [x] Weekly plan: goals (apply X, practise Y, learn Z), auto-adjusted from results
+- [x] Diagnosis from outcomes: many applications / no responses → fix the resume or change level; interviews / no offers → interview coaching
+- [x] Agent activity timeline: everything the agent did, and why (transparency)
+- [x] Streaming chat replies (SSE) + tool progress (done in Assistant 2.0)
+- [ ] ~~Chrome built-in Gemini Nano~~ — deferred: browser support is too patchy to rely on
+- [x] "I got placed" flow: celebrate, confirm details, pause search, career-growth mode
 - [ ] In-app notification centre (+ optional email digest)
 
 **Phase 2 done when:** a returning user sees exactly what to do today, and the assistant stays with them through the whole journey.

@@ -40,6 +40,7 @@ import { portalLinks } from "./search/portals.js";
 import { feedSummary, markFeedSeen } from "./matching/feed.js";
 import { publicSearch, publicStats } from "./public.js";
 import { careerRouter } from "./career/routes.js";
+import { companionRouter } from "./companion/routes.js";
 
 const wrap = (fn: (req: Request, res: Response) => Promise<unknown>): RequestHandler => (req, res, next) => {
   fn(req, res).catch(next);
@@ -81,6 +82,7 @@ export function buildRouter(): express.Router {
 
   r.use(requireAuth);
   r.use(careerRouter());
+  r.use(companionRouter());
 
   // ---------------- account / profile ----------------
   r.get("/me", wrap(async (req, res) => {
