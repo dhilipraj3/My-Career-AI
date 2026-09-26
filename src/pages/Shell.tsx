@@ -1,4 +1,4 @@
-import { Bell, Briefcase, Building2, FileText, Home, LogOut, MessageCircle, Mic, MoreHorizontal, Search, Settings as SettingsIcon, Shield, Sparkles, User, X } from "lucide-react";
+import { BarChart3, Bell, Briefcase, Building2, FileText, Home, LogOut, MessageCircle, Mic, MoreHorizontal, Search, Settings as SettingsIcon, Shield, Sparkles, User, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, type ComponentType } from "react";
 import type { NotificationRecord } from "@shared/types";
 import { Logo, Wordmark, type AiState, type Me } from "../App";
@@ -22,6 +22,7 @@ import Matches from "./Matches";
 import ProfilePage from "./ProfilePage";
 import ImportJobModal from "../components/ImportJobModal";
 import Employer from "./Employer";
+import Insights from "./Insights";
 import Interview from "./Interview";
 import Resumes from "./Resumes";
 import Settings from "./Settings";
@@ -36,13 +37,14 @@ const MAIN: Item[] = [
 ];
 const ME: Item[] = [
   { page: "profile", label: "Profile", icon: User },
+  { page: "insights", label: "Insights", icon: BarChart3 },
   { page: "interview", label: "Interview prep", icon: Mic },
   { page: "resume", label: "Resumes", icon: FileText },
   { page: "employer", label: "For employers", icon: Building2 },
   { page: "settings", label: "Settings", icon: SettingsIcon },
 ];
 
-const TITLES: Record<Page, string> = { home: "Home", matches: "For you", search: "Search jobs", applications: "Applications", resume: "Resumes", interview: "Interview prep", employer: "For employers", profile: "Profile", settings: "Settings", admin: "Admin" };
+const TITLES: Record<Page, string> = { home: "Home", matches: "For you", search: "Search jobs", applications: "Applications", resume: "Resumes", interview: "Interview prep", insights: "Insights", employer: "For employers", profile: "Profile", settings: "Settings", admin: "Admin" };
 
 function NavLink({ item, active, onClick }: { item: Item; active: boolean; onClick: () => void }) {
   const { t } = useI18n();
@@ -184,6 +186,7 @@ export default function Shell({ me, refresh }: { me: Me; refresh: () => Promise<
               : page === "search" ? <JobSearch me={me} openJob={nav.openJob} initialQuery={route.params.get("q") || ""} />
               : page === "applications" ? <Applications openJob={nav.openJob} />
               : page === "interview" ? <Interview />
+              : page === "insights" ? <Insights />
               : page === "employer" ? <Employer me={me} />
               : page === "resume" ? <Resumes me={me} refresh={refresh} />
               : page === "profile" ? <ProfilePage me={me} refresh={refresh} />

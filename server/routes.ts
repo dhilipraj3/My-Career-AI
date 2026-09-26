@@ -47,6 +47,7 @@ import { careerRouter } from "./career/routes.js";
 import { companionRouter } from "./companion/routes.js";
 import { interviewRouter } from "./interview/routes.js";
 import { employerRouter } from "./employer/routes.js";
+import { insightsRouter } from "./insights/routes.js";
 
 const wrap = (fn: (req: Request, res: Response) => Promise<unknown>): RequestHandler => (req, res, next) => {
   fn(req, res).catch(next);
@@ -108,6 +109,7 @@ export function buildRouter(): express.Router {
   r.use(companionRouter());
   r.use(interviewRouter());
   r.use(employerRouter());
+  r.use(insightsRouter());
 
   // ---------------- account / profile ----------------
   r.get("/me", wrap(async (req, res) => {

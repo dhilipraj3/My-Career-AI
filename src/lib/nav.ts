@@ -1,7 +1,7 @@
 import { createContext, useContext } from "react";
 
-export type Page = "home" | "matches" | "search" | "applications" | "resume" | "interview" | "employer" | "profile" | "settings" | "admin";
-export const PAGES: Page[] = ["home", "matches", "search", "applications", "resume", "interview", "employer", "profile", "settings", "admin"];
+export type Page = "home" | "matches" | "search" | "applications" | "resume" | "interview" | "insights" | "employer" | "profile" | "settings" | "admin";
+export const PAGES: Page[] = ["home", "matches", "search", "applications", "resume", "interview", "insights", "employer", "profile", "settings", "admin"];
 
 export interface Route {
   page: Page;
