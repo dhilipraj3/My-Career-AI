@@ -16,7 +16,7 @@ export interface UploadResult {
 
 /** Synchronous, cheap part: validate + extract text + store. Throws ResumeError on bad files. */
 export async function storeResume(user: AuthedUser, file: { buffer: Buffer; originalname: string; mimetype: string }): Promise<UploadResult> {
-  const { text, sha256 } = await extractResumeText(file.buffer, file.originalname);
+  const { text, sha256 } = await extractResumeText(file.buffer, file.originalname, user.uid);
   const store = await getStore();
   const existing = (await store.query<ResumeRecord>("resumes", { where: { uid: user.uid } })).find((r) => r.sha256 === sha256 && !r.archived);
   if (existing) return { resume: existing, duplicate: true };

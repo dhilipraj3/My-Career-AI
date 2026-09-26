@@ -5,6 +5,7 @@ import type { Me } from "../App";
 import { api, errMsg } from "../lib/api";
 import { track } from "../lib/analytics";
 import { Badge, Button, Card, Empty, ErrorNote, PageHeader, Spinner, timeAgo } from "../ui";
+import ResumeBuilder from "../components/ResumeBuilder";
 import ResumeView from "./ResumeView";
 
 type OriginalRow = Omit<ResumeRecord, "text">;
@@ -28,12 +29,17 @@ export default function Resumes({ me, refresh }: { me: Me; refresh: () => Promis
   if (!data) return <Spinner />;
   return (
     <div className="space-y-5">
-      <PageHeader title="Resumes" subtitle="Your original resume and every tailored version I made for specific jobs." />
+      <PageHeader title="Resumes" subtitle="A clean resume built from your profile, your uploaded original, and every version tailored to a job." />
       <ErrorNote error={error} />
+
+      <div className="space-y-2">
+        <h2 className="font-display font-semibold">Your resume, ready to send</h2>
+        <ResumeBuilder key={me.profile.updatedAt} />
+      </div>
 
       <Card className="space-y-3">
         <div className="flex items-center justify-between"><h2 className="font-semibold">Your original resume</h2>
-          <><input ref={fileRef} hidden type="file" accept=".pdf,.docx,.doc,.txt" onChange={(e) => e.target.files?.[0] && void replace(e.target.files[0])} /><Button variant="secondary" loading={busy} onClick={() => fileRef.current?.click()}>Replace resume</Button></></div>
+          <><input ref={fileRef} hidden type="file" accept=".pdf,.docx,.doc,.txt,.jpg,.jpeg,.png,.webp,image/*" onChange={(e) => e.target.files?.[0] && void replace(e.target.files[0])} /><Button variant="secondary" loading={busy} onClick={() => fileRef.current?.click()}>Replace resume</Button></></div>
         {data.originals.length === 0 ? <p className="text-sm text-slate-500">No resume uploaded.</p> : (
           <ul className="divide-y divide-slate-100">
             {data.originals.map((r) => (

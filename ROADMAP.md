@@ -160,7 +160,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 - [ ] LinkedIn profile PDF import (a dedicated parser for the "Save to PDF" layout)
 - [ ] Paste text
 - [ ] **No-resume path:** conversational profile building (type or speak)
-- [ ] Photo of a printed resume → AI reads the image (Gemini vision, free tier)
+- [x] Photo of a printed resume (JPG/PNG/WEBP) or a scanned PDF → Gemini vision transcribes it (free tier; never sent to non-vision providers)
 
 ### 1.2 Confidence model
 - [ ] 6 areas, each scored 0–100 with the evidence behind it: target role, skills (with evidence), experience level, location & pay, availability, motivations
@@ -177,10 +177,10 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 - [ ] User picks or edits their target roles; the profile updates
 
 ### 1.4 Resume builder
-- [ ] Generate a resume from the profile/conversation (facts only)
-- [ ] 3 clean ATS-safe templates + PDF download
+- [x] Generate a resume from the profile/conversation (facts only)
+- [x] 3 clean ATS-safe templates (Classic, Modern, Compact) + PDF download (Resumes page, with Resume Health beside it)
 - [ ] Hindi → English resume conversion (resume stays in English, the conversation can be Hindi)
-- [ ] Resume Health check (ATS score out of 100 with specific fixes)
+- [x] Resume Health check (ATS score out of 100 with specific fixes)
 
 ### 1.5 Language & voice
 - [ ] Translation framework (English + Hindi UI strings)

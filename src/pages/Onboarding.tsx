@@ -80,8 +80,8 @@ export default function Onboarding({ me, refresh }: { me: Me; refresh: () => Pro
               onDrop={(e) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) void upload(f); }}
               className={cn("flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-12 text-center transition", dragging ? "border-brand-500 bg-brand-50" : "border-slate-300 bg-slate-50/50")}>
               <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-600 text-white shadow-lg shadow-brand-600/25"><Upload className="h-6 w-6" /></span>
-              <div><p className="font-display text-lg font-semibold text-ink">Drop your resume here</p><p className="text-sm text-slate-500">PDF, Word or text · up to 8 MB</p></div>
-              <input ref={fileRef} type="file" hidden accept=".pdf,.docx,.doc,.txt" onChange={(e) => e.target.files?.[0] && void upload(e.target.files[0])} />
+              <div><p className="font-display text-lg font-semibold text-ink">Drop your resume here</p><p className="text-sm text-slate-500">PDF, Word, text or a photo · up to 8 MB</p></div>
+              <input ref={fileRef} type="file" hidden accept=".pdf,.docx,.doc,.txt,.jpg,.jpeg,.png,.webp,image/*" onChange={(e) => e.target.files?.[0] && void upload(e.target.files[0])} />
               <Button size="lg" loading={busy} onClick={() => fileRef.current?.click()}><FileText className="h-5 w-5" />Choose file</Button>
             </div>
             <ErrorNote error={error} />

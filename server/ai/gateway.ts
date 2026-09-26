@@ -10,6 +10,7 @@ export type AiTask =
   | "classify"
   | "chat"
   | "resume_extract"
+  | "resume_ocr"
   | "job_analyze"
   | "match_explain"
   | "resume_tailor"
@@ -23,6 +24,7 @@ export const TASK_CREDITS: Record<AiTask, number> = {
   job_analyze: 3,
   cover_letter: 4,
   resume_extract: 5,
+  resume_ocr: 6,
   resume_tailor: 8,
 };
 
@@ -31,6 +33,7 @@ const ROUTES: Record<AiTask, Array<"gemini" | "compat">> = {
   classify: ["compat", "gemini"],
   chat: ["gemini", "compat"],
   resume_extract: ["gemini", "compat"],
+  resume_ocr: ["gemini", "compat"],
   job_analyze: ["compat", "gemini"],
   match_explain: ["compat", "gemini"],
   resume_tailor: ["gemini", "compat"],
@@ -140,15 +143,17 @@ export interface GenerateOptions {
   prompt: string;
   system?: string;
   maxTokens?: number;
+  /** Images/PDFs to read. Restricts the call to Gemini, the only vision-capable provider here. */
+  files?: Array<{ mime: string; base64: string }>;
   /** Receive raw model text as it is generated (providers without streaming deliver it in one piece). */
   onText?: (chunk: string) => void;
   /** Called when a provider failed after streaming some text and another one starts over. */
   onReset?: () => void;
 }
 
-async function orderedPool(task: AiTask): Promise<AiProvider[]> {
+async function orderedPool(task: AiTask, vision = false): Promise<AiProvider[]> {
   const order = ROUTES[task];
-  return [...(await getPool())].sort((a, b) => order.indexOf(kindOf(a)) - order.indexOf(kindOf(b))).filter((p) => p.available() && cool(p));
+  return [...(await getPool())].filter((p) => !vision || kindOf(p) === "gemini").sort((a, b) => order.indexOf(kindOf(a)) - order.indexOf(kindOf(b))).filter((p) => p.available() && cool(p));
 }
 
 function noteFailure(p: AiProvider, err: any) {
@@ -163,7 +168,7 @@ async function withGateway<T>(
   json: boolean,
   parse: (text: string) => T,
 ): Promise<T> {
-  const request = { system: opts.system, prompt: opts.prompt, json, maxTokens: opts.maxTokens };
+  const request = { system: opts.system, prompt: opts.prompt, json, maxTokens: opts.maxTokens, files: opts.files };
   let streamed = false;
   const call = async (p: AiProvider): Promise<GenerateResponse> => {
     if (streamed) opts.onReset?.();
@@ -180,7 +185,7 @@ async function withGateway<T>(
 
   // 1) The user's own free key: their quota, so no shared credits are spent.
   const own = await getOwn(opts.uid);
-  if (own?.available() && cool(own)) {
+  if (own?.available() && cool(own) && (!opts.files?.length || kindOf(own) === "gemini")) {
     try {
       const out = await call(own);
       const parsed = parse(out.text);
@@ -197,7 +202,7 @@ async function withGateway<T>(
   }
 
   // 2) The shared pool, metered by the daily allowance.
-  const providersInOrder = await orderedPool(opts.task);
+  const providersInOrder = await orderedPool(opts.task, Boolean(opts.files?.length));
   if (!providersInOrder.length) throw new AiUnavailableError();
 
   const credits = TASK_CREDITS[opts.task];

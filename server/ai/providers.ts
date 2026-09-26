@@ -5,6 +5,8 @@ export interface GenerateRequest {
   prompt: string;
   json: boolean;
   maxTokens?: number;
+  /** Images or PDFs for the model to read (base64). Only vision-capable (Gemini) providers accept these. */
+  files?: Array<{ mime: string; base64: string }>;
 }
 export interface GenerateResponse {
   text: string;
@@ -38,7 +40,9 @@ export class GeminiProvider implements AiProvider {
   private params(model: string, req: GenerateRequest) {
     return {
       model,
-      contents: req.prompt,
+      contents: req.files?.length
+        ? [{ role: "user", parts: [{ text: req.prompt }, ...req.files.map((f) => ({ inlineData: { mimeType: f.mime, data: f.base64 } }))] }]
+        : req.prompt,
       config: {
         ...(req.system ? { systemInstruction: req.system } : {}),
         ...(req.json ? { responseMimeType: "application/json" } : {}),
