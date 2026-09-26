@@ -262,3 +262,14 @@ html[data-theme="dark"] .rounded-2xl.bg-white, html[data-theme="dark"] .rounded-
 .hj-flow { animation: hj-flow 1.4s linear infinite; }
 .hj-ring { animation: hj-ring 2.6s ease-out infinite; transform-origin: center; transform-box: fill-box; }
 @media (prefers-reduced-motion: reduce) { .hj-float, .hj-flow, .hj-ring { animation: none; } }
+
+/* ---------- Hero picture: soft-edged, gently drifting ---------- */
+.hj-img {
+  -webkit-mask-image: radial-gradient(closest-side, #000 82%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 82%, transparent 100%);
+  filter: drop-shadow(0 30px 60px rgb(0 0 0 / 0.45));
+  animation: hj-drift 14s ease-in-out infinite;
+}
+.hj-glow { background: radial-gradient(closest-side, rgb(11 141 179 / 0.28), transparent 70%); filter: blur(30px); }
+@keyframes hj-drift { 0%, 100% { transform: translate3d(0, 0, 0) } 50% { transform: translate3d(0, -8px, 0) } }
+@media (prefers-reduced-motion: reduce) { .hj-img { animation: none; } }

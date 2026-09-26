@@ -148,7 +148,7 @@ export default function Landing({ onSignIn, busy, error }: { onSignIn: () => voi
 
       {/* Hero */}
       <section className="theme-night hero-night relative overflow-hidden">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 pb-16 pt-10 lg:grid-cols-[1.05fr_1fr] lg:pb-24 lg:pt-20">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 pb-16 pt-10 lg:grid-cols-[0.9fr_1.1fr] lg:pb-24 lg:pt-20">
           <div className="order-2 animate-slide-up lg:order-1">
             {stats && (
               <p className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
