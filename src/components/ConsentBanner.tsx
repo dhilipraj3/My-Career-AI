@@ -16,7 +16,7 @@ export default function ConsentBanner() {
   const choose = (granted: boolean) => { setConsent(granted); setShow(false); };
   return (
     <div role="dialog" aria-live="polite" aria-label="Analytics consent"
-      className="glass-strong fixed inset-x-3 bottom-3 z-[60] mx-auto max-w-md rounded-2xl border p-4 animate-slide-up sm:left-auto sm:right-4 sm:mx-0 lg:bottom-4">
+      className="glass-strong fixed inset-x-3 bottom-3 z-[60] mx-auto max-w-md rounded-2xl border p-4 animate-slide-up sm:left-4 sm:right-auto sm:mx-0 lg:bottom-4 lg:left-[272px]">
       <div className="flex gap-3">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600"><BarChart3 className="h-4 w-4" /></span>
         <div className="min-w-0 flex-1 text-sm">

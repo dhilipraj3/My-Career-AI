@@ -113,7 +113,7 @@ export const applyStoredLargeText = () => document.documentElement.classList.tog
 
 // ---------------- read aloud ----------------
 /** Read text aloud with the browser's built-in voices (free). Hindi text uses a Hindi voice when available. */
-export function speak(text: string) {
+export function speak(text: string, opts: { onEnd?: () => void } = {}) {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return false;
   const plain = text.replace(/[*_`#>[\]()]/g, "").replace(/\s+/g, " ").trim();
   if (!plain) return false;
@@ -123,6 +123,7 @@ export function speak(text: string) {
   const voice = window.speechSynthesis.getVoices().find((v) => v.lang === u.lang) || window.speechSynthesis.getVoices().find((v) => v.lang.startsWith(u.lang.slice(0, 2)));
   if (voice) u.voice = voice;
   u.rate = 1;
+  if (opts.onEnd) { u.onend = opts.onEnd; u.onerror = opts.onEnd; }
   window.speechSynthesis.speak(u);
   return true;
 }

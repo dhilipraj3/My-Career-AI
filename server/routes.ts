@@ -5,6 +5,7 @@ import { z } from "zod";
 import { APPLICATION_TRANSITIONS, type AiUsageRecord, type ChatMessage, type CompanyAts, type JobQuery, type Job, type JobMatch, type ResumeRecord, type ResumeVersion, type TailoredResumeContent } from "../shared/types.js";
 import { clearConversation, confirmPending, contextSuggestions, loadConversation, runAgent, saveConversation, saveFeedback, undoChange, type AgentEvent } from "./agent/agent.js";
 import { startBackgroundSearch } from "./agent/tools.js";
+import { briefingFor } from "./agent/briefing.js";
 import { aiAvailable, aiStatus, getUsage, generateJSON, AiQuotaError, AiUnavailableError } from "./ai/gateway.js";
 import { KeyTestError, addPoolKey, countUserKeys, deleteUserKey, getUserKey, listPool, removePoolKey, retestPoolKey, saveUserKey, updatePoolKey } from "./ai/keys.js";
 import { COMPAT_PRESETS } from "./ai/providers.js";
@@ -501,6 +502,10 @@ export function buildRouter(): express.Router {
   r.get("/agent/history", wrap(async (req, res) => res.json({ messages: await loadConversation(req.user!.uid) })));
   r.delete("/agent/history", wrap(async (req, res) => { await clearConversation(req.user!.uid); res.json({ ok: true }); }));
 
+  r.get("/agent/briefing", wrap(async (req, res) => {
+    const lang = req.query.lang === "hi" ? "hi" : "en";
+    res.json({ briefing: await briefingFor(req.user!.uid, lang) });
+  }));
   r.get("/agent/starters", wrap(async (req, res) => {
     const { page, jobId } = z.object({ page: z.string().max(30).optional(), jobId: z.string().max(80).optional() }).parse(req.query);
     res.json({ suggestions: contextSuggestions({ page, jobId }) });

@@ -15,6 +15,7 @@ import { Kbd, cn, timeAgo } from "../ui";
 import Admin from "./Admin";
 import Applications from "./Applications";
 import Assistant from "../components/Assistant";
+import AgentGuide from "../components/AgentGuide";
 import Dashboard from "./Dashboard";
 import JobDetail from "./JobDetail";
 import JobSearch from "./JobSearch";
@@ -22,6 +23,7 @@ import Matches from "./Matches";
 import ProfilePage from "./ProfilePage";
 import ImportJobModal from "../components/ImportJobModal";
 import ThemeToggle from "../components/ThemeToggle";
+import { useGuideSettings } from "../lib/guide";
 import Employer from "./Employer";
 import Insights from "./Insights";
 import Interview from "./Interview";
@@ -59,6 +61,7 @@ function NavLink({ item, active, onClick }: { item: Item; active: boolean; onCli
 
 export default function Shell({ me, refresh }: { me: Me; refresh: () => Promise<void> }) {
   const { t, lang, setLang } = useI18n();
+  const guide = useGuideSettings();
   const [route, setRoute] = useState(parseHash);
   // /add-job?url=… is a bookmark target: open the "add a job" window with that link, then move to a normal address.
   const [addJob, setAddJob] = useState<string | null>(() => (location.pathname === "/add-job" ? new URLSearchParams(location.search).get("url") || "" : null));
@@ -211,9 +214,12 @@ export default function Shell({ me, refresh }: { me: Me; refresh: () => Promise<
           </button>
         </nav>
 
-        <button onClick={() => nav.openChat()} aria-label="Ask the assistant" className={cn(chat.open && "hidden", "bg-peacock fixed bottom-20 right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg shadow-brand-600/30 transition hover:brightness-110 sm:hidden")}>
-          <MessageCircle className="h-6 w-6" />
-        </button>
+        {guide.mode === "off" && (
+          <button onClick={() => nav.openChat()} aria-label="Ask the assistant" className={cn(chat.open && "hidden", "bg-peacock fixed bottom-20 right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg shadow-brand-600/30 transition hover:brightness-110 sm:hidden")}>
+            <MessageCircle className="h-6 w-6" />
+          </button>
+        )}
+        <AgentGuide me={me} page={page} onJob={Boolean(route.jobId)} chatOpen={chat.open} chatExpanded={chatExpanded} />
 
         {chat.open && (
           <Assistant key={chat.key} onClose={() => { setChat({ open: false }); setChatExpanded(false); }} initialPrompt={chat.prompt} ai={ai}

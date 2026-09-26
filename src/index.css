@@ -273,3 +273,14 @@ html[data-theme="dark"] .rounded-2xl.bg-white, html[data-theme="dark"] .rounded-
 .hj-glow { background: radial-gradient(closest-side, rgb(11 141 179 / 0.28), transparent 70%); filter: blur(30px); }
 @keyframes hj-drift { 0%, 100% { transform: translate3d(0, 0, 0) } 50% { transform: translate3d(0, -8px, 0) } }
 @media (prefers-reduced-motion: reduce) { .hj-img { animation: none; } }
+
+/* ---------- The guide (Asha) ---------- */
+@keyframes guide-breathe { 0%, 100% { transform: translateY(0) scale(1) } 50% { transform: translateY(-2px) scale(1.012) } }
+@keyframes guide-bob { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-3px) } }
+.guide-figure { transform-origin: 50% 100%; animation: guide-breathe 5s ease-in-out infinite; }
+.guide-figure.is-speaking { animation: guide-bob 0.46s ease-in-out infinite; }
+.guide-bubble::after {
+  content: ""; position: absolute; right: 26px; bottom: -7px; width: 14px; height: 14px; transform: rotate(45deg);
+  background: inherit; border-right: 1px solid var(--color-slate-200); border-bottom: 1px solid var(--color-slate-200); border-radius: 0 0 4px 0;
+}
+@media (prefers-reduced-motion: reduce) { .guide-figure, .guide-figure.is-speaking { animation: none; } }

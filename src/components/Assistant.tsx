@@ -10,6 +10,7 @@ import { track } from "../lib/analytics";
 import { api, errMsg } from "../lib/api";
 import { streamChat } from "../lib/assistantStream";
 import type { Page } from "../lib/nav";
+import { getGuidePose, guideSpeak, guideStopSpeaking, setGuidePose, speakable } from "../lib/guide";
 import { speechSupported, useDictation } from "../lib/speech";
 import { Button, CompanyMark, ScoreRing, cn, useToast } from "../ui";
 
@@ -151,6 +152,7 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
   const box = useRef<HTMLTextAreaElement>(null);
   const toast = useToast();
   const dictation = useDictation((t) => setInput(t));
+  useEffect(() => { if (dictation.listening) setGuidePose("listening"); else if (getGuidePose() === "listening") setGuidePose("idle"); }, [dictation.listening]);
 
   // Load history, starters for this page, and a one-line insight for the empty state.
   useEffect(() => {
@@ -185,6 +187,7 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
     if (!message || busy) return;
     if (dictation.listening) dictation.stop();
     setBusy(true); setInput(""); stick.current = true;
+    guideStopSpeaking(); setGuidePose("thinking");
     const now = new Date().toISOString();
     setMessages((ms) => [...(opts.regenerate ? ms.slice(0, -1) : [...ms, { role: "user", text: message, at: now } as Msg]), { role: "assistant", text: "", at: now, streaming: true, steps: [] }]);
     track("assistant_message", { page: context.page, on_job: Boolean(context.jobId), regenerate: Boolean(opts.regenerate), length: message.length });
@@ -193,7 +196,7 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
     try {
       const r = await streamChat({ message, context: { page: context.page, jobId: context.jobId }, regenerate: opts.regenerate }, {
         onStep: (s) => patchLast((m) => ({ ...m, steps: [...(m.steps || []).filter((x) => x.id !== s.id), s] })),
-        onDelta: (t) => patchLast((m) => ({ ...m, text: m.text + t })),
+        onDelta: (t) => { setGuidePose("talking"); patchLast((m) => ({ ...m, text: m.text + t })); },
         onReset: () => patchLast((m) => ({ ...m, text: "" })),
       }, ctrl.signal);
       setBasicReason(r.mode === "basic" ? r.basicReason : undefined);
@@ -201,6 +204,7 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
         id: r.id, role: "assistant", text: r.reply, at: new Date().toISOString(), cards: r.cards.length ? r.cards : undefined, steps: r.steps,
         changes: r.changes.length ? r.changes : undefined, pendingAction: r.pendingAction, suggestions: r.suggestions,
       }));
+      guideSpeak(speakable(r.reply));
       if (r.openUrl) window.open(r.openUrl, "_blank", "noopener,noreferrer");
       if (r.navigate) setTimeout(() => onNavigate(r.navigate!), 500);
       if (r.changes.length || r.navigate) onActed();
@@ -209,6 +213,7 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
       else patchLast((m) => ({ ...m, streaming: false, failed: errMsg(e), steps: (m.steps || []).filter((s) => s.state !== "running") }));
     } finally {
       abort.current = null;
+      setGuidePose("idle");
       setBusy(false);
       setTimeout(() => box.current?.focus(), 30);
     }

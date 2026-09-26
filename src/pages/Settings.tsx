@@ -1,10 +1,11 @@
-import { BarChart3, Download, Gauge, Palette, KeyRound, LogOut, PauseCircle, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
+import { BarChart3, Download, Gauge, Palette, Volume2, KeyRound, LogOut, PauseCircle, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import type { AiState, Me } from "../App";
 import { api, devUser, downloadFile, errMsg } from "../lib/api";
 import { getConsent, setConsent } from "../lib/analytics";
 import { signOutUser } from "../lib/firebase";
 import { getLowData, setLowData } from "../lib/lowdata";
+import { GUIDE_NAME, guideSpeak, setGuideSettings, useGuideSettings, type GuideMode } from "../lib/guide";
 import { useTheme, type ThemeChoice } from "../lib/theme";
 import { useNav } from "../lib/nav";
 import AlertInbox from "../components/AlertInbox";
@@ -29,6 +30,7 @@ export default function Settings({ me, ai }: { me: Me; ai: AiState }) {
   const [busy, setBusy] = useState(false);
   const [lowData, setLow] = useState(getLowData());
   const theme = useTheme();
+  const guide = useGuideSettings();
   const [analyticsOn, setAnalyticsOn] = useState(getConsent() === "granted");
   const u = me.usage;
 
@@ -75,6 +77,14 @@ export default function Settings({ me, ai }: { me: Me; ai: AiState }) {
         <h2 className="px-1 text-sm font-semibold uppercase tracking-wider text-slate-500">Account & privacy</h2>
         <Card className="divide-y divide-slate-100 p-0">
           <Row icon={<ShieldCheck className="h-5 w-5" />} title="Your data" detail="Your resume and profile are private to you. I never submit applications or share your details without your confirmation." />
+          <Row icon={<Sparkles className="h-5 w-5" />} title={GUIDE_NAME + ", your guide"} detail="How much your on-screen guide speaks up. Active tells you your status and tips as you go; Quiet only answers when you tap her; Off hides her.">
+            <div className="flex rounded-xl bg-slate-100 p-0.5" role="group" aria-label="Guide behaviour">
+              {([["active", "Active"], ["quiet", "Quiet"], ["off", "Off"]] as Array<[GuideMode, string]>).map(([v, l]) => <button key={v} aria-pressed={guide.mode === v} onClick={() => setGuideSettings({ mode: v })} className={"rounded-lg px-3 py-1.5 text-sm font-medium " + (guide.mode === v ? "bg-white text-ink shadow-sm" : "text-slate-500")}>{l}</button>)}
+            </div>
+          </Row>
+          <Row icon={<Volume2 className="h-5 w-5" />} title={GUIDE_NAME + "'s voice"} detail={guide.voice ? "On. She reads her messages and answers aloud, in English or Hindi." : "Off. She only shows text."}>
+            <Button variant="secondary" onClick={() => { setGuideSettings({ voice: !guide.voice }); if (!guide.voice) guideSpeak("Hi, I am " + GUIDE_NAME + ". This is my voice."); }}>{guide.voice ? "Turn off" : "Turn on"}</Button>
+          </Row>
           <Row icon={<Palette className="h-5 w-5" />} title="Appearance" detail="Dark glass or light. Automatic follows your device.">
             <div className="flex rounded-xl bg-slate-100 p-0.5" role="group" aria-label="Theme">
               {([["system", "Auto"], ["dark", "Dark"], ["light", "Light"]] as Array<[ThemeChoice, string]>).map(([v, l]) => <button key={v} aria-pressed={theme.choice === v} onClick={() => theme.set(v)} className={"rounded-lg px-3 py-1.5 text-sm font-medium " + (theme.choice === v ? "bg-white text-ink shadow-sm" : "text-slate-500")}>{l}</button>)}

@@ -55,6 +55,7 @@ const COLORS = ["#0a7399", "#07a384", "#f59e0b", "#f0bf4c", "#06b6d4", "#0fb38f"
 
 /** Celebrate a milestone (applied, interview, offer). Pure CSS; skipped when the user prefers reduced motion. */
 export function celebrate(pieces = 70) {
+  if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("guide:celebrate")); // the guide cheers too
   if (reducedMotion() || typeof document === "undefined") return;
   const host = document.createElement("div");
   host.setAttribute("aria-hidden", "true");
