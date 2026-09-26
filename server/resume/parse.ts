@@ -105,10 +105,20 @@ function parseEducationDeterministic(lines: string[]): EducationEntry[] {
     const l = clean[i];
     if (!EDU_RE.test(l)) continue;
     const year = l.match(/\b(19|20)\d{2}\b/g)?.pop() || clean[i + 1]?.match(/\b(19|20)\d{2}\b/)?.[0] || clean[i - 1]?.match(/\b(19|20)\d{2}\b/)?.[0];
-    const inst = [clean[i + 1], clean[i - 1], l].find((x) => x && /(university|institute|college|school|iit|nit|academy|polytechnic)/i.test(x)) || "";
-    const degree = l.replace(/\b(19|20)\d{2}\b/g, "").replace(inst, "").replace(/[|,–-]+\s*$/g, "").trim();
+    const noYear = (s: string) => s.replace(/\(?\b(19|20)\d{2}\b\)?/g, "").replace(/\s*[|,–-]+\s*$/g, "").replace(/^\s*[|,–-]+\s*/g, "").trim();
+    let degree = "", inst = "";
+    if (/(university|institute|college|school|iit|nit|academy|polytechnic|vidyalaya|vidyapeeth)/i.test(l)) {
+      // "B.Tech in Computer Science, Anna University, 2013": split the line into the degree part and the institution part.
+      const parts = l.split(/\s*[|,–]\s*|\s+-\s+/).map(noYear).filter(Boolean);
+      const at = parts.findIndex((x) => /(university|institute|college|school|iit|nit|academy|polytechnic|vidyalaya|vidyapeeth)/i.test(x));
+      inst = parts[at] || "";
+      degree = parts.filter((_, k) => k !== at).join(", ") || "";
+    } else {
+      degree = noYear(l);
+      inst = noYear([clean[i + 1], clean[i - 1]].find((x) => x && /(university|institute|college|school|iit|nit|academy|polytechnic|vidyalaya|vidyapeeth)/i.test(x)) || "");
+    }
     if (degree && degree.length < 120 && !out.some((e) => e.degree === degree))
-      out.push({ id: `edu_${uid8()}`, degree, institution: inst.replace(/\b(19|20)\d{2}\b/g, "").trim(), gradYear: year });
+      out.push({ id: `edu_${uid8()}`, degree, institution: inst, gradYear: year });
   }
   return out.slice(0, 6);
 }
@@ -151,7 +161,13 @@ function deterministicParse(text: string): ParsedResume {
     .map((l) => l.replace(BULLET, "").trim())
     .filter((l) => l.length > 3 && l.length < 120)
     .slice(0, 10)
-    .map((name) => ({ id: `cert_${uid8()}`, name, year: name.match(/\b(19|20)\d{2}\b/)?.[0] }));
+    .map((line) => {
+      // "PMP - Project Management Institute, 2017" → name "PMP", provider "Project Management Institute", year "2017".
+      const year = line.match(/\b(19|20)\d{2}\b/)?.[0];
+      const rest = line.replace(/\(?\b(19|20)\d{2}\b\)?/g, "").replace(/[\s,|–-]+$/g, "").trim();
+      const [name, ...by] = rest.split(/\s+[-–|]\s+|,\s*/);
+      return { id: `cert_${uid8()}`, name: (name || rest).trim(), provider: by.join(", ").trim() || undefined, year };
+    });
   const summary = (sections.summary || []).join(" ").trim().slice(0, 800);
   const total = totalExperienceYears(experience);
   const provenance: Record<string, Source> = {};

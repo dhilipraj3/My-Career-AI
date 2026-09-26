@@ -1,9 +1,11 @@
 // Resume builder (facts from the profile only — nothing invented) and Resume Health (an ATS-style check out of 100
 // with specific fixes).
+import { experienceText, wholeYears } from "../../shared/format.js";
 import type { CandidateProfile, ExperienceEntry } from "../../shared/types.js";
 import type { BuiltResume, ResumeCheck, ResumeHealth } from "../../shared/career.js";
 import { displayName } from "../nlp/skills.js";
 import { searchJobs } from "../search/index.js";
+import { strongerPoint } from "../profile/experience.js";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 function fmtDate(d?: string): string {
@@ -13,10 +15,21 @@ function fmtDate(d?: string): string {
   return m ? `${MONTHS[Number(m[2]) - 1] || ""} ${m[1]}`.trim() : d;
 }
 const period = (e: ExperienceEntry) => [fmtDate(e.startDate), e.current ? "Present" : fmtDate(e.endDate)].filter(Boolean).join(" – ");
-const years = (n: number) => (n % 1 === 0 ? String(n) : n.toFixed(1));
 
 /** Skills the person can claim: from their resume or told us themselves (never AI guesses). */
 const claimable = (p: CandidateProfile) => p.skills.filter((s) => s.source === "resume" || s.source === "user");
+
+const norm = (s?: string) => (s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+const stripYear = (s?: string) => (s || "").replace(/\(?\b(19|20)\d{2}\b\)?/g, "").replace(/[\s,|–-]+$/g, "").trim();
+/** Join parts with " · ", dropping empties and any part already contained in an earlier one. */
+function uniqueParts(parts: Array<string | undefined>, sep = " · "): string {
+  const out: string[] = [];
+  for (const raw of parts) {
+    const p = (raw || "").replace(/[\s,]+$/g, "").trim();
+    if (p && !out.some((o) => norm(o).includes(norm(p)))) out.push(p);
+  }
+  return out.join(sep);
+}
 
 export function buildResume(p: CandidateProfile): BuiltResume {
   const skills = claimable(p);
@@ -29,13 +42,13 @@ export function buildResume(p: CandidateProfile): BuiltResume {
   if (!summary) {
     const bits: string[] = [];
     if (fresher) bits.push(`${p.education[0]?.degree ? `${p.education[0].degree} graduate` : "Motivated fresher"}${role ? ` looking for ${role} roles` : ""}.`);
-    else bits.push(`${p.currentRole || role || "Professional"} with ${years(p.totalExperienceYears)} years of experience${recent?.company ? `, most recently at ${recent.company}` : ""}.`);
+    else bits.push(`${p.currentRole || role || "Professional"} with ${experienceText(p.totalExperienceYears)} of experience${recent?.company ? `, most recently at ${recent.company}` : ""}.`);
     if (hard.length) bits.push(`Skilled in ${hard.slice(0, 6).join(", ")}.`);
     summary = bits.join(" ");
   }
   return {
     name: p.fullName || "Your Name",
-    headline: [role, p.totalExperienceYears ? `${years(p.totalExperienceYears)} years` : fresher ? "Fresher" : ""].filter(Boolean).join(" · "),
+    headline: [role, p.totalExperienceYears ? experienceText(p.totalExperienceYears) : fresher ? "Fresher" : ""].filter(Boolean).join(" · "),
     contact: [p.email, p.phone, [p.city, p.state].filter(Boolean).join(", "), p.links.linkedin, p.links.github, p.links.portfolio].filter((x): x is string => Boolean(x)),
     summary,
     experience: p.experience.map((e) => ({
@@ -43,8 +56,11 @@ export function buildResume(p: CandidateProfile): BuiltResume {
       bullets: [...e.achievements, ...e.responsibilities].map((b) => b.trim()).filter(Boolean).slice(0, 6),
     })),
     skills: [...hard, ...soft].slice(0, 22),
-    education: p.education.map((e) => ({ degree: [e.degree, e.specialization].filter(Boolean).join(", "), institution: e.institution, year: e.gradYear })),
-    certifications: p.certifications.map((c) => [c.name, c.provider, c.year].filter(Boolean).join(" · ")),
+    education: p.education.map((e) => {
+      const degree = uniqueParts([e.degree, e.specialization]);
+      return { degree, institution: norm(degree).includes(norm(e.institution)) ? "" : stripYear(e.institution), year: e.gradYear };
+    }),
+    certifications: p.certifications.map((c) => uniqueParts([stripYear(c.name), c.provider, c.year])),
     projects: p.projects.map((x) => ({ title: x.title, description: x.description })),
   };
 }
@@ -64,9 +80,10 @@ async function roleKeywords(role: string): Promise<string[]> {
 export async function resumeHealth(p: CandidateProfile): Promise<ResumeHealth> {
   const built = buildResume(p);
   const checks: ResumeCheck[] = [];
+  const AREA: Record<string, ResumeCheck["area"]> = { contact: "contact", summary: "summary", history: "experience", bullets: "experience", numbers: "experience", verbs: "experience", skills: "skills", keywords: "skills", length: "experience" };
   const add = (id: string, label: string, max: number, ratio: number, fix?: string) => {
     const r = Math.max(0, Math.min(1, ratio));
-    checks.push({ id, label, max, points: Math.round(max * r), ok: r >= 0.999, fix: r >= 0.999 ? undefined : fix });
+    checks.push({ id, label, max, points: Math.round(max * r), ok: r >= 0.999, fix: r >= 0.999 ? undefined : fix, area: AREA[id] || "other" });
   };
   const fresher = p.insights.careerLevel === "fresher" || (!p.experience.length && !p.totalExperienceYears);
 
@@ -107,5 +124,17 @@ export async function resumeHealth(p: CandidateProfile): Promise<ResumeHealth> {
   add("length", "Right length (1–2 pages)", 5, lengthOk ? 1 : 0.4, words < (fresher ? 120 : 250) ? "It's a bit short — add more about your work or projects." : "It's long — keep the most relevant 10–15 years and 3–5 points per job.");
 
   const score = checks.reduce((s, c) => s + c.points, 0);
-  return { score: Math.min(100, score), checks, keywordsMissing: missing.map((k) => displayName(k)).slice(0, 8), targetRole: role || undefined };
+  // Concrete help for each point in the work history: a stronger opening, or a nudge to add a number.
+  const rewrites: ResumeHealth["rewrites"] = [];
+  const needsNumbers: ResumeHealth["needsNumbers"] = [];
+  for (const e of p.experience) {
+    [...e.responsibilities, ...e.achievements].forEach((point, index) => {
+      const to = strongerPoint(point);
+      if (to) rewrites.push({ experienceId: e.id, index, from: point, to });
+      else if (!NUMBER.test(point) && point.length > 25 && needsNumbers.length < 6) needsNumbers.push({ experienceId: e.id, index, point });
+    });
+  }
+  const own = (p.summary || "").trim();
+  const suggestedSummary = own.length < 60 && p.provenance.summary !== "user" ? buildResume({ ...p, summary: "" }).summary : undefined;
+  return { score: Math.min(100, score), checks, keywordsMissing: missing.map((k) => displayName(k)).slice(0, 8), targetRole: role || undefined, suggestedSummary, rewrites: rewrites.slice(0, 8), needsNumbers };
 }

@@ -50,11 +50,11 @@ function Funnel() {
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">{stat("Applied", f.applied, null)}{stat("Replies", f.responses, f.responseRate)}{stat("Interviews", f.interviews, f.interviewRate)}{stat("Offers", f.offers, f.offerRate)}</div>
       {f.medianDaysToResponse !== null && <p className="text-sm text-slate-600">Employers typically reply in about <strong>{f.medianDaysToResponse} days</strong>.</p>}
       <div>
-        <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">Applications per week</p>
+        <p className="mb-1.5 text-xs font-semibold text-slate-500">Applications per week</p>
         <div className="flex h-20 items-end gap-1.5">{f.weekly.map((w) => <div key={w.weekStart} title={`${w.weekStart}: ${w.applied}`} className="flex flex-1 flex-col items-center justify-end gap-1"><div className="w-full rounded-t bg-brand-500/80" style={{ height: `${Math.max(3, (w.applied / maxWeek) * 100)}%` }} /><span className="text-[10px] tabular-nums text-slate-400">{w.applied}</span></div>)}</div>
       </div>
       {f.bySource.length > 1 && (
-        <div><p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">Where replies come from</p>
+        <div><p className="mb-1.5 text-xs font-semibold text-slate-500">Where replies come from</p>
           <ul className="space-y-1.5 text-sm">{f.bySource.map((s) => <li key={s.source} className="flex items-center gap-2"><span className="w-40 truncate text-slate-700">{s.source}</span><div className="flex-1"><Bar value={s.responses} max={s.applied} tone="bg-emerald-500" /></div><span className="w-16 text-right text-xs tabular-nums text-slate-500">{s.responses}/{s.applied}</span></li>)}</ul></div>
       )}
     </Card>
@@ -85,8 +85,8 @@ function Market() {
           </div>
           {m.salary && <p className="rounded-xl bg-slate-50 p-3 text-sm">Typical pay: <strong>₹{m.salary.lowLPA}–{m.salary.highLPA} LPA</strong> (median ₹{m.salary.medianLPA} LPA), from {m.salary.samples} postings that state a salary{m.salary.scope === "city" ? ` in ${m.city}` : " across India"}.</p>}
           <div className="grid gap-5 sm:grid-cols-2">
-            <div><p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">Skills employers ask for</p><ul className="space-y-1.5">{m.topSkills.map((s) => <li key={s.skill} className="flex items-center gap-2 text-sm"><span className="w-32 truncate">{s.skill}</span><div className="flex-1"><Bar value={s.jobs} max={m.topSkills[0]?.jobs || 1} /></div><span className="w-6 text-right text-xs tabular-nums text-slate-500">{s.jobs}</span></li>)}</ul></div>
-            <div><p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">Hiring the most</p><ul className="space-y-1.5">{m.topCompanies.map((c) => <li key={c.company} className="flex items-center gap-2 text-sm"><span className="flex-1 truncate">{c.company}</span><span className="text-xs tabular-nums text-slate-500">{c.jobs} open</span></li>)}</ul></div>
+            <div><p className="mb-1.5 text-xs font-semibold text-slate-500">Skills employers ask for</p><ul className="space-y-1.5">{m.topSkills.map((s) => <li key={s.skill} className="flex items-center gap-2 text-sm"><span className="w-32 truncate">{s.skill}</span><div className="flex-1"><Bar value={s.jobs} max={m.topSkills[0]?.jobs || 1} /></div><span className="w-6 text-right text-xs tabular-nums text-slate-500">{s.jobs}</span></li>)}</ul></div>
+            <div><p className="mb-1.5 text-xs font-semibold text-slate-500">Hiring the most</p><ul className="space-y-1.5">{m.topCompanies.map((c) => <li key={c.company} className="flex items-center gap-2 text-sm"><span className="flex-1 truncate">{c.company}</span><span className="text-xs tabular-nums text-slate-500">{c.jobs} open</span></li>)}</ul></div>
           </div>
           <p className="text-xs text-slate-400">From live postings in the top 50 results for this role.</p>
         </Card>

@@ -1,3 +1,4 @@
+import { experienceText } from "@shared/format";
 import { Briefcase, GraduationCap, MapPin, Plus, Sparkles, Target, Wrench, X } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import type { CandidatePreferences, FeedSummary, SkillEntry, WorkMode } from "@shared/types";
@@ -6,7 +7,7 @@ import { api, errMsg } from "../lib/api";
 import { POPULAR_CITIES } from "../lib/labels";
 import UnderstandingCard from "../components/UnderstandingCard";
 import RolePaths from "../components/RolePaths";
-import { Badge, Button, Card, Chip, PageHeader, Progress, cn, titleCase, useToast } from "../ui";
+import { Badge, Button, Card, Chip, PageHeader, Progress, cn, sentenceCase, useToast } from "../ui";
 
 const SOURCE_LABEL: Record<string, string> = { resume: "From your resume", user: "Added by you", ai_derived: "Guessed by AI — confirm before it's used", imported: "Imported" };
 
@@ -19,7 +20,7 @@ function ChipEditor({ values, onChange, placeholder, suggestions = [], list }: {
       <div className="flex min-h-11 flex-wrap items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-1.5 focus-within:border-brand-400">
         {values.map((v) => (
           <span key={v} className="inline-flex h-8 items-center gap-1 rounded-lg bg-brand-50 pl-2.5 pr-1 text-sm font-medium text-brand-800">{v}
-            <button aria-label={`Remove ${v}`} onClick={() => onChange(values.filter((x) => x !== v))} className="rounded p-0.5 hover:bg-brand-100"><X className="h-3.5 w-3.5" /></button></span>
+            <button aria-label={`Remove ${v}`} onClick={() => onChange(values.filter((x) => x !== v))} className="flex h-7 w-7 items-center justify-center rounded-md hover:bg-brand-100"><X className="h-3.5 w-3.5" /></button></span>
         ))}
         <input value={text} onChange={(e) => setText(e.target.value)} list={list} placeholder={values.length ? "Add more…" : placeholder}
           onKeyDown={(e) => { if ((e.key === "Enter" || e.key === ",") && text.trim()) { e.preventDefault(); add(text); } if (e.key === "Backspace" && !text && values.length) onChange(values.slice(0, -1)); }}
@@ -84,10 +85,10 @@ export default function ProfilePage({ me, refresh }: { me: Me; refresh: () => Pr
         <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-brand-600 font-display text-2xl font-bold text-white">{(p.fullName || "?").split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase()}</div>
         <div className="min-w-0 flex-1">
           <p className="font-display text-xl font-bold text-ink">{p.fullName || "Your name"}</p>
-          <p className="text-slate-700">{p.currentRole || "Role not found"} · {p.totalExperienceYears} years experience · {[p.city, p.state].filter(Boolean).join(", ") || "Location not found"}</p>
+          <p className="text-slate-700">{p.currentRole || "Role not found"} · {experienceText(p.totalExperienceYears)} experience · {[p.city, p.state].filter(Boolean).join(", ") || "Location not found"}</p>
           <p className="mt-0.5 text-sm text-slate-500">{p.email}{p.phone ? ` · ${p.phone}` : ""}</p>
         </div>
-        <Badge tone="brand" className="self-start">{titleCase(p.insights.careerLevel)} level</Badge>
+        <Badge tone="brand" className="self-start">{sentenceCase(p.insights.careerLevel)} level</Badge>
       </Card>
       {p.summary && <p className="px-1 text-sm leading-relaxed text-slate-600">{p.summary}</p>}
 
@@ -100,7 +101,7 @@ export default function ProfilePage({ me, refresh }: { me: Me; refresh: () => Pr
           <ChipEditor values={f.locations} onChange={(v) => setF({ ...f, locations: v })} placeholder="e.g. Chennai" list="profile-cities" suggestions={POPULAR_CITIES.filter((c) => c !== p.city).slice(0, 0)} />
           <datalist id="profile-cities">{POPULAR_CITIES.map((c) => <option key={c} value={c} />)}</datalist>
           <div className="flex flex-wrap gap-2">
-            {(["remote", "hybrid", "onsite"] as const).map((m) => <Chip key={m} on={f.workModes.includes(m)} onClick={() => toggleMode(m)}>{m === "onsite" ? "On-site" : titleCase(m)}</Chip>)}
+            {(["remote", "hybrid", "onsite"] as const).map((m) => <Chip key={m} on={f.workModes.includes(m)} onClick={() => toggleMode(m)}>{m === "onsite" ? "On-site" : ({ remote: "Remote", hybrid: "Hybrid", onsite: "On-site" })[m]}</Chip>)}
             <Chip on={f.willingToRelocate} onClick={() => setF({ ...f, willingToRelocate: !f.willingToRelocate })}>Open to relocate</Chip>
           </div>
         </Block>
@@ -130,7 +131,7 @@ export default function ProfilePage({ me, refresh }: { me: Me; refresh: () => Pr
           {p.skills.map((s) => (
             <span key={s.key} title={SOURCE_LABEL[s.source]} className={cn("inline-flex h-8 items-center gap-1 rounded-lg border pl-2.5 pr-1 text-sm", skillStyle(s))}>
               {s.name}
-              <button aria-label={`Remove ${s.name}`} onClick={() => void wrap(() => api("/profile", { method: "PATCH", body: { removeSkills: [s.key] } }), `Removed ${s.name}`)} className="rounded p-0.5 text-slate-400 hover:bg-white hover:text-red-600"><X className="h-3.5 w-3.5" /></button>
+              <button aria-label={`Remove ${s.name}`} onClick={() => void wrap(() => api("/profile", { method: "PATCH", body: { removeSkills: [s.key] } }), `Removed ${s.name}`)} className="flex h-7 w-7 items-center justify-center rounded-md text-slate-400 hover:bg-white hover:text-red-600"><X className="h-3.5 w-3.5" /></button>
             </span>
           ))}
         </div>

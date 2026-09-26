@@ -53,7 +53,7 @@ describe("understanding: confidence model and question planner", () => {
     const u2 = await understanding();
     expect(u2.next.id).toBe("role"); // then confirming the guessed role beats minor questions
     expect(u2.next.choices.map((c: any) => c.value)).toContain("Senior Project Manager");
-    expect(u.summary).toMatch(/Senior Project Manager with \d+(\.\d)? years' experience, most recently at Infosys/);
+    expect(u.summary).toMatch(/Senior Project Manager with \d+ years of experience, most recently at Infosys/);
   });
 
   it("answers move the score up until the planner runs out of useful questions", async () => {
@@ -74,7 +74,7 @@ describe("understanding: confidence model and question planner", () => {
     expect(u.ready).toBe(true);
     const prefs = r.body.profile.preferences;
     expect(prefs).toMatchObject({ locations: ["Chennai"], willingToRelocate: true, minSalaryLPA: 24, noticePeriodDays: 30, workModes: ["remote", "hybrid", "onsite"], employmentTypes: ["full_time"], motivations: ["growth", "balance"] });
-    expect(u.summary).toMatch(/from ₹24 LPA and can join in 30 days/);
+    expect(u.summary).toMatch(/You want a salary from ₹24 LPA, and you can join in 30 days./);
   });
 
   it("the user's own experience figure wins and survives a re-upload", async () => {

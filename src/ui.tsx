@@ -1,8 +1,10 @@
-// MyCareer.AI component library. Light theme, one indigo accent, soft depth.
+// MyCareer.AI component library: peacock palette, glass surfaces, light and dark themes.
+import { twMerge } from "tailwind-merge";
 import { AlertCircle, CheckCircle2, Info, Loader2, X } from "lucide-react";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
 
-export const cn = (...c: Array<string | false | null | undefined>) => c.filter(Boolean).join(" ");
+/** Join class names; when two classes set the same thing (e.g. p-5 and p-0), the later one wins. */
+export const cn = (...c: Array<string | false | null | undefined>) => twMerge(c.filter(Boolean).join(" "));
 
 // ---------------------------------------------------------------- Button
 type Variant = "primary" | "secondary" | "ghost" | "danger" | "soft";
@@ -32,7 +34,7 @@ export function PageHeader({ title, subtitle, actions, eyebrow }: { title: React
   return (
     <div className="flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
-        {eyebrow && <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-brand-600">{eyebrow}</p>}
+        {eyebrow && <p className="mb-1 text-xs font-semibold text-brand-600">{eyebrow}</p>}
         <h1 className="text-2xl font-bold sm:text-[28px]">{title}</h1>
         {subtitle && <p className="mt-1 text-slate-600">{subtitle}</p>}
       </div>
@@ -230,4 +232,5 @@ export const timeAgo = (iso?: string) => {
   return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 };
 
-export const titleCase = (s: string) => s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+/** "under_review" → "Under review". Every status and type label uses sentence case. */
+export const sentenceCase = (s: string) => { const t = s.replace(/_/g, " ").trim().toLowerCase(); return t.charAt(0).toUpperCase() + t.slice(1); };

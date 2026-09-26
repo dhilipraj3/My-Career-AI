@@ -1,5 +1,6 @@
 // Message drafts for the moments that matter: follow-up, thank-you, withdrawal, accept, decline, negotiate.
 // Templates are filled only from the application and the candidate's profile, so nothing here can be a false claim.
+import { experienceText, wholeYears } from "../../shared/format.js";
 import type { CandidateProfile, ApplicationRecord, Job } from "../../shared/types.js";
 import type { DraftMessage, MessageKind, SalaryBenchmark } from "../../shared/interview.js";
 import { displayName } from "../nlp/skills.js";
@@ -53,7 +54,7 @@ export function draftFor(kind: MessageKind, p: CandidateProfile, a: ApplicationR
       const target = b ? Math.max(b.medianLPA, opts.offerLPA ? opts.offerLPA * 1.08 : 0) : opts.offerLPA ? opts.offerLPA * 1.08 : 0;
       return {
         kind, subject: `${role} offer: compensation discussion`,
-        body: `Dear ${to},\n\nThank you for the offer for the ${role} position at ${company}. I am very excited about the role and the team.\n\n${opts.offerLPA ? `The offer is ${fmtLPA(opts.offerLPA)}. ` : ""}${market}${strengths.length ? `Given my experience with ${strengths.join(", ")}${p.totalExperienceYears ? ` and ${Math.floor(p.totalExperienceYears)} years in the field` : ""}, ` : "Given my experience, "}I was hoping we could discuss ${target ? `a fixed compensation closer to ${fmtLPA(Math.round(target * 10) / 10)}` : "the compensation"}.\n\nI am confident I can add strong value and would be happy to accept once we are aligned.\n\n${sign}`,
+        body: `Dear ${to},\n\nThank you for the offer for the ${role} position at ${company}. I am very excited about the role and the team.\n\n${opts.offerLPA ? `The offer is ${fmtLPA(opts.offerLPA)}. ` : ""}${market}${strengths.length ? `Given my experience with ${strengths.join(", ")}${p.totalExperienceYears ? ` and ${experienceText(p.totalExperienceYears)} in the field` : ""}, ` : "Given my experience, "}I was hoping we could discuss ${target ? `a fixed compensation closer to ${fmtLPA(Math.round(target * 10) / 10)}` : "the compensation"}.\n\nI am confident I can add strong value and would be happy to accept once we are aligned.\n\n${sign}`,
         notes: [
           b ? `Market figures come from ${b.samples} live postings that state a salary. Treat them as a guide, not a rule.` : "No reliable market data for this role yet. Ask peers and check other sources before naming a number.",
           "Negotiate the whole package: fixed pay, joining bonus, notice buy-out, work-from-home days, review date.",

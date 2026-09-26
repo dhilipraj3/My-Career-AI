@@ -8,7 +8,7 @@ import { track } from "../lib/analytics";
 import { CATEGORY_LABELS, EDUCATION_LABELS, salaryText, sourceLabel } from "../lib/labels";
 import { celebrate } from "../lib/motion";
 import { useNav } from "../lib/nav";
-import { BAND_LABEL, Badge, BandPill, Button, Card, CompanyMark, ErrorNote, ScoreRing, Section, Skeleton, bandOf, cn, timeAgo, titleCase, useToast } from "../ui";
+import { BAND_LABEL, Badge, BandPill, Button, Card, CompanyMark, ErrorNote, ScoreRing, Section, Skeleton, bandOf, cn, timeAgo, sentenceCase, useToast } from "../ui";
 import FormHelper from "../components/FormHelper";
 import { DirectApply, ReportJob } from "../components/DirectApply";
 import ResumeView from "./ResumeView";
@@ -133,7 +133,7 @@ export default function JobDetail({ jobId, onBack, onChanged, openChat, me }: { 
               <Fact icon={Clock}>Posted {timeAgo(job.postedAt || job.firstSeenAt)}</Fact>
             </div>
             <div className="mt-3 flex flex-wrap gap-1.5">
-              <Badge>{titleCase(job.employmentType === "unknown" ? "full_time" : job.employmentType)}</Badge>
+              <Badge>{sentenceCase(job.employmentType === "unknown" ? "full_time" : job.employmentType)}</Badge>
               {job.category && job.category !== "other" && <Badge>{CATEGORY_LABELS[job.category]}</Badge>}
               {job.freshersWelcome && <Badge tone="green">Freshers welcome</Badge>}
               {job.status === "stale" && <Badge tone="amber">May be closed</Badge>}
@@ -209,7 +209,7 @@ export default function JobDetail({ jobId, onBack, onChanged, openChat, me }: { 
           )}
         </div>
 
-        <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+        <aside className="order-first space-y-4 lg:order-none lg:sticky lg:top-24 lg:self-start">
           <Card className="space-y-4">
             {match ? (
               <div className="flex items-center gap-4">
@@ -220,7 +220,7 @@ export default function JobDetail({ jobId, onBack, onChanged, openChat, me }: { 
 
             {activeApp && activeApp.status !== "preparing" ? (
               <div className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-900">
-                <p className="font-semibold">Application: {titleCase(activeApp.status)}</p>
+                <p className="font-semibold">Application: {sentenceCase(activeApp.status)}</p>
                 {activeApp.appliedAt && <p className="text-emerald-800/80">Applied {timeAgo(activeApp.appliedAt)}</p>}
                 <button onClick={() => nav.go("applications")} className="mt-1 font-medium underline">Manage in Applications</button>
               </div>

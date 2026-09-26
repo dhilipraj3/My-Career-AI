@@ -80,6 +80,8 @@ export interface ResumeCheck {
   points: number; // earned
   max: number;
   fix?: string;
+  /** Which editor fixes it: contact details, summary, work history or skills. */
+  area: "contact" | "summary" | "experience" | "skills" | "other";
 }
 
 export interface ResumeHealth {
@@ -87,6 +89,12 @@ export interface ResumeHealth {
   checks: ResumeCheck[];
   keywordsMissing: string[];
   targetRole?: string;
+  /** A summary drafted from the person's own facts, offered when theirs is missing or thin. */
+  suggestedSummary?: string;
+  /** Stronger openings for weakly-worded points ("Responsible for managing…" → "Managed…"). */
+  rewrites: Array<{ experienceId: string; index: number; from: string; to: string }>;
+  /** Points that would be stronger with a number (only the person can supply it). */
+  needsNumbers: Array<{ experienceId: string; index: number; point: string }>;
 }
 
 // ---------------- Placement companion ----------------

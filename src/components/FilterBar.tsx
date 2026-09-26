@@ -81,7 +81,7 @@ export default function FilterBar({ query, set, facets, searchBox = true, reset 
         <div className="flex flex-wrap items-center gap-2">
           {query.cities!.map((c) => (
             <span key={c} className="inline-flex h-7 items-center gap-1 rounded-full bg-brand-50 pl-3 pr-1.5 text-sm text-brand-700">{c}
-              <button aria-label={`Remove ${c}`} onClick={() => set({ cities: query.cities!.filter((x) => x !== c) })} className="rounded-full p-0.5 hover:bg-brand-100"><X className="h-3.5 w-3.5" /></button></span>
+              <button aria-label={`Remove ${c}`} onClick={() => set({ cities: query.cities!.filter((x) => x !== c) })} className="-mr-1 flex h-7 w-7 items-center justify-center rounded-full hover:bg-brand-100"><X className="h-3.5 w-3.5" /></button></span>
           ))}
           <label className="ml-1 flex items-center gap-1.5 text-xs text-slate-600"><input type="checkbox" className="accent-brand-600" checked={!query.strictCity} onChange={(e) => set({ strictCity: !e.target.checked })} />Include remote & Pan-India</label>
         </div>

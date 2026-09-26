@@ -65,17 +65,19 @@ export default function UnderstandingCard({ onChanged, className }: { onChanged?
 
   return (
     <Card className={cn("space-y-4 overflow-hidden", className)}>
-      <div className="flex items-start gap-4">
-        <UnderstandingRing score={u.score} />
+      <div className="flex items-center gap-3">
+        <UnderstandingRing score={u.score} size={56} />
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-wider text-brand-700">{t("u.score")}</p>
-          <h3 className="font-display text-lg font-bold text-ink">{t("u.title")}</h3>
-          <p className="mt-1 text-sm leading-relaxed text-slate-700">{u.summary || "…"}</p>
-          <p className={cn("mt-1.5 flex items-center gap-1.5 text-xs font-medium", u.ready ? "text-emerald-700" : "text-amber-700")}>
-            {u.ready ? <Check className="h-3.5 w-3.5" /> : <Sparkles className="h-3.5 w-3.5" />}{u.ready ? t("u.ready") : t("u.notReady")}
-          </p>
+          <p className="text-xs font-semibold text-brand-700">{t("u.score")}</p>
+          <h3 className="font-display text-base font-bold leading-snug text-ink sm:text-lg">{t("u.title")}</h3>
         </div>
       </div>
+      <div className="space-y-1.5 text-sm leading-relaxed text-slate-700">
+        {(u.summary || "…").split(/(?<=\.)\s+(?=[A-Z])/).map((line, i) => <p key={i}>{line}</p>)}
+      </div>
+      <p className={cn("flex items-start gap-1.5 text-xs font-medium", u.ready ? "text-emerald-700" : "text-amber-700")}>
+        {u.ready ? <Check className="mt-px h-3.5 w-3.5 shrink-0" /> : <Sparkles className="mt-px h-3.5 w-3.5 shrink-0" />}{u.ready ? t("u.ready") : t("u.notReady")}
+      </p>
 
       {u.guesses.length > 0 && (
         <div className="rounded-xl bg-amber-50/70 p-3 ring-1 ring-amber-100">
@@ -94,7 +96,7 @@ export default function UnderstandingCard({ onChanged, className }: { onChanged?
 
       {q ? (
         <div key={q.id} className="space-y-3 rounded-2xl border border-brand-100 bg-gradient-to-br from-brand-50/80 to-accent-50/60 p-4 animate-slide-up">
-          <p className="text-xs font-semibold uppercase tracking-wider text-brand-700">{t("u.nextQuestion")}</p>
+          <p className="text-xs font-semibold text-brand-700">{t("u.nextQuestion")}</p>
           <p className="font-display text-base font-semibold text-ink">{q.text}</p>
           <p className="flex items-start gap-1.5 text-xs text-slate-500"><Info className="mt-px h-3.5 w-3.5 shrink-0" />{q.why}</p>
           {q.choices.length > 0 && (

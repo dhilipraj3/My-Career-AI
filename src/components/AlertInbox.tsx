@@ -75,7 +75,7 @@ export default function AlertInbox() {
       )}
 
       <div>
-        <p className="mb-1.5 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Recent emails <Badge>{s.emailsToday}/{s.limits.emailsPerDay} today</Badge></p>
+        <p className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-slate-500">Recent emails <Badge>{s.emailsToday}/{s.limits.emailsPerDay} today</Badge></p>
         {s.events.length === 0 ? <p className="text-sm text-slate-500">Nothing received yet.</p> : (
           <ul className="divide-y divide-slate-100 text-sm">{s.events.slice(0, 5).map((e, i) => <li key={i} className="flex items-baseline gap-2 py-1.5"><span className="flex-1 text-slate-700">{EVENT_TEXT[e.kind](e)}</span><span className="text-xs text-slate-400">{timeAgo(e.at)}</span></li>)}</ul>
         )}

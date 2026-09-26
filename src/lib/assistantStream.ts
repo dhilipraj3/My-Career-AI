@@ -1,7 +1,7 @@
 // Client for POST /api/agent/chat/stream (server-sent events over fetch, so the auth header can be sent).
 import type { ChatMessage, ChatStep, PendingAction } from "@shared/types";
 import type { Page } from "./nav";
-import { token } from "./api";
+import { clearApiCache, token } from "./api";
 
 export interface AssistantReply {
   id: string;
@@ -29,6 +29,7 @@ export async function streamChat(
   signal: AbortSignal,
 ): Promise<AssistantReply> {
   const t = await token();
+  clearApiCache(); // the assistant can change things (save jobs, update preferences), so re-read afterwards
   const res = await fetch("/api/agent/chat/stream", {
     method: "POST",
     signal,

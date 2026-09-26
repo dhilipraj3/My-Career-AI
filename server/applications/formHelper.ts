@@ -1,5 +1,6 @@
 // Application form helper: copy-ready answers for the questions almost every Indian job form asks, taken from the
 // candidate's own profile. Nothing is submitted for the user, and anything we don't know is left for them to fill in.
+import { experienceText, wholeYears } from "../../shared/format.js";
 import type { CandidateProfile, Job } from "../../shared/types.js";
 import { displayName } from "../nlp/skills.js";
 
@@ -19,7 +20,7 @@ export function formHelper(p: CandidateProfile, job?: Job): FormField[] {
     f("email", "Email", p.email),
     f("phone", "Phone", p.phone),
     f("location", "Current location", [p.city, p.state].filter(Boolean).join(", ")),
-    f("experience", "Total experience", p.totalExperienceYears ? `${fmt(p.totalExperienceYears)} years` : p.insights.careerLevel === "fresher" ? "Fresher (0 years)" : undefined),
+    f("experience", "Total experience", p.totalExperienceYears ? experienceText(p.totalExperienceYears) : p.insights.careerLevel === "fresher" ? "Fresher (0 years)" : undefined),
     f("currentCompany", "Current / last company", latest?.company),
     f("currentRole", "Current / last designation", latest?.designation || p.currentRole),
     f("noticePeriod", "Notice period", pr.noticePeriodDays !== undefined ? (pr.noticePeriodDays === 0 ? "Immediate joiner" : `${pr.noticePeriodDays} days`) : undefined, "Tell me your notice period in your profile to fill this."),

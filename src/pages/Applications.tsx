@@ -6,7 +6,7 @@ import { api, errMsg, token } from "../lib/api";
 import { track } from "../lib/analytics";
 import { celebrate } from "../lib/motion";
 import { useNav } from "../lib/nav";
-import { Badge, Button, CompanyMark, Empty, ErrorNote, Modal, PageHeader, Skeleton, Tabs, cn, timeAgo, titleCase, useToast } from "../ui";
+import { Badge, Button, CompanyMark, Empty, ErrorNote, Modal, PageHeader, Skeleton, Tabs, cn, timeAgo, sentenceCase, useToast } from "../ui";
 
 type Column = "preparing" | "applied" | "interviewing" | "offer" | "closed";
 const COLUMNS: Array<{ id: Column; label: string; statuses: ApplicationStatus[]; tone: string }> = [
@@ -51,7 +51,7 @@ function AppCard({ a, onOpen, onMove, onDetails, onPrep, onDraft, onCalendar }: 
         <span className="min-w-0 flex-1"><span className="line-clamp-2 block text-sm font-semibold text-ink">{a.role}</span><span className="block truncate text-xs text-slate-500">{a.company}</span></span>
       </button>
       <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-        <Badge tone={STATUS_TONE(a.status)}>{titleCase(a.status)}</Badge>
+        <Badge tone={STATUS_TONE(a.status)}>{sentenceCase(a.status)}</Badge>
         <span className="text-[11px] text-slate-400">{a.appliedAt ? `Applied ${timeAgo(a.appliedAt)}` : `Started ${timeAgo(a.createdAt)}`}</span>
       </div>
       {upcoming && <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-sky-700"><CalendarClock className="h-3.5 w-3.5" />{new Date(upcoming).toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}</p>}
@@ -60,7 +60,7 @@ function AppCard({ a, onOpen, onMove, onDetails, onPrep, onDraft, onCalendar }: 
         {next.length > 0 && (
           <select aria-label="Move to" value="" onChange={(e) => e.target.value && onMove(e.target.value as ApplicationStatus)} className="h-8 flex-1 rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700">
             <option value="">Move to…</option>
-            {next.map((s) => <option key={s} value={s}>{titleCase(s)}</option>)}
+            {next.map((s) => <option key={s} value={s}>{sentenceCase(s)}</option>)}
           </select>
         )}
         <button onClick={onDetails} className="inline-flex h-8 items-center gap-1 rounded-lg px-2 text-xs text-slate-500 hover:bg-slate-100"><MessageSquare className="h-3.5 w-3.5" />{a.notes ? a.notes.split("\n").length : "Notes"}</button>
@@ -99,7 +99,7 @@ export default function Applications({ openJob }: { openJob: (id: string) => voi
     if (status === "interview" && !interviewDate) { setInterview({ a, when: "" }); return; }
     try { await api(`/applications/${a.id}/status`, { body: { status, ...(interviewDate ? { interviewDate } : {}) } });
       track("application_status", { status }); if (status === "applied") track("application_applied", { from: "board" }); if (status === "interview") track("application_interview"); if (status === "offer") track("application_offer"); if (["interview", "offer", "shortlisted"].includes(status)) celebrate(status === "offer" ? 140 : 70);
-      toast("success", status === "offer" ? "An offer! 🎉 Congratulations!" : status === "interview" ? "Interview scheduled — you've got this! 💪" : `Moved to ${titleCase(status)}`); await load(); } catch (e) { toast("error", errMsg(e)); }
+      toast("success", status === "offer" ? "An offer! 🎉 Congratulations!" : status === "interview" ? "Interview scheduled — you've got this! 💪" : `Moved to ${sentenceCase(status)}`); await load(); } catch (e) { toast("error", errMsg(e)); }
   };
   const addNote = async () => {
     if (!detail || !note.trim()) return;
@@ -112,7 +112,7 @@ export default function Applications({ openJob }: { openJob: (id: string) => voi
     const target = DROP_STATUS[col];
     if (!a || columnOf(a.status) === col) return;
     if (!target) return void toast("info", col === "closed" ? "To close an application use “Move to…” so you can pick rejected or withdrawn." : "Applications can't move back to preparing.");
-    if (!APPLICATION_TRANSITIONS[a.status].includes(target)) return void toast("error", `An application that is ${titleCase(a.status).toLowerCase()} can't go straight to ${titleCase(target).toLowerCase()}.`);
+    if (!APPLICATION_TRANSITIONS[a.status].includes(target)) return void toast("error", `An application that is ${sentenceCase(a.status).toLowerCase()} can't go straight to ${sentenceCase(target).toLowerCase()}.`);
     void move(a, target);
   };
   const openDraft = async (a: ApplicationRecord, kind: MessageKind) => {
@@ -142,7 +142,7 @@ export default function Applications({ openJob }: { openJob: (id: string) => voi
               {(apps || []).filter((a) => showClosed || columnOf(a.status) !== "closed").map((a) => (
                 <div key={a.id} className="flex items-center gap-3 p-3 text-sm">
                   <button onClick={() => openJob(a.jobId)} className="flex min-w-0 flex-1 items-center gap-3 text-left"><CompanyMark name={a.company} size={32} /><span className="min-w-0"><span className="block truncate font-medium text-ink">{a.role}</span><span className="block truncate text-xs text-slate-500">{a.company}</span></span></button>
-                  <Badge tone={STATUS_TONE(a.status)}>{titleCase(a.status)}</Badge>
+                  <Badge tone={STATUS_TONE(a.status)}>{sentenceCase(a.status)}</Badge>
                   <span className="w-28 text-xs text-slate-400">{a.appliedAt ? `Applied ${timeAgo(a.appliedAt)}` : `Started ${timeAgo(a.createdAt)}`}</span>
                   <button onClick={() => nav.go("interview", { job: a.jobId })} className="text-xs font-medium text-brand-700 hover:underline">Prep</button>
                   <button onClick={() => { setDetail(a); setNote(""); }} className="text-xs text-slate-500 hover:underline">Notes</button>
@@ -208,7 +208,7 @@ export default function Applications({ openJob }: { openJob: (id: string) => voi
               <ol className="relative space-y-3 border-l border-slate-200 pl-4">
                 {[...detail.history].reverse().map((h, i) => (
                   <li key={i} className="relative"><span className="absolute -left-[21px] top-1.5 h-2 w-2 rounded-full bg-brand-500 ring-2 ring-white" />
-                    <p className="font-medium text-ink">{titleCase(h.status)}{h.note ? <span className="font-normal text-slate-600"> — {h.note}</span> : null}</p>
+                    <p className="font-medium text-ink">{sentenceCase(h.status)}{h.note ? <span className="font-normal text-slate-600"> — {h.note}</span> : null}</p>
                     <p className="text-xs text-slate-500">{new Date(h.at).toLocaleString("en-IN")} · {h.actor === "user" ? "you" : h.actor}</p></li>
                 ))}
               </ol>

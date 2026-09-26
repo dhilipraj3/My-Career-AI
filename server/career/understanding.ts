@@ -1,5 +1,6 @@
 // How well do we understand this person? Six areas, each scored from evidence, plus a planner that asks the single
 // most useful next question (the area with the most uncertainty, weighted by how much it changes their matches).
+import { experienceText, wholeYears } from "../../shared/format.js";
 import type { CandidateProfile } from "../../shared/types.js";
 import type { Guess, QuestionChoice, Understanding, UnderstandingArea, UnderstandingAreaId, UnderstandingQuestion } from "../../shared/career.js";
 import { getFeed } from "../matching/service.js";
@@ -85,7 +86,7 @@ export const MOTIVATIONS = ["growth", "pay", "stability", "balance", "learning",
 const POPULAR_CITIES = ["Bengaluru", "Hyderabad", "Chennai", "Mumbai", "Pune", "Delhi", "Gurugram", "Noida", "Kolkata", "Ahmedabad"];
 
 const answered = (p: CandidateProfile, key: string) => Boolean(p.provenance[`preferences.${key}`]);
-const years = (n: number) => (n % 1 === 0 ? String(n) : n.toFixed(1));
+const years = (n: number) => experienceText(n);
 
 /** Skills the user's good/fair matches keep asking for that the profile doesn't have (and that aren't soft skills). */
 async function gapSkills(uid: string, limit = 6): Promise<string[]> {
@@ -130,9 +131,9 @@ export function areasFor(p: CandidateProfile, lang: Lang = "en"): UnderstandingA
 
   // Experience
   const exp: UnderstandingArea = { id: "experience", label: t.area.experience, score: 0, evidence: [], gaps: [] };
-  if (p.provenance.totalExperienceYears === "user") { exp.score = 100; exp.evidence.push(p.totalExperienceYears ? `${years(p.totalExperienceYears)} years (you told me)` : "Fresher (you told me)"); }
+  if (p.provenance.totalExperienceYears === "user") { exp.score = 100; exp.evidence.push(p.totalExperienceYears ? `${years(p.totalExperienceYears)} (you told me)` : "Fresher (you told me)"); }
   else if (p.experience.some((e) => e.startDate)) { exp.score = 90; exp.evidence.push(`${p.experience.length} role${p.experience.length === 1 ? "" : "s"} from your resume · ${years(p.totalExperienceYears)} years`); }
-  else if (p.totalExperienceYears > 0) { exp.score = 60; exp.evidence.push(`About ${years(p.totalExperienceYears)} years`); exp.gaps.push("Confirm your total experience"); }
+  else if (p.totalExperienceYears > 0) { exp.score = 60; exp.evidence.push(`About ${years(p.totalExperienceYears)}`); exp.gaps.push("Confirm your total experience"); }
   else if (p.education.length && p.insights.careerLevel === "fresher") { exp.score = 70; exp.evidence.push(`Starting out · ${p.education[0].degree}`); exp.gaps.push("Confirm you're a fresher"); }
   else exp.gaps.push("I don't know your experience yet");
   areas.push(exp);
@@ -218,21 +219,28 @@ export function guessesOf(p: CandidateProfile): Guess[] {
   return out;
 }
 
+const listAnd = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
+const listOr = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} or ${xs[xs.length - 1]}`);
+
 /** "What I understand about you", in plain sentences built only from facts on the profile. */
 export function summarize(p: CandidateProfile): string {
   const pr = p.preferences;
   const parts: string[] = [];
   const who = p.currentRole || (p.insights.careerLevel === "fresher" ? "someone starting their career" : "a job seeker");
-  const exp = p.totalExperienceYears ? ` with ${years(p.totalExperienceYears)} years' experience` : p.insights.careerLevel === "fresher" ? "" : "";
+  const exp = p.totalExperienceYears ? ` with ${years(p.totalExperienceYears)} of experience` : p.insights.careerLevel === "fresher" ? "" : "";
   const recent = p.experience.find((e) => e.current)?.company || p.experience[0]?.company;
   parts.push(`You're ${/^[aeiou]/i.test(who) ? "an" : "a"} ${who}${exp}${recent ? `, most recently at ${recent}` : ""}.`);
   const want: string[] = [];
-  if (pr.targetRoles.length) want.push(`${pr.targetRoles.slice(0, 3).join(" or ")} roles`);
-  if (pr.locations.length) want.push(`in ${pr.locations.slice(0, 3).join(", ")}`);
-  if (pr.workModes.length) want.push(`(${pr.workModes.join("/")})`);
-  if (pr.minSalaryLPA) want.push(`from ₹${pr.minSalaryLPA} LPA`);
-  if (pr.noticePeriodDays !== undefined) want.push(pr.noticePeriodDays === 0 ? "and can join immediately" : `and can join in ${pr.noticePeriodDays} days`);
+  if (pr.targetRoles.length) want.push(`${listOr(pr.targetRoles.slice(0, 3))} roles`);
+  if (pr.locations.length) want.push(`in ${listAnd(pr.locations.slice(0, 3))}`);
+  const modes = pr.workModes.filter((m) => m !== "unknown");
+  if (modes.length && modes.length < 3) want.push(`(${listOr(modes.map((m) => (m === "onsite" ? "on-site" : m)))})`);
   if (want.length) parts.push(`You're looking for ${want.join(" ")}.`);
+  const terms: string[] = [];
+  if (pr.minSalaryLPA) terms.push(`a salary from ₹${pr.minSalaryLPA} LPA`);
+  if (pr.noticePeriodDays !== undefined) terms.push(pr.noticePeriodDays === 0 ? "you can join immediately" : `you can join in ${pr.noticePeriodDays} days`);
+  if (terms.length === 2) parts.push(`You want ${terms[0]}, and ${terms[1]}.`);
+  else if (terms.length === 1) parts.push(terms[0].startsWith("a salary") ? `You want ${terms[0]}.` : `${terms[0].charAt(0).toUpperCase()}${terms[0].slice(1)}.`);
   const top = p.skills.filter((s) => s.source !== "ai_derived" && s.category !== "soft").slice(0, 5).map((s) => s.name);
   if (top.length) parts.push(`Your strongest skills: ${top.join(", ")}.`);
   if (pr.motivations?.length) parts.push(`What matters most: ${pr.motivations.map((m) => (T.en.c.m as Record<string, string>)[m] || m).join(", ").toLowerCase()}.`);

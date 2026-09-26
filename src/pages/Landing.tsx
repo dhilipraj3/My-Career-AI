@@ -27,7 +27,7 @@ function SignInButton({ onSignIn, busy, size = "lg", label = "Get started with G
   return <Button size={size} loading={busy} onClick={onSignIn} className={cn("shadow-lg shadow-brand-600/25", className)}>{!busy && <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white"><GoogleIcon /></span>}{label}</Button>;
 }
 
-const Eyebrow = ({ children }: { children: ReactNode }) => <p className="text-sm font-semibold uppercase tracking-wider text-brand-600">{children}</p>;
+const Eyebrow = ({ children }: { children: ReactNode }) => <p className="text-sm font-semibold text-brand-600">{children}</p>;
 
 // ---------------------------------------------------------------- Try it now
 function TryIt({ onSignIn, busy }: { onSignIn: () => void; busy: boolean }) {
@@ -231,7 +231,7 @@ export default function Landing({ onSignIn, busy, error }: { onSignIn: () => voi
       <section className="bg-[#0a2230] py-20 text-white">
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-2">
           <div className="reveal">
-            <p className="text-sm font-semibold uppercase tracking-wider text-brand-300">Honest by design</p>
+            <p className="text-sm font-semibold text-brand-300">Honest by design</p>
             <h2 className="mt-2 text-3xl font-bold text-white sm:text-4xl">Every match tells you the whole story</h2>
             <p className="mt-4 text-slate-300">Most job apps just say “recommended”. MyCareer.AI shows exactly why a job fits, what you're missing, and what it couldn't tell from the posting — so you spend time only on jobs worth it.</p>
             <ul className="mt-6 space-y-3 text-slate-200">

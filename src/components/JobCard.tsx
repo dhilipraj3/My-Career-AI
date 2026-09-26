@@ -2,7 +2,7 @@ import { Bookmark, Briefcase, Clock, GraduationCap, IndianRupee, MapPin, Sparkle
 import type { ReactNode } from "react";
 import type { Confidence, Job } from "@shared/types";
 import { CATEGORY_LABELS, EDUCATION_LABELS, locationText, salaryText, sourceLabel } from "../lib/labels";
-import { Badge, CompanyMark, ScoreRing, cn, timeAgo, titleCase } from "../ui";
+import { Badge, CompanyMark, ScoreRing, cn, timeAgo, sentenceCase } from "../ui";
 
 export interface JobCardProps {
   job: Job;
@@ -51,7 +51,7 @@ export default function JobCard({ job, score, confidence, reason, gap, saved, is
             <div className="mt-2.5 flex flex-wrap gap-1.5">
               {job.freshersWelcome && <Badge tone="green">Freshers welcome</Badge>}
               {job.category && job.category !== "other" && <Badge>{CATEGORY_LABELS[job.category]}</Badge>}
-              {job.employmentType !== "full_time" && job.employmentType !== "unknown" && <Badge tone="sky">{titleCase(job.employmentType)}</Badge>}
+              {job.employmentType !== "full_time" && job.employmentType !== "unknown" && <Badge tone="sky">{sentenceCase(job.employmentType)}</Badge>}
               {job.status === "stale" && <Badge tone="amber">May be closed</Badge>}
               {confidence === "low" && <Badge tone="amber">Limited job details</Badge>}
             </div>

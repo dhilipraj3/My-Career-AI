@@ -1,6 +1,7 @@
 // Employers can post jobs for free. Trust comes from three layers: (1) the sign-in email must be on the company's own
 // domain for instant trust, otherwise an admin reviews; (2) every posting goes through the same scam checks as any
 // other source; (3) candidates can report, and enough reports take a job down for review.
+import { experienceText, wholeYears } from "../../shared/format.js";
 import crypto from "node:crypto";
 import { z } from "zod";
 import type { CandidateProfile, Job } from "../../shared/types.js";
@@ -189,7 +190,7 @@ export const SHARED_FIELDS = ["Full name", "Email address", "Phone number", "Cit
 
 export function sharedProfile(p: CandidateProfile, message?: string): SharedProfile {
   return {
-    name: p.fullName, email: p.email, phone: p.phone, city: p.city, currentRole: p.currentRole, experienceYears: p.totalExperienceYears,
+    name: p.fullName, email: p.email, phone: p.phone, city: p.city, currentRole: p.currentRole, experienceYears: wholeYears(p.totalExperienceYears),
     skills: p.skills.filter((s) => s.source !== "ai_derived").slice(0, 25).map((s) => displayName(s.key, s.name)),
     summary: p.summary.slice(0, 600), education: p.education.map((e) => [e.degree, e.institution, e.gradYear].filter(Boolean).join(", ")).slice(0, 4), message: message?.slice(0, 500),
   };

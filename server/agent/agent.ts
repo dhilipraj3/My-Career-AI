@@ -1,3 +1,4 @@
+import { experienceText, wholeYears } from "../../shared/format.js";
 import crypto from "node:crypto";
 import { z } from "zod";
 import type { CandidateProfile, ChatMessage, ChatStep, PendingAction } from "../../shared/types.js";
@@ -89,7 +90,7 @@ const PAGE_NAMES: Record<string, string> = {
 
 function systemPrompt(p: CandidateProfile | null, contextLine: string): string {
   const brief = p
-    ? `User: ${firstName(p.fullName) || "Job seeker"}; current role: ${p.currentRole || "n/a"}; ${p.totalExperienceYears} yrs experience; target roles: ${p.preferences.targetRoles.join(", ") || "not set"}; cities: ${p.preferences.locations.join(", ") || "not set"}; profile status: ${p.status}; discovery ${p.discoveryPaused ? "paused" : "active"}.`
+    ? `User: ${firstName(p.fullName) || "Job seeker"}; current role: ${p.currentRole || "n/a"}; ${experienceText(p.totalExperienceYears)} experience; target roles: ${p.preferences.targetRoles.join(", ") || "not set"}; cities: ${p.preferences.locations.join(", ") || "not set"}; profile status: ${p.status}; discovery ${p.discoveryPaused ? "paused" : "active"}.`
     : "User has no profile yet.";
   return `You are the MyCareer.AI assistant: a sharp, warm placement coach for a job seeker in India. You act through the tools below.
 ${brief}

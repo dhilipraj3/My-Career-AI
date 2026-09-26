@@ -43,7 +43,7 @@ export default function Settings({ me, ai }: { me: Me; ai: AiState }) {
       <PageHeader title="Settings" subtitle="Your AI assistant, job search and account." />
 
       <section className="space-y-2">
-        <h2 className="px-1 text-sm font-semibold uppercase tracking-wider text-slate-500">AI assistant</h2>
+        <h2 className="px-1 text-sm font-semibold text-slate-500">AI assistant</h2>
         <Card className="divide-y divide-slate-100 p-0">
           <Row icon={<Sparkles className="h-5 w-5" />} title="How AI works here"
             detail={<>Everything works without AI. With AI you get natural chat, smarter resume reading and better tailoring. Everyone gets <strong>{u.limit} free AI credits a day</strong>; with your own free Google key there's no daily limit from us.</>} />
@@ -62,7 +62,7 @@ export default function Settings({ me, ai }: { me: Me; ai: AiState }) {
       </section>
 
       <section className="space-y-2">
-        <h2 className="px-1 text-sm font-semibold uppercase tracking-wider text-slate-500">Job search</h2>
+        <h2 className="px-1 text-sm font-semibold text-slate-500">Job search</h2>
         <Card className="p-0">
           <Row icon={<PauseCircle className="h-5 w-5" />} title="Automatic job search"
             detail={me.profile.discoveryPaused ? "Paused — I won't look for new jobs or send match alerts." : "On — I check every source about once an hour and alert you to strong new matches."}>
@@ -74,7 +74,7 @@ export default function Settings({ me, ai }: { me: Me; ai: AiState }) {
       </section>
 
       <section className="space-y-2">
-        <h2 className="px-1 text-sm font-semibold uppercase tracking-wider text-slate-500">Account & privacy</h2>
+        <h2 className="px-1 text-sm font-semibold text-slate-500">Account & privacy</h2>
         <Card className="divide-y divide-slate-100 p-0">
           <Row icon={<ShieldCheck className="h-5 w-5" />} title="Your data" detail="Your resume and profile are private to you. I never submit applications or share your details without your confirmation." />
           <Row icon={<Sparkles className="h-5 w-5" />} title={GUIDE_NAME + ", your guide"} detail="How much your on-screen guide speaks up. Active tells you your status and tips as you go; Quiet only answers when you tap her; Off hides her.">

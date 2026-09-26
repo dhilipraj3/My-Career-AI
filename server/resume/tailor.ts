@@ -1,3 +1,4 @@
+import { experienceText, wholeYears } from "../../shared/format.js";
 import crypto from "node:crypto";
 import { z } from "zod";
 import type { CandidateProfile, ExperienceEntry, Job, JobMatch, ResumeVersion, TailoredResumeContent, ValidationIssue } from "../../shared/types.js";
@@ -56,10 +57,10 @@ export function checkClaims(text: string, p: CandidateProfile, path: string): Va
     if (!claimable.has(k)) issues.push({ severity: "error", path, message: `Mentions "${k.replace(/_/g, " ")}", which isn't a verified skill in your profile` });
   }
   const yrs = [...text.matchAll(/(\d{1,2})\+?\s*(?:years?|yrs?)/gi)].map((m) => +m[1]);
-  const maxOk = Math.ceil(p.totalExperienceYears);
+  const maxOk = wholeYears(p.totalExperienceYears);
   for (const y of yrs) {
     const allowed = y <= maxOk || numbersIn(profileText(p)).includes(String(y));
-    if (!allowed) issues.push({ severity: "error", path, message: `Claims ${y} years of experience; your profile shows ${p.totalExperienceYears}` });
+    if (!allowed) issues.push({ severity: "error", path, message: `Claims ${y} years of experience; your profile shows ${experienceText(p.totalExperienceYears)}` });
   }
   const knownOrgs = new Set([...p.experience.map((e) => norm(e.company)), ...p.education.map((e) => norm(e.institution))].filter(Boolean));
   const orgClaims = [...text.matchAll(/\b(?:at|with|@)\s+([A-Z][\w&.]+(?:\s+[A-Z][\w&.]+){0,3})/g)].map((m) => m[1]);
@@ -167,7 +168,7 @@ export function deterministicTailoring(p: CandidateProfile, job: Job): TailoredR
   const skills = claimable.slice(0, 20).map((s) => s.name);
   const companies = [...new Set(p.experience.map((e) => e.company).filter(Boolean))].slice(0, 3);
   const topSkills = claimable.filter((s) => jobSkills.has(s.key)).slice(0, 5).map((s) => s.name);
-  const yrs = Math.floor(p.totalExperienceYears);
+  const yrs = wholeYears(p.totalExperienceYears);
   const summary = [
     `${p.currentRole || "Professional"}${yrs ? ` with ${yrs}+ years of experience` : ""}${companies.length ? ` at ${companies.join(", ")}` : ""}, applying for the ${job.title} role at ${job.company}.`,
     topSkills.length ? `Brings hands-on ${topSkills.join(", ")} — the skills this role asks for.` : "",
@@ -220,7 +221,7 @@ STRICT RULES:
 - Never add skills, tools, employers, titles, dates, numbers, certifications, projects or responsibilities that are not in CANDIDATE FACTS.
 - Every bullet must restate a fact from the same role's "facts" list (keep any numbers exactly). Choose the 3-5 most relevant per role; put the most relevant first.
 - "skills" must be chosen only from verifiedSkills, most relevant to the job first.
-- Summary: 2-3 sentences using only verified facts; do not claim more years than ${Math.ceil(p.totalExperienceYears)}.
+- Summary: 2-3 sentences using only verified facts; do not claim more than ${wholeYears(p.totalExperienceYears)} years.
 Return JSON: {"headline":"","summary":"","fit":[""],"experience":[{"experienceId":"","bullets":[""]}],"skills":[""],"projects":[{"title":"","description":""}]}
 
 CANDIDATE FACTS:
@@ -349,7 +350,7 @@ export async function generateCoverLetter(uid: string, p: CandidateProfile, job:
   const latest = p.experience.find((e) => e.current) || p.experience[0];
   const fallback = [
     `Dear Hiring Team at ${job.company},`, "",
-    `I am writing to apply for the ${job.title} position. ${p.totalExperienceYears ? `I bring ${Math.floor(p.totalExperienceYears)} years of experience` : "I bring relevant experience"}${latest ? `, most recently as ${latest.designation} at ${latest.company}` : ""}.`,
+    `I am writing to apply for the ${job.title} position. ${p.totalExperienceYears ? `I bring ${experienceText(p.totalExperienceYears)} of experience` : "I bring relevant experience"}${latest ? `, most recently as ${latest.designation} at ${latest.company}` : ""}.`,
     top.length ? `My background includes ${top.join(", ")}, which aligns with the requirements of this role.` : "", "",
     "I would welcome the opportunity to discuss how I can contribute to your team.", "", "Sincerely,", p.fullName,
   ].filter((l, i, arr) => l !== "" || arr[i - 1] !== "").join("\n");

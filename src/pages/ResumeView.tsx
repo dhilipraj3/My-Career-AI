@@ -1,5 +1,7 @@
 import { AlertTriangle, CheckCircle2, Copy, GitCompare, Printer } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import ResumePaper from "../components/ResumePaper";
+import { fromTailored, printResume } from "../lib/resumeDoc";
 import { api } from "../lib/api";
 import type { CandidateProfile, ResumeVersion, TailoredResumeContent } from "@shared/types";
 import { Badge, Button, Card, ErrorNote } from "../ui";
@@ -62,10 +64,10 @@ export default function ResumeView({ version, profile, onApprove, busy, error }:
         {version.approved ? <Badge tone="green"><CheckCircle2 className="mr-1 h-3 w-3" />Approved</Badge> : <Badge tone="amber">Needs your approval</Badge>}
         <Badge tone={version.validation.ok ? "green" : "red"}>{version.validation.ok ? "Verified against your profile" : "Failed verification"}</Badge>
         <Badge>{version.generatedBy === "ai" ? "AI-tailored" : version.generatedBy === "user" ? "Edited by you" : "Auto-tailored"}</Badge>
-        <div className="ml-auto flex gap-1">
+        <div className="flex w-full flex-wrap gap-1 sm:ml-auto sm:w-auto">
           <Button variant="ghost" onClick={() => setShowDiff(!showDiff)}><GitCompare className="h-4 w-4" />{showDiff ? "Hide changes" : "What changed?"}</Button>
           <Button variant="ghost" onClick={() => void navigator.clipboard.writeText(version.text)}><Copy className="h-4 w-4" />Copy</Button>
-          <Button variant="ghost" onClick={() => window.print()}><Printer className="h-4 w-4" />Print / PDF</Button>
+          <Button variant="secondary" onClick={() => printResume(fromTailored(content, profile), "classic", `${profile.fullName} - Resume`)}><Printer className="h-4 w-4" />Download PDF</Button>
         </div>
       </div>
 
@@ -78,7 +80,8 @@ export default function ResumeView({ version, profile, onApprove, busy, error }:
         </div>
       )}
 
-      <Card className="print-area theme-paper space-y-4 p-6 text-sm leading-relaxed">
+      {!editing && <ResumePaper doc={fromTailored(content, profile)} template="classic" />}
+      <Card className={editing ? "theme-paper space-y-4 p-5 text-sm leading-relaxed sm:p-6" : "hidden"}>
         <header>
           <h2 className="text-xl font-bold">{profile.fullName}</h2>
           <p className="text-slate-700">{content.headline}</p>

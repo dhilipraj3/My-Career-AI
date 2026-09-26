@@ -71,8 +71,8 @@ function FeedbackCard({ fb }: { fb: AnswerFeedback }) {
   return (
     <Card className="space-y-3 border-brand-200 bg-brand-50/40 p-4">
       <div className="flex items-center gap-3"><ScoreRing score={fb.score} size={52} /><div><p className="text-sm font-semibold text-ink">Score {fb.score}/100</p><p className="text-xs text-slate-500">{fb.by === "ai" ? "Rules plus AI coaching" : "Scored on structure, evidence, clarity, length and relevance"}</p></div></div>
-      {fb.strengths.length > 0 && <div><p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">What worked</p><ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-slate-700">{fb.strengths.map((s) => <li key={s}>{s}</li>)}</ul></div>}
-      {fb.improvements.length > 0 && <div><p className="text-xs font-semibold uppercase tracking-wide text-amber-700">To improve</p><ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-slate-700">{fb.improvements.map((s) => <li key={s}>{s}</li>)}</ul></div>}
+      {fb.strengths.length > 0 && <div><p className="text-xs font-semibold text-emerald-700">What worked</p><ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-slate-700">{fb.strengths.map((s) => <li key={s}>{s}</li>)}</ul></div>}
+      {fb.improvements.length > 0 && <div><p className="text-xs font-semibold text-amber-700">To improve</p><ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-slate-700">{fb.improvements.map((s) => <li key={s}>{s}</li>)}</ul></div>}
       {fb.flags.length > 0 && <div className="rounded-lg bg-amber-50 p-2.5 text-sm text-amber-900"><p className="font-semibold">Be ready to explain</p><ul className="list-disc pl-5">{fb.flags.map((s) => <li key={s}>{s}</li>)}</ul></div>}
     </Card>
   );

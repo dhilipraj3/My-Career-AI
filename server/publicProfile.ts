@@ -1,6 +1,7 @@
 // Shareable profile page (/p/<slug>): optional, off by default, and entirely user-controlled. It never shows contact
 // details, only first name plus last initial, and the person picks which sections appear. Search engines are kept
 // out unless the person also opts in.
+import { experienceText } from "../shared/format.js";
 import { Router } from "express";
 import crypto from "node:crypto";
 import { z } from "zod";
@@ -57,7 +58,7 @@ export function renderPublicProfile(s: PublicProfileSettings, p: CandidateProfil
   const claimable = p.skills.filter((k) => k.source !== "ai_derived").slice(0, 20);
   const name = shortName(p.fullName);
   const role = p.preferences.targetRoles[0] || p.currentRole;
-  const bits = [role, s.show.city && p.city ? p.city : "", s.show.experience && p.totalExperienceYears ? `${Math.floor(p.totalExperienceYears)} years experience` : ""].filter(Boolean);
+  const bits = [role, s.show.city && p.city ? p.city : "", s.show.experience && p.totalExperienceYears ? `${experienceText(p.totalExperienceYears)} experience` : ""].filter(Boolean);
   const section = (title: string, html: string) => (html ? `<section class="pp"><h2>${esc(title)}</h2>${html}</section>` : "");
   const body = `<div class="hero" style="margin-top:28px"><h1>${esc(name)}</h1><p>${esc(bits.join(" · "))}</p></div>
 ${s.show.summary && p.summary ? section("About", `<p>${esc(p.summary)}</p>`) : ""}

@@ -136,3 +136,29 @@ describe("preference answers", () => {
     expect(parsePreferenceText("hello there")).toEqual({});
   });
 });
+
+import { experienceText, wholeYears } from "../shared/format.js";
+describe("experience wording is the same everywhere", () => {
+  it("rounds down to whole years and reads naturally", () => {
+    expect(experienceText(12.3)).toBe("12 years");
+    expect(experienceText(12.9)).toBe("12 years");
+    expect(experienceText(1.2)).toBe("1 year");
+    expect(experienceText(0.5)).toBe("Less than a year");
+    expect(experienceText(0)).toBe("Fresher");
+    expect(experienceText(3, { short: true })).toBe("3 yrs");
+    expect(wholeYears(7.99)).toBe(7);
+  });
+});
+
+import { forSpeech, sentences } from "../src/lib/voice.js";
+describe("Asha speaks like a person", () => {
+  it("reads money, abbreviations and symbols the way people say them", () => {
+    expect(forSpeech("Senior PM · ₹20 LPA · 8+ yrs")).toBe("Senior PM, 20 lakh a year, 8+ years");
+    expect(forSpeech("Pays ₹18–25 LPA, e.g. at **Acme**")).toBe("Pays 18 to 25 lakh a year, for example at Acme");
+    expect(forSpeech("Earn ₹15,000 a month 🎉")).toBe("Earn 15,000 rupees a month");
+  });
+  it("speaks sentence by sentence, in English and Hindi", () => {
+    expect(sentences("Good morning, Priya! You have 3 matches. Want to look?")).toEqual(["Good morning, Priya!", "You have 3 matches.", "Want to look?"]);
+    expect(sentences("सुप्रभात! आपके 3 मैच हैं।")).toHaveLength(2);
+  });
+});

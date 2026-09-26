@@ -1,3 +1,4 @@
+import { experienceText, wholeYears } from "../../shared/format.js";
 import { z } from "zod";
 import type { CandidateProfile, Job, JobIntelligence, JobMatch, MatchFeedbackReason } from "../../shared/types.js";
 import { generateJSON, aiAvailable, AiQuotaError, SYSTEM_UID } from "../ai/gateway.js";
@@ -147,7 +148,7 @@ export async function explainMatch(uid: string, jobId: string): Promise<JobMatch
       const r = await generateJSON({
         task: "match_explain", uid, cache: false,
         system: `You explain job-match results to a job seeker in 2-3 friendly sentences. Use ONLY the facts provided. Do not invent skills, employers or numbers. ${UNTRUSTED_NOTICE}`,
-        prompt: `Role: ${job.title} at ${job.company}\nCandidate: ${profile.currentRole || "n/a"}, ${profile.totalExperienceYears} yrs\nComputed facts: ${facts}\nReturn {"summary": "..."}`,
+        prompt: `Role: ${job.title} at ${job.company}\nCandidate: ${profile.currentRole || "n/a"}, ${experienceText(profile.totalExperienceYears)}\nComputed facts: ${facts}\nReturn {"summary": "..."}`,
         schema: Explain, maxTokens: 300,
       });
       summary = r.summary;

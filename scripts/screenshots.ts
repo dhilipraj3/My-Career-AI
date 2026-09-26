@@ -67,5 +67,9 @@ await shot("profile-desktop.png", 1440, 1600, "#profile");
 await shot("settings-desktop.png", 1440, 1100, "#settings");
 await shot("applications-desktop.png", 1440, 900, "#applications");
 await shot("admin-desktop.png", 1440, 1500, "#admin");
+if (process.env.SHOT_ALL) {
+  const pages = ['', '#matches', '#search', '#applications', '#interview', '#insights', '#resume', '#profile', '#settings', '#employer', '#job/' + firstJob.id];
+  for (const [label, w, h] of [['m', 390, 1600], ['t', 820, 1400]] as const) for (const p of pages) await shot(`all-${label}-${(p.replace(/[#/]/g, "") || "home").slice(0, 12)}.png`, w, h, p);
+}
 server.close();
 process.exit(0);

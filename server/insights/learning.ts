@@ -1,6 +1,7 @@
 // Learning ROI: re-score the jobs this person is already looking at as if they had one more skill, and report how many
 // would move up. The numbers come from the same matching engine as the rest of the app, so they are consistent.
-import type { CandidateProfile, Job } from "../../shared/types.js";
+import type { CandidateProfile, Job, JobMatch } from "../../shared/types.js";
+import { getStore } from "../db/store.js";
 import type { LearnLink, LearningRoi, SkillRoi } from "../../shared/insights.js";
 import { computeMatch } from "../matching/engine.js";
 import { candidateJobs } from "../matching/service.js";
@@ -45,11 +46,14 @@ const withSkill = (p: CandidateProfile, key: string): CandidateProfile => ({
 });
 
 export async function learningRoi(p: CandidateProfile, maxSkills = 8): Promise<LearningRoi> {
-  const jobs: Job[] = (await candidateJobs(p.uid)).slice(0, 800);
+  const jobs: Job[] = await candidateJobs(p.uid);
+  // Start from the scores matching already stored; only compute the ones that are missing.
+  const stored = new Map((await (await getStore()).query<JobMatch>("matches", { where: { uid: p.uid }, readOnly: true })).map((m) => [m.jobId, m]));
   const mine = new Set(p.skills.filter((s) => s.source !== "ai_derived").map((s) => s.key));
-  const base = new Map(jobs.map((j) => [j.id, computeMatch({ profile: p, job: j })]));
+  const base = new Map(jobs.map((j) => [j.id, stored.get(j.id) || computeMatch({ profile: p, job: j })]));
   // Only jobs the person could realistically move on: near misses, not hopeless ones and not already excellent.
-  const near = jobs.filter((j) => { const m = base.get(j.id)!; return m.score >= 35 && m.score < 80 && m.hardFailures.length === 0; });
+  const near = jobs.filter((j) => { const m = base.get(j.id)!; return m.score >= 35 && m.score < 80 && m.hardFailures.length === 0; })
+    .sort((a, b) => base.get(b.id)!.score - base.get(a.id)!.score).slice(0, 400);
   const askedBy = new Map<string, Job[]>();
   for (const j of near) for (const k of j.skills) if (!mine.has(k)) (askedBy.get(k) || askedBy.set(k, []).get(k)!).push(j);
   const candidates = [...askedBy.entries()].filter(([, js]) => js.length >= 2).sort((a, b) => b[1].length - a[1].length).slice(0, 14);

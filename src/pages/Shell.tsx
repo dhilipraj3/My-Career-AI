@@ -16,6 +16,7 @@ import Admin from "./Admin";
 import Applications from "./Applications";
 import Assistant from "../components/Assistant";
 import AgentGuide from "../components/AgentGuide";
+import TopProgress from "../components/TopProgress";
 import Dashboard from "./Dashboard";
 import JobDetail from "./JobDetail";
 import JobSearch from "./JobSearch";
@@ -74,6 +75,15 @@ export default function Shell({ me, refresh }: { me: Me; refresh: () => Promise<
   const [bellOpen, setBellOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [drawer, setDrawer] = useState(false);
+  // While the menu is open: Escape closes it and the page behind does not scroll.
+  useEffect(() => {
+    if (!drawer) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setDrawer(false);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", onKey); };
+  }, [drawer]);
   const [aiWizard, setAiWizard] = useState(false);
   const [ai, setAi] = useState<AiState>(me.ai);
   const [notes, setNotes] = useState<NotificationRecord[]>([]);
@@ -116,7 +126,7 @@ export default function Shell({ me, refresh }: { me: Me; refresh: () => Promise<
       <a href="#" onClick={(e) => { e.preventDefault(); nav.go("home"); }} className="flex items-center gap-2.5 px-2"><Logo className="h-8 w-8" /><Wordmark /></a>
       <nav className="space-y-1" aria-label="Main">{MAIN.map((i) => <NavLink key={i.page} item={i} active={!route.jobId && page === i.page} onClick={() => nav.go(i.page)} />)}</nav>
       <div>
-        <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t("nav.you")}</p>
+        <p className="px-3 pb-1.5 text-[11px] font-semibold text-slate-400">{t("nav.you")}</p>
         <nav className="space-y-1" aria-label="Account">{items.map((i) => <NavLink key={i.page} item={i} active={!route.jobId && page === i.page} onClick={() => nav.go(i.page)} />)}</nav>
       </div>
       <div className="mt-auto space-y-3">
@@ -138,27 +148,31 @@ export default function Shell({ me, refresh }: { me: Me; refresh: () => Promise<
   return (
     <NavCtx.Provider value={nav}>
       <div className={cn("min-h-full transition-[padding] duration-200 lg:pl-64", chat.open && "lg:pr-[420px]")}>
+        <TopProgress />
         <a href="#main" onClick={(e) => { e.preventDefault(); document.getElementById("main")?.focus(); }} className="skip-link">Skip to content</a>
         <aside className="glass fixed inset-y-0 left-0 z-30 hidden w-64 border-r lg:block">{sidebar}</aside>
         {drawer && (
-          <div className="scrim fixed inset-0 z-50 animate-fade-in lg:hidden" onMouseDown={(e) => e.target === e.currentTarget && setDrawer(false)}>
-            <div className="glass-strong h-full w-72 animate-slide-in-right [animation-direction:reverse]">{sidebar}</div>
+          <div className="scrim fixed inset-0 z-50 animate-fade-in lg:hidden" onClick={(e) => e.target === e.currentTarget && setDrawer(false)}>
+            <div data-drawer role="dialog" aria-modal="true" aria-label="Menu" className="drawer-panel glass-strong relative h-full w-[min(18rem,85vw)] overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]">
+              <button onClick={() => setDrawer(false)} aria-label="Close menu" className="absolute right-3 top-4 flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-ink"><X className="h-5 w-5" /></button>
+              {sidebar}
+            </div>
           </div>
         )}
 
         <header className="glass sticky top-0 z-20 border-b">
           <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6">
-            <p className="font-display text-base font-semibold text-ink lg:hidden">{current}</p>
+            <p className="shrink-0 whitespace-nowrap font-display text-base font-semibold text-ink lg:hidden">{current}</p>
             <button onClick={() => setPaletteOpen(true)} className="ml-auto hidden h-10 w-full max-w-md items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-500 transition hover:border-slate-300 hover:bg-white sm:flex lg:ml-0">
               <Search className="h-4 w-4" /><span className="flex-1 text-left">{t("chrome.search")}</span><Kbd>Ctrl K</Kbd>
             </button>
             <div className="ml-auto flex items-center gap-1">
               <div className="mr-1 flex rounded-lg bg-slate-100/80 p-0.5 text-xs font-semibold" role="group" aria-label="Language / भाषा">
-                {(["en", "hi"] as const).map((l) => <button key={l} onClick={() => setLang(l)} aria-pressed={lang === l} className={cn("rounded-md px-2 py-1", lang === l ? "bg-white text-brand-700 shadow-sm" : "text-slate-500 hover:text-slate-700")}>{l === "en" ? "EN" : "हिं"}</button>)}
+                {(["en", "hi"] as const).map((l) => <button key={l} onClick={() => setLang(l)} aria-pressed={lang === l} className={cn("flex h-8 min-w-8 items-center justify-center rounded-md px-2", lang === l ? "bg-white text-brand-700 shadow-sm" : "text-slate-500 hover:text-slate-700")}>{l === "en" ? "EN" : "हिं"}</button>)}
               </div>
               <button aria-label="Search" onClick={() => setPaletteOpen(true)} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 sm:hidden"><Search className="h-5 w-5" /></button>
+              <ThemeToggle />
               <div className="relative">
-                <ThemeToggle />
                 <button aria-label="Notifications" onClick={() => { setBellOpen(!bellOpen); if (!bellOpen && unread) void api("/notifications/read", { body: {} }).then(loadNotes); }} className="relative rounded-lg p-2 text-slate-600 hover:bg-slate-100">
                   <Bell className="h-5 w-5" />
                   {unread > 0 && <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ring-white">{unread}</span>}
@@ -205,11 +219,11 @@ export default function Shell({ me, refresh }: { me: Me; refresh: () => Promise<
 
         <nav className="glass-strong fixed inset-x-0 bottom-0 z-30 flex border-t pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label="Main mobile">
           {[...MAIN, ...ME].filter((i) => i.mobile).map((i) => (
-            <button key={i.page} onClick={() => nav.go(i.page)} className={cn("flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium", !route.jobId && page === i.page ? "text-brand-600" : "text-slate-500")}>
+            <button key={i.page} onClick={() => nav.go(i.page)} aria-current={!route.jobId && page === i.page ? "page" : undefined} className={cn("flex min-h-14 flex-1 flex-col items-center justify-center gap-1 text-[11px] font-medium", !route.jobId && page === i.page ? "text-brand-600" : "text-slate-500")}>
               <i.icon className="h-5 w-5" />{i.page === "search" && lang === "en" ? "Search" : t(`nav.${i.page}` as StringKey)}
             </button>
           ))}
-          <button onClick={() => setDrawer(true)} aria-label={t("nav.more")} className={cn("flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium", drawer ? "text-brand-600" : "text-slate-500")}>
+          <button onClick={() => setDrawer(true)} aria-label={t("nav.more")} aria-expanded={drawer} className={cn("flex min-h-14 flex-1 flex-col items-center justify-center gap-1 text-[11px] font-medium", drawer || (!route.jobId && !MAIN.some((m) => m.page === page)) ? "text-brand-600" : "text-slate-500")}>
             <MoreHorizontal className="h-5 w-5" />{t("nav.more")}
           </button>
         </nav>

@@ -61,7 +61,7 @@ export function WeeklyPlanCard({ plan, onChange }: { plan: WeeklyPlan; onChange:
                 </div>
                 <div className="flex shrink-0 items-center gap-1 text-xs text-slate-500">
                   {g.auto ? <span>{g.done}/{g.target}</span> : (
-                    <><button aria-label="Less" className="h-6 w-6 rounded border border-slate-200 hover:bg-slate-50" onClick={() => void tick(g.id, g.done - 1)}>−</button><span className="w-8 text-center">{g.done}/{g.target}</span><button aria-label="More" className="h-6 w-6 rounded border border-slate-200 hover:bg-slate-50" onClick={() => void tick(g.id, g.done + 1)}>+</button></>
+                    <><button aria-label="One less done" className="h-8 w-8 rounded-lg border border-slate-200 hover:bg-slate-50" onClick={() => void tick(g.id, g.done - 1)}>−</button><span className="w-8 text-center">{g.done}/{g.target}</span><button aria-label="One more done" className="h-8 w-8 rounded-lg border border-slate-200 hover:bg-slate-50" onClick={() => void tick(g.id, g.done + 1)}>+</button></>
                   )}
                 </div>
               </li>

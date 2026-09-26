@@ -5,9 +5,11 @@ import {
 import ReactMarkdown from "react-markdown";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ComponentType } from "react";
 import type { ChatMessage, ChatStep, FeedSummary, PendingAction } from "@shared/types";
-import { Logo, type AiState } from "../App";
+import type { AiState } from "../App";
+import AshaAvatar from "./AshaAvatar";
+import { GUIDE_NAME, useGuidePose, useGuideSpeaking } from "../lib/guide";
 import { track } from "../lib/analytics";
-import { api, errMsg } from "../lib/api";
+import { api, clearApiCache, errMsg } from "../lib/api";
 import { streamChat } from "../lib/assistantStream";
 import type { Page } from "../lib/nav";
 import { getGuidePose, guideSpeak, guideStopSpeaking, setGuidePose, speakable } from "../lib/guide";
@@ -20,6 +22,7 @@ type Msg = ChatMessage & { streaming?: boolean; failed?: string };
 export interface AssistantContext { page: string; jobId?: string }
 
 const STARTER_ICONS: ComponentType<{ className?: string }>[] = [Target, TrendingUp, Search, Briefcase];
+const DEFAULT_STARTERS = ["What should I do next?", "Show my best job matches", "Find remote jobs for me", "How can I improve my resume?"];
 
 function Steps({ steps, live }: { steps: ChatStep[]; live: boolean }) {
   const [open, setOpen] = useState(false);
@@ -102,7 +105,7 @@ function Changes({ changes, onUndo }: { changes: NonNullable<ChatMessage["change
 function Pending({ action, busy, decide }: { action: PendingAction; busy: boolean; decide: (a: PendingAction, ok: boolean) => void }) {
   return (
     <div className="mt-2.5 rounded-xl border border-amber-200 bg-amber-50 p-3">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">Needs your OK</p>
+      <p className="text-[11px] font-semibold text-amber-700">Needs your OK</p>
       <p className="mt-0.5 text-sm text-slate-900">{action.summary}</p>
       <div className="mt-2 flex gap-2">
         <Button size="sm" disabled={busy} onClick={() => decide(action, true)}>Confirm</Button>
@@ -144,6 +147,8 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
   const [summary, setSummary] = useState<FeedSummary | null>(null);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const guidePose = useGuidePose();
+  const speakingNow = useGuideSpeaking();
   const [basicReason, setBasicReason] = useState<"no_ai" | "busy" | "quota" | undefined>(ai.available ? undefined : "no_ai");
   const [lang, setLang] = useState<"en-IN" | "hi-IN">("en-IN");
   const abort = useRef<AbortController | null>(null);
@@ -213,6 +218,7 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
       else patchLast((m) => ({ ...m, streaming: false, failed: errMsg(e), steps: (m.steps || []).filter((s) => s.state !== "running") }));
     } finally {
       abort.current = null;
+      clearApiCache(); // it may have saved jobs or changed preferences
       setGuidePose("idle");
       setBusy(false);
       setTimeout(() => box.current?.focus(), 30);
@@ -257,7 +263,8 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
 
   const lastUser = [...messages].reverse().find((m) => m.role === "user");
   const lastIdx = messages.length - 1;
-  const mode = basicReason ? "Basic mode" : ai.ownKey?.status === "ok" ? "Smart · your AI key" : "Smart";
+  const mode = busy ? "Thinking…" : basicReason ? "Basic mode" : ai.ownKey?.status === "ok" ? "Smart · your own AI key" : "Smart";
+  const shownStarters = starters.length ? starters : DEFAULT_STARTERS;
 
   return (
     <>
@@ -267,9 +274,9 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
           expanded ? "lg:w-[min(780px,calc(100vw-2rem))]" : "lg:w-[420px]")}>
         {/* Header */}
         <div className="flex items-center gap-3 border-b border-white/70 px-4 py-3">
-          <Logo className="h-8 w-8" />
+          <AshaAvatar pose={guidePose} mouthOpen={speakingNow} className="h-10 w-10" />
           <div className="min-w-0 flex-1">
-            <h2 className="font-display text-[15px] font-bold text-ink">Assistant</h2>
+            <h2 className="font-display text-[15px] font-bold text-ink">{GUIDE_NAME} <span className="font-sans text-xs font-normal text-slate-500">· your career guide</span></h2>
             <p className="flex items-center gap-1.5 text-xs text-slate-500">
               <span className={cn("h-1.5 w-1.5 rounded-full", basicReason ? "bg-amber-400" : "bg-emerald-500")} />{mode}
             </p>
@@ -281,7 +288,7 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
           <button onClick={onClose} title="Close (Esc)" aria-label="Close assistant" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X className="h-5 w-5" /></button>
         </div>
 
-        {basicReason && !ai.ownKey && (
+        {basicReason && !ai.ownKey && messages.length > 0 && (
           <div className="mx-4 mt-3 flex items-start gap-3 rounded-2xl border border-brand-100 bg-brand-50 p-3 text-sm">
             <KeyRound className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
             <div className="flex-1">
@@ -294,31 +301,49 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
 
         {/* Conversation */}
         <div ref={scroller} onScroll={onScroll} className="flex-1 overflow-y-auto overscroll-contain">
-          <div className={cn("mx-auto space-y-6 px-4 py-5", expanded && "max-w-2xl")}>
-            {loaded && messages.length === 0 && (
-              <div className="animate-fade-in space-y-5 pt-2">
-                <div>
-                  <p className="font-display text-2xl font-bold text-ink">Hi{name ? ` ${name}` : ""} 👋</p>
-                  <p className="mt-1 text-slate-600">{context.jobId ? "Ask me anything about this job — or anything else." : "What can I help you with today?"}</p>
+          <div className={cn("mx-auto flex min-h-full flex-col space-y-6 px-4 py-5", expanded && "max-w-2xl")}>
+            {messages.length === 0 && (
+              <div className="flex flex-1 animate-fade-in flex-col gap-5 pt-1">
+                <div className="flex items-center gap-4">
+                  <AshaAvatar pose={loaded ? "waving" : "idle"} className="h-16 w-16" />
+                  <div className="min-w-0">
+                    <p className="font-display text-xl font-bold text-ink">Hi{name ? ` ${name}` : ""}, I'm {GUIDE_NAME}</p>
+                    <p className="text-sm text-slate-600">{context.jobId ? "Ask me anything about this job, or anything else." : "I can find jobs, explain your matches, prepare applications and help you practise."}</p>
+                  </div>
                 </div>
+
                 {summary && summary.total > 0 && !context.jobId && (
                   <button onClick={() => void send("How can I get more excellent matches?")} className="glass-tint flex w-full items-center gap-3 rounded-2xl border p-3.5 text-left shadow-sm transition hover:border-brand-300">
                     <span className="bg-peacock flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white"><Sparkles className="h-4 w-4" /></span>
                     <span className="min-w-0 flex-1 text-sm">
-                      <span className="block font-semibold text-ink">{summary.bands.excellent} excellent · {summary.bands.good} good matches</span>
-                      <span className="block text-slate-600">See what would turn more of them into excellent ones →</span>
+                      <span className="block font-semibold text-ink">{[summary.bands.excellent && `${summary.bands.excellent} excellent`, summary.bands.good && `${summary.bands.good} good`].filter(Boolean).join(" · ") || summary.total} {summary.bands.excellent + summary.bands.good === 1 ? "match" : "matches"}</span>
+                      <span className="block text-slate-600">Ask me how to turn more of them into excellent ones</span>
                     </span>
                   </button>
                 )}
-                <div className="grid gap-2 sm:grid-cols-2 sm:[&>*:last-child:nth-child(odd)]:col-span-2">
-                  {starters.map((s, i) => {
-                    const Icon = STARTER_ICONS[i % STARTER_ICONS.length];
-                    return (
-                      <button key={s} onClick={() => void send(s)} className="flex items-start gap-2.5 rounded-xl border border-white/80 bg-white/60 p-3 text-left text-sm text-slate-700 shadow-sm transition hover:border-brand-300 hover:bg-white">
-                        <Icon className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />{s}
-                      </button>
-                    );
-                  })}
+
+                <div>
+                  <p className="mb-2 text-xs font-semibold text-slate-500">Try asking</p>
+                  <div className="grid gap-2 sm:grid-cols-2 sm:[&>*:last-child:nth-child(odd)]:col-span-2">
+                    {shownStarters.map((s, i) => {
+                      const Icon = STARTER_ICONS[i % STARTER_ICONS.length];
+                      return (
+                        <button key={s} onClick={() => void send(s)} disabled={!loaded} className="flex items-start gap-2.5 rounded-xl border border-slate-200 bg-white p-3 text-left text-sm text-slate-700 shadow-sm transition hover:border-brand-300 disabled:opacity-60">
+                          <Icon className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />{s}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="mt-auto space-y-2">
+                  {basicReason && !ai.ownKey && (
+                    <p className="flex items-start gap-2 rounded-xl bg-brand-50 px-3 py-2.5 text-xs text-brand-900">
+                      <KeyRound className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-600" />
+                      <span className="flex-1">{basicReason === "quota" ? "Today's free AI credits are used up." : basicReason === "busy" ? "The shared AI is busy right now." : "I'm in basic mode."} I can still search jobs and show your matches. <button onClick={onAiSetup} className="font-semibold text-brand-700 underline">Add your free Google key</button> for natural conversation.</span>
+                    </p>
+                  )}
+                  <p className="text-center text-xs text-slate-500">Tip: tap the microphone and just talk to me, in English or Hindi.</p>
                 </div>
               </div>
             )}
@@ -329,7 +354,7 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
               </div>
             ) : (
               <div key={i} className="group flex gap-2.5 animate-fade-in">
-                <Logo className="mt-0.5 h-6 w-6 shrink-0" />
+                <AshaAvatar className="mt-0.5 h-7 w-7" />
                 <div className="min-w-0 flex-1">
                   <Steps steps={m.steps || []} live={Boolean(m.streaming)} />
                   {m.streaming && !m.text && !(m.steps || []).some((s) => s.state === "running") && (

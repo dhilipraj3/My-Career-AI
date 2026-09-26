@@ -1,6 +1,7 @@
 // English + Hindi UI strings. The conversation (assistant, questions) follows the chosen language too; stored profile
 // data stays in English so matching and resumes work the same for everyone.
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { speakNaturally, stopSpeech } from "./voice";
 
 export type Lang = "en" | "hi";
 const KEY = "mc_lang";
@@ -112,20 +113,9 @@ export function setLargeText(on: boolean) {
 export const applyStoredLargeText = () => document.documentElement.classList.toggle("large-text", getLargeText());
 
 // ---------------- read aloud ----------------
-/** Read text aloud with the browser's built-in voices (free). Hindi text uses a Hindi voice when available. */
+/** Read text aloud in a natural voice (see ./voice.ts). Hindi text uses a Hindi voice when available. */
 export function speak(text: string, opts: { onEnd?: () => void } = {}) {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return false;
-  const plain = text.replace(/[*_`#>[\]()]/g, "").replace(/\s+/g, " ").trim();
-  if (!plain) return false;
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(plain);
-  u.lang = /[ऀ-ॿ]/.test(plain) ? "hi-IN" : "en-IN";
-  const voice = window.speechSynthesis.getVoices().find((v) => v.lang === u.lang) || window.speechSynthesis.getVoices().find((v) => v.lang.startsWith(u.lang.slice(0, 2)));
-  if (voice) u.voice = voice;
-  u.rate = 1;
-  if (opts.onEnd) { u.onend = opts.onEnd; u.onerror = opts.onEnd; }
-  window.speechSynthesis.speak(u);
-  return true;
+  return speakNaturally(text, opts.onEnd);
 }
-export const stopSpeaking = () => { if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel(); };
+export const stopSpeaking = () => stopSpeech();
 export const canSpeak = typeof window !== "undefined" && "speechSynthesis" in window;

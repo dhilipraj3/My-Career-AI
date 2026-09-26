@@ -1,3 +1,4 @@
+import { experienceText } from "@shared/format";
 import { CheckCircle2, FileText, Loader2, LogOut, MessageSquareText, Mic, ShieldCheck, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Logo, Wordmark, type Me } from "../App";
@@ -109,7 +110,7 @@ export default function Onboarding({ me, refresh }: { me: Me; refresh: () => Pro
               <div className="min-w-0">
                 <p className="font-display font-semibold text-ink">Here's what I understood about you</p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
-                  {[p.currentRole, p.totalExperienceYears ? `${p.totalExperienceYears} years experience` : "", p.skills.length ? `${p.skills.length} skills` : "", p.city, p.education[0]?.degree.split(",")[0]].filter(Boolean).map((f, i) => (
+                  {[p.currentRole, p.totalExperienceYears ? `${experienceText(p.totalExperienceYears)} experience` : "", p.skills.length ? `${p.skills.length} skills` : "", p.city, p.education[0]?.degree.split(",")[0]].filter(Boolean).map((f, i) => (
                     <span key={f} className="rounded-lg bg-brand-50 px-2.5 py-1 text-sm font-medium text-brand-800 animate-slide-up" style={{ animationDelay: `${i * 140}ms` }}>{f}</span>
                   ))}
                 </div>

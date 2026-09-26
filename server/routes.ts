@@ -24,6 +24,7 @@ import { detectAts } from "./jobs/detect.js";
 import { REGISTRY_ATS, addCompany, autoDiscoverBoards, boardProblem, fetcherFor, listCompanies, removeCompany, updateCompany } from "./jobs/registry.js";
 import crypto from "node:crypto";
 import { LIMITS, addressOf, getInbox, handleInbound, inboundEnabled, readMime, rotateInbox } from "./inbound/service.js";
+import { ExperienceBody, addExperience, removeExperience, updateExperience } from "./profile/experience.js";
 import { ImportBody, extractLinks, importJobForUser, importLinks } from "./jobs/import.js";
 import { formHelper } from "./applications/formHelper.js";
 import { ingestRawJobs } from "./jobs/ingest.js";
@@ -167,6 +168,23 @@ export function buildRouter(): express.Router {
     await getOrCreateProfile(req.user!);
     const profile = await editProfile(req.user!.uid, body as any);
     if (body.addSkills || body.removeSkills) void matchCandidate(req.user!.uid).catch(() => undefined);
+    res.json({ profile });
+  }));
+
+  r.post("/profile/experience", wrap(async (req, res) => {
+    await getOrCreateProfile(req.user!);
+    const profile = await addExperience(req.user!.uid, ExperienceBody.parse(req.body));
+    void matchCandidate(req.user!.uid).catch(() => undefined);
+    res.status(201).json({ profile });
+  }));
+  r.put("/profile/experience/:id", wrap(async (req, res) => {
+    const profile = await updateExperience(req.user!.uid, req.params.id, ExperienceBody.parse(req.body));
+    void matchCandidate(req.user!.uid).catch(() => undefined);
+    res.json({ profile });
+  }));
+  r.delete("/profile/experience/:id", wrap(async (req, res) => {
+    const profile = await removeExperience(req.user!.uid, req.params.id);
+    void matchCandidate(req.user!.uid).catch(() => undefined);
     res.json({ profile });
   }));
 

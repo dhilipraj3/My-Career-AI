@@ -6,52 +6,19 @@ import { GUIDE_NAME, guideSpeak, guideStopSpeaking, setGuidePose, setGuideSettin
 import { useI18n } from "../lib/i18n";
 import { useNav, type Page } from "../lib/nav";
 import { cn } from "../ui";
+import Asha from "./Asha";
 
 interface Briefing { id: string; pose: GuidePose; lines: string[]; cta?: { label: string; page?: string; jobId?: string; chat?: string } }
 interface Bubble { key: string; lines: string[]; cta?: Briefing["cta"]; speak: boolean }
 
-// ---------------- art: real poses from /agent/<pose>.webp, or a friendly built-in face until they exist ----------------
-const missing = new Set<string>();
-
-/** Placeholder face, so the guide works before the artwork is added. */
-function PlaceholderFace({ pose, mouthOpen }: { pose: GuidePose; mouthOpen: boolean }) {
-  const happy = pose === "celebrating" || pose === "encouraging" || pose === "waving";
-  return (
-    <svg viewBox="0 0 120 130" className="h-full w-full drop-shadow-[0_8px_18px_rgba(0,0,0,.45)]" aria-hidden>
-      <defs>
-        <linearGradient id="gf-skin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#d99a72" /><stop offset="1" stopColor="#b97a55" /></linearGradient>
-        <linearGradient id="gf-coat" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#0f86ad" /><stop offset="1" stopColor="#0a5f80" /></linearGradient>
-      </defs>
-      <path d="M14 130c2-26 20-38 46-38s44 12 46 38z" fill="url(#gf-coat)" />
-      <path d="M46 92l14 16 14-16" fill="#f4fbfd" />
-      <circle cx="60" cy="108" r="3" fill="#f0bf4c" />
-      <path d="M26 58c0-30 16-44 34-44s34 14 34 44c0 6-2 12-4 16H30c-2-4-4-10-4-16z" fill="#1e1a24" />
-      <ellipse cx="60" cy="60" rx="27" ry="31" fill="url(#gf-skin)" />
-      <path d="M33 52c6-20 18-26 28-26 12 0 24 8 28 26-8-12-20-16-30-15-10 0-20 5-26 15z" fill="#1e1a24" />
-      <ellipse cx="50" cy="60" rx="3.2" ry={pose === "thinking" ? 2 : 3.6} fill="#2a1f22" />
-      <ellipse cx="70" cy="60" rx="3.2" ry={pose === "thinking" ? 2 : 3.6} fill="#2a1f22" />
-      <path d="M44 52q6-4 12 0M64 52q6-4 12 0" stroke="#2a1f22" strokeWidth="1.8" fill="none" strokeLinecap="round" />
-      {mouthOpen || pose === "talking" ? <ellipse cx="60" cy="77" rx="6" ry={mouthOpen ? 5 : 3} fill="#7a2f3a" /> : happy ? <path d="M50 74q10 12 20 0z" fill="#7a2f3a" /> : <path d="M52 76q8 6 16 0" stroke="#7a2f3a" strokeWidth="2.4" fill="none" strokeLinecap="round" />}
-      <path d="M86 56c6 2 8 10 4 16" stroke="#34abc8" strokeWidth="3.2" fill="none" strokeLinecap="round" />
-      <circle cx="90" cy="73" r="3.6" fill="#22bf9b" />
-      {pose === "celebrating" && [[20, 30], [100, 24], [14, 70], [106, 66]].map(([x, y], i) => <path key={i} d={`M${x} ${y - 5}l1.6 3.4 3.4 1.6-3.4 1.6-1.6 3.4-1.6-3.4-3.4-1.6 3.4-1.6z`} fill={i % 2 ? "#f0bf4c" : "#22bf9b"} />)}
-      {pose === "thinking" && <g fill="#8fdaee"><circle cx="96" cy="30" r="2.5" /><circle cx="104" cy="22" r="3.5" /><circle cx="114" cy="12" r="4.5" /></g>}
-    </svg>
-  );
-}
-
+// ---------------- art: Asha is drawn in code (./Asha.tsx) ----------------
 function Figure({ pose, speaking, className }: { pose: GuidePose; speaking: boolean; className?: string }) {
   const mouth = useTalkingFrame(speaking);
-  const [, bump] = useState(0);
-  // While speaking she alternates between her talking and idle art, so the mouth appears to move.
-  const wanted: GuidePose = speaking ? (mouth ? "talking" : "idle") : pose;
-  const usable = !missing.has(wanted) ? wanted : !missing.has("idle") ? "idle" : null;
+  // While speaking her mouth opens and closes; otherwise she holds the pose.
+  const shown: GuidePose = speaking && (pose === "idle" || pose === "listening") ? "talking" : pose;
   return (
     <div className={cn("guide-figure", speaking && "is-speaking", className)}>
-      {usable ? (
-        <img src={`/agent/${usable}.webp`} alt="" draggable={false} className="h-full w-auto select-none object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,.45)]"
-          onError={() => { missing.add(usable); bump((n) => n + 1); }} />
-      ) : <PlaceholderFace pose={speaking ? "talking" : pose} mouthOpen={speaking && mouth} />}
+      <Asha pose={shown} mouthOpen={speaking && mouth} className="h-full w-auto drop-shadow-[0_10px_20px_rgba(0,0,0,.35)]" />
     </div>
   );
 }
@@ -142,7 +109,7 @@ export default function AgentGuide({ page, onJob, chatOpen, chatExpanded }: { me
 
   useEffect(() => () => { clearTimeout(hideTimer.current); guideStopSpeaking(); }, []);
 
-  if (settings.mode === "off" || (chatOpen && chatExpanded)) return null;
+  if (settings.mode === "off" || chatOpen) return null; // in the chat she is already there, in the header
   const dismiss = () => { setBubble(null); guideStopSpeaking(); };
   const act = (c: NonNullable<Bubble["cta"]>) => {
     dismiss();
@@ -153,11 +120,11 @@ export default function AgentGuide({ page, onJob, chatOpen, chatExpanded }: { me
   const shownPose: GuidePose = chatOpen && pose === "idle" ? "listening" : pose;
 
   return (
-    <div className={cn("pointer-events-none fixed z-40 flex items-end gap-2 transition-[right] duration-200 max-sm:bottom-[76px] max-sm:right-2 bottom-3 right-4", chatOpen && "lg:right-[436px]", chatOpen && "max-lg:hidden")}>
+    <div className={cn("pointer-events-none fixed z-40 flex items-end gap-2 transition-[right] duration-200 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] right-2 sm:right-4 lg:bottom-3", chatOpen && "lg:right-[436px]", chatOpen && "max-lg:hidden")}>
       {bubble && (
         <div key={bubble.key} role="status" aria-live="polite" className="guide-bubble pointer-events-auto relative mb-14 max-w-[min(300px,calc(100vw-9rem))] rounded-2xl rounded-br-md border border-slate-200 bg-white p-3.5 text-sm text-slate-800 shadow-[var(--shadow-pop)] animate-slide-up sm:mb-20">
           <button onClick={dismiss} aria-label="Dismiss" className="absolute right-1.5 top-1.5 rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><X className="h-3.5 w-3.5" /></button>
-          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-brand-600">{GUIDE_NAME}</p>
+          <p className="mb-1 text-[11px] font-semibold text-brand-600">{GUIDE_NAME}</p>
           <div className="space-y-1 pr-4">{bubble.lines.map((l, i) => <p key={i} className={i === 0 && bubble.lines.length > 1 ? "font-semibold text-ink" : ""}>{l}</p>)}</div>
           <div className="mt-2.5 flex items-center gap-2">
             {bubble.cta && <button onClick={() => act(bubble.cta!)} className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:brightness-110">{bubble.cta.label}</button>}

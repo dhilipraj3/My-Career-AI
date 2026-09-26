@@ -1,3 +1,4 @@
+import { experienceText, wholeYears } from "../../shared/format.js";
 import type { CandidateProfile, Confidence, Job, JobMatch, MatchBreakdown } from "../../shared/types.js";
 import { cosine } from "../nlp/text.js";
 import {
@@ -183,13 +184,13 @@ export function computeMatch({ profile: p, job: j, now = Date.now() }: MatchInpu
   const assumptions: string[] = [];
   if (sk.known && sk.matched.length) reasons.push(`${sk.matched.length} of ${totalRequired} required skills found in your profile (${matchedNames.slice(0, 5).join(", ")})`);
   if (relatedNames.length) reasons.push(`Related experience for ${relatedNames.slice(0, 3).join(", ")}`);
-  if (breakdown.experience >= 85) reasons.push(j.experienceMin !== undefined ? `Experience requirement (${j.experienceMin}+ yrs) satisfied with ${p.totalExperienceYears} yrs` : "Seniority level fits your experience");
+  if (breakdown.experience >= 85) reasons.push(j.experienceMin !== undefined ? `Experience requirement (${j.experienceMin}+ yrs) satisfied with your ${experienceText(p.totalExperienceYears)}` : "Seniority level fits your experience");
   if (breakdown.roleAlignment >= 70) reasons.push(`Role aligns with your target${p.preferences.targetRoles[0] ? ` (${p.preferences.targetRoles[0]})` : ""}`);
   if (breakdown.location >= 85) reasons.push(j.workMode === "remote" ? "Remote role" : `Location matches your preference (${j.city || j.location})`);
   if (j.salaryMaxLPA && p.preferences.minSalaryLPA && j.salaryMaxLPA >= p.preferences.minSalaryLPA) reasons.push(`Salary up to ${j.salaryMaxLPA} LPA meets your ${p.preferences.minSalaryLPA} LPA minimum`);
   if (breakdown.domain >= 55) reasons.push("Responsibilities are similar to work in your experience");
   if (sk.missing.length || sk.relatedOnly.length) gaps.push(`Skills not found in your profile: ${missingNames.slice(0, 6).join(", ")}`);
-  if (j.experienceMin !== undefined && p.totalExperienceYears < j.experienceMin) gaps.push(`Asks for ${j.experienceMin}+ years; you have ${p.totalExperienceYears}`);
+  if (j.experienceMin !== undefined && p.totalExperienceYears < j.experienceMin) gaps.push(`Asks for ${j.experienceMin}+ years; you have ${experienceText(p.totalExperienceYears)}`);
   gaps.push(...hardFailures);
   if (outsideCities) gaps.push(`Based in ${j.cities?.length ? j.cities.join(", ") : j.city || j.location}, outside your preferred locations (${p.preferences.locations.join(", ")})`);
   if (!sk.known) assumptions.push("The posting lists few explicit skills, so the skill score is a neutral estimate");
