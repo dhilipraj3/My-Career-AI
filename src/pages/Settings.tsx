@@ -1,10 +1,11 @@
-import { BarChart3, Download, Gauge, KeyRound, LogOut, PauseCircle, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
+import { BarChart3, Download, Gauge, Palette, KeyRound, LogOut, PauseCircle, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import type { AiState, Me } from "../App";
 import { api, devUser, downloadFile, errMsg } from "../lib/api";
 import { getConsent, setConsent } from "../lib/analytics";
 import { signOutUser } from "../lib/firebase";
 import { getLowData, setLowData } from "../lib/lowdata";
+import { useTheme, type ThemeChoice } from "../lib/theme";
 import { useNav } from "../lib/nav";
 import AlertInbox from "../components/AlertInbox";
 import PublicProfileCard from "../components/PublicProfileCard";
@@ -27,6 +28,7 @@ export default function Settings({ me, ai }: { me: Me; ai: AiState }) {
   const [typed, setTyped] = useState("");
   const [busy, setBusy] = useState(false);
   const [lowData, setLow] = useState(getLowData());
+  const theme = useTheme();
   const [analyticsOn, setAnalyticsOn] = useState(getConsent() === "granted");
   const u = me.usage;
 
@@ -73,6 +75,11 @@ export default function Settings({ me, ai }: { me: Me; ai: AiState }) {
         <h2 className="px-1 text-sm font-semibold uppercase tracking-wider text-slate-500">Account & privacy</h2>
         <Card className="divide-y divide-slate-100 p-0">
           <Row icon={<ShieldCheck className="h-5 w-5" />} title="Your data" detail="Your resume and profile are private to you. I never submit applications or share your details without your confirmation." />
+          <Row icon={<Palette className="h-5 w-5" />} title="Appearance" detail="Dark glass or light. Automatic follows your device.">
+            <div className="flex rounded-xl bg-slate-100 p-0.5" role="group" aria-label="Theme">
+              {([["system", "Auto"], ["dark", "Dark"], ["light", "Light"]] as Array<[ThemeChoice, string]>).map(([v, l]) => <button key={v} aria-pressed={theme.choice === v} onClick={() => theme.set(v)} className={"rounded-lg px-3 py-1.5 text-sm font-medium " + (theme.choice === v ? "bg-white text-ink shadow-sm" : "text-slate-500")}>{l}</button>)}
+            </div>
+          </Row>
           <Row icon={<Gauge className="h-5 w-5" />} title="Low-data mode"
             detail={lowData ? "On — no animations and smaller lists, to save data and battery on slow connections." : "Off — turn on for slow or metered connections and older phones."}>
             <Button variant="secondary" onClick={() => { setLowData(!lowData); setLow(!lowData); toast("info", lowData ? "Low-data mode off" : "Low-data mode on"); }}>{lowData ? "Turn off" : "Turn on"}</Button>

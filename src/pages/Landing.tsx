@@ -4,7 +4,8 @@ import {
 } from "lucide-react";
 import { useEffect, useState, type ComponentType, type ReactNode } from "react";
 import { Logo, Wordmark } from "../App";
-import HeroTarget, { type HeroJob } from "../components/HeroTarget";
+import HeroJourney, { type HeroJob } from "../components/HeroJourney";
+import ThemeToggle from "../components/ThemeToggle";
 import { errMsg } from "../lib/api";
 import { POPULAR_CITIES } from "../lib/labels";
 import { CountUp, useReveal } from "../lib/motion";
@@ -141,12 +142,12 @@ export default function Landing({ onSignIn, busy, error }: { onSignIn: () => voi
           <nav className="hidden flex-1 items-center gap-6 text-sm font-medium text-slate-600 md:flex">
             {[["how", "How it works"], ["try", "Try it"], ["features", "Features"], ["everyone", "Who it's for"], ["faq", "FAQ"]].map(([id, l]) => <button key={id} onClick={() => scrollTo(id)} className="hover:text-ink">{l}</button>)}
           </nav>
-          <div className="ml-auto flex items-center gap-2"><Button variant="ghost" onClick={onSignIn} className="hidden sm:inline-flex">Sign in</Button><Button onClick={onSignIn} loading={busy}>Get started</Button></div>
+          <div className="ml-auto flex items-center gap-2"><ThemeToggle /><Button variant="ghost" onClick={onSignIn} className="hidden sm:inline-flex">Sign in</Button><Button onClick={onSignIn} loading={busy}>Get started</Button></div>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="hero-gradient relative overflow-hidden">
+      <section className="theme-night hero-night relative overflow-hidden">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 pb-16 pt-10 lg:grid-cols-[1.05fr_1fr] lg:pb-24 lg:pt-20">
           <div className="order-2 animate-slide-up lg:order-1">
             {stats && (
@@ -156,7 +157,7 @@ export default function Landing({ onSignIn, busy, error }: { onSignIn: () => voi
               </p>
             )}
             <h1 className="mt-5 text-[2.25rem] font-extrabold leading-[1.1] sm:text-5xl xl:text-[3.25rem]">A job agent that <span className="text-shimmer">works until you're hired.</span></h1>
-            <p className="mt-4 max-w-md text-base text-slate-600 sm:text-lg">Upload your resume once. It understands you, searches every source, and helps you hit the right one — like the jobs landing on the target.</p>
+            <p className="mt-4 max-w-md text-base text-slate-600 sm:text-lg">Upload your resume once. It understands you, finds the jobs that truly fit, gets you ready for the interview and stays with you until you are placed.</p>
             <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3">
               <SignInButton onSignIn={onSignIn} busy={busy} />
               <button onClick={() => scrollTo("try")} className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:underline"><Search className="h-4 w-4" />Try it without signing up</button>
@@ -166,7 +167,7 @@ export default function Landing({ onSignIn, busy, error }: { onSignIn: () => voi
               {["Free to use", "Never applies without you", "No fake or scam jobs"].map((t) => <li key={t} className="flex items-center gap-1"><BadgeCheck className="h-3.5 w-3.5 text-emerald-600" />{t}</li>)}
             </ul>
           </div>
-          <div className="order-1 animate-slide-up [animation-delay:120ms] lg:order-2"><HeroTarget jobs={heroJobs} /></div>
+          <div className="order-1 animate-slide-up [animation-delay:120ms] lg:order-2"><HeroJourney jobs={heroJobs} /></div>
         </div>
       </section>
 
@@ -227,7 +228,7 @@ export default function Landing({ onSignIn, busy, error }: { onSignIn: () => voi
       </section>
 
       {/* Product glimpse: an honest match */}
-      <section className="bg-ink py-20 text-white">
+      <section className="bg-[#0a2230] py-20 text-white">
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-2">
           <div className="reveal">
             <p className="text-sm font-semibold uppercase tracking-wider text-brand-300">Honest by design</p>

@@ -21,6 +21,7 @@ import JobSearch from "./JobSearch";
 import Matches from "./Matches";
 import ProfilePage from "./ProfilePage";
 import ImportJobModal from "../components/ImportJobModal";
+import ThemeToggle from "../components/ThemeToggle";
 import Employer from "./Employer";
 import Insights from "./Insights";
 import Interview from "./Interview";
@@ -154,6 +155,7 @@ export default function Shell({ me, refresh }: { me: Me; refresh: () => Promise<
               </div>
               <button aria-label="Search" onClick={() => setPaletteOpen(true)} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 sm:hidden"><Search className="h-5 w-5" /></button>
               <div className="relative">
+                <ThemeToggle />
                 <button aria-label="Notifications" onClick={() => { setBellOpen(!bellOpen); if (!bellOpen && unread) void api("/notifications/read", { body: {} }).then(loadNotes); }} className="relative rounded-lg p-2 text-slate-600 hover:bg-slate-100">
                   <Bell className="h-5 w-5" />
                   {unread > 0 && <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ring-white">{unread}</span>}

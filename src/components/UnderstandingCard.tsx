@@ -14,7 +14,7 @@ export function UnderstandingRing({ score, size = 72 }: { score: number; size?: 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`Understanding ${score}%`} className="shrink-0">
       <defs><linearGradient id="ur-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#0a7399" /><stop offset="1" stopColor="#07a384" /></linearGradient></defs>
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e3eef2" strokeWidth={stroke} />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" style={{ stroke: "var(--color-slate-100)" }} strokeWidth={stroke} />
       <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="url(#ur-grad)" strokeWidth={stroke} strokeLinecap="round"
         strokeDasharray={c} strokeDashoffset={c * (1 - score / 100)} transform={`rotate(-90 ${size / 2} ${size / 2})`} style={{ transition: "stroke-dashoffset .8s cubic-bezier(.2,.8,.2,1)" }} />
       <text x="50%" y="50%" dominantBaseline="central" textAnchor="middle" className="fill-ink font-display font-bold" fontSize={size / 4}>{score}%</text>

@@ -78,7 +78,7 @@ export default function ResumeView({ version, profile, onApprove, busy, error }:
         </div>
       )}
 
-      <Card className="print-area space-y-4 p-6 text-sm leading-relaxed">
+      <Card className="print-area theme-paper space-y-4 p-6 text-sm leading-relaxed">
         <header>
           <h2 className="text-xl font-bold">{profile.fullName}</h2>
           <p className="text-slate-700">{content.headline}</p>

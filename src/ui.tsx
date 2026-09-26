@@ -79,7 +79,7 @@ export function ScoreRing({ score, size = 52, showLabel }: { score: number; size
     <div className="flex shrink-0 flex-col items-center gap-1">
       <div className="relative" style={{ width: size, height: size }} aria-label={`${score}% — ${BAND_LABEL[band]}`} title={BAND_LABEL[band]}>
         <svg width={size} height={size} className="-rotate-90">
-          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#eef1f6" strokeWidth="5" />
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" style={{ stroke: "var(--color-slate-100)" }} strokeWidth="5" />
           <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={BAND_COLOR[band]} strokeWidth="5" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c - (score / 100) * c} className="transition-[stroke-dashoffset] duration-700" />
         </svg>
         <span className="absolute inset-0 flex items-center justify-center font-display font-bold" style={{ color: BAND_COLOR[band], fontSize: size * 0.3 }}>{score}</span>
@@ -210,7 +210,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div className="pointer-events-none fixed inset-x-0 bottom-20 z-[60] flex flex-col items-center gap-2 px-4 lg:bottom-6" aria-live="polite">
         {toasts.map((t) => (
-          <div key={t.id} className="pointer-events-auto flex max-w-md items-center gap-3 rounded-2xl bg-ink/90 px-4 py-3 text-sm text-white shadow-[var(--shadow-pop)] ring-1 ring-white/10 backdrop-blur-md animate-slide-up">{icon[t.kind]}{t.text}</div>
+          <div key={t.id} className="pointer-events-auto flex max-w-md items-center gap-3 rounded-2xl bg-[#0f2a3b]/95 px-4 py-3 text-sm text-white shadow-[var(--shadow-pop)] ring-1 ring-white/10 backdrop-blur-md animate-slide-up">{icon[t.kind]}{t.text}</div>
         ))}
       </div>
     </ToastCtx.Provider>

@@ -42,13 +42,19 @@ const edge = ["C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe
 fs.mkdirSync("screenshots", { recursive: true });
 const execFileAsync = (await import("node:util")).promisify((await import("node:child_process")).execFile);
 void execFileSync;
+const THEME = process.env.SHOT_THEME || "";
+const ONLY = (process.env.SHOT_ONLY || "").split(",").filter(Boolean);
 const shot = async (name: string, w: number, h: number, hash = "", query = "?dev=demo&notour") => {
+  if (ONLY.length && !ONLY.some((o) => name.startsWith(o))) return;
+  if (THEME) { query = (query ? query + "&" : "?") + "theme=" + THEME; name = name.replace(".png", "-" + THEME + ".png"); }
   try {
     await execFileAsync(edge, ["--headless=new", "--disable-gpu", "--no-first-run", `--user-data-dir=${path.join((await import("node:os")).tmpdir(), "mycareer-shots-edge")}`, `--window-size=${w},${h}`, "--virtual-time-budget=8000", `--screenshot=${path.resolve("screenshots", name)}`, `http://localhost:3197/${query}${hash}`], { timeout: 90000 });
   } catch (e: any) { /* Edge often logs non-fatal errors on exit; the file check below is the real test */ }
   console.log(fs.existsSync(path.resolve("screenshots", name)) ? `saved screenshots/${name}` : `FAILED ${name}`);
 };
 const firstJob = (await (await getStore()).query<any>("jobs")).find((j: any) => j.title === "Delivery Manager")!;
+await shot("hero-desktop.png", 1440, 900, "", "");
+await shot("hero-mobile.png", 430, 1100, "", "");
 await shot("landing-desktop.png", 1440, 4200, "", "");
 await shot("landing-mobile.png", 500, 2600, "", "");
 await shot("home-desktop.png", 1440, 1100);

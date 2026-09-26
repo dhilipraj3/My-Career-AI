@@ -18,7 +18,7 @@ function Paper({ r, t }: { r: BuiltResume; t: Template }) {
   const head = cn("font-bold uppercase tracking-wide", modern ? "border-b-2 border-brand-500 pb-0.5 text-brand-700" : "border-b border-slate-400 pb-0.5 text-slate-800", compact ? "mb-1 text-[11px]" : "mb-1.5 text-xs");
   const gap = compact ? "space-y-2.5" : "space-y-4";
   return (
-    <div className={cn("print-area bg-white p-7 text-[13px] leading-relaxed text-slate-900 shadow-sm ring-1 ring-slate-200", t === "classic" ? "font-serif" : "font-sans", compact && "text-[12px] leading-snug", gap)}>
+    <div className={cn("print-area theme-paper bg-white p-7 text-[13px] leading-relaxed text-slate-900 shadow-sm ring-1 ring-slate-200", t === "classic" ? "font-serif" : "font-sans", compact && "text-[12px] leading-snug", gap)}>
       <header className={cn(t === "classic" && "text-center")}>
         <h2 className={cn("font-bold", modern ? "text-2xl text-brand-700" : "text-2xl")}>{r.name}</h2>
         {r.headline && <p className="text-slate-700">{r.headline}</p>}

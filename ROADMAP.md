@@ -10,7 +10,7 @@
 - **Graceful degradation:** if every AI provider is down or out of quota, the app still works on rules alone.
 - **For anybody:** freshers, professionals and blue-collar workers; English + Hindi at launch; voice-first option; works on low-end phones and slow networks.
 - **A normal web app:** runs in the browser on desktop and mobile. No browser extension, no installable app/offline mode, no native apps.
-- **Light theme only:** one clean, bright visual design (no dark mode).
+- **Dark glass by default, light available:** a dark glass theme with a light option (Settings → Appearance or the header button); Automatic follows the device. Resume previews and print stay on white paper.
 
 **Decisions taken**
 | Topic | Decision |
@@ -24,7 +24,7 @@
 | Languages | English + Hindi at launch, translation framework ready for Tamil, Telugu, Kannada, Marathi, Bengali, Malayalam, Gujarati (Phase 5) |
 | Hosting | Cloud Run + Firebase free tiers |
 | Platform | Normal responsive web app only. No extension, no PWA/offline, no native apps |
-| Theme | Light mode only |
+| Theme | Dark glass theme + light theme, switchable |
 
 Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 

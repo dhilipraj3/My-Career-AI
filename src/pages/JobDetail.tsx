@@ -256,7 +256,7 @@ export default function JobDetail({ jobId, onBack, onChanged, openChat, me }: { 
             {direct && <p><Badge tone="green">Posted directly by the employer</Badge></p>}
             <p><span className="font-medium text-slate-700">Source:</span> {sourceLabel(job)}{job.sources.length > 1 ? ` · listed on ${job.sources.length} sites` : ""}</p>
             <p><span className="font-medium text-slate-700">Last checked:</span> {timeAgo(job.lastVerifiedAt)}</p>
-            <ReportJob jobId={job.id} />
+            <p><ReportJob jobId={job.id} /></p>
             {src && !direct && (src.sourceUrl || src.applyUrl) && <a className="inline-flex items-center gap-1 font-medium text-brand-600 hover:underline" href={src.sourceUrl || src.applyUrl} target="_blank" rel="noopener noreferrer">Original listing <ExternalLink className="h-3 w-3" /></a>}
           </Card>
         </aside>

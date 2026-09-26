@@ -377,7 +377,7 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
               )}
               <span className="ml-auto hidden text-[11px] text-slate-400 sm:block">Enter to send · Shift+Enter for a new line</span>
               {busy ? (
-                <button type="button" onClick={() => abort.current?.abort()} aria-label="Stop" title="Stop" className="ml-2 flex h-8 w-8 items-center justify-center rounded-lg bg-ink text-white hover:bg-slate-700"><Square className="h-3.5 w-3.5 fill-current" /></button>
+                <button type="button" onClick={() => abort.current?.abort()} aria-label="Stop" title="Stop" className="ml-2 flex h-8 w-8 items-center justify-center rounded-lg bg-[#0f2a3b] text-white hover:bg-slate-700"><Square className="h-3.5 w-3.5 fill-current" /></button>
               ) : (
                 <button type="submit" disabled={!input.trim()} aria-label="Send" className="bg-peacock ml-2 flex h-8 w-8 items-center justify-center rounded-lg text-white transition hover:brightness-110 disabled:bg-none disabled:bg-slate-200 disabled:text-slate-400"><ArrowUp className="h-4 w-4" /></button>
               )}

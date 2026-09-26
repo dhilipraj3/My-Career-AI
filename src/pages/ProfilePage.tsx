@@ -119,7 +119,7 @@ export default function ProfilePage({ me, refresh }: { me: Me; refresh: () => Pr
       </div>
 
       {dirty && (
-        <div className="sticky bottom-20 z-10 flex items-center justify-between gap-3 rounded-2xl bg-ink px-5 py-3 text-white shadow-[var(--shadow-pop)] animate-slide-up lg:bottom-6">
+        <div className="sticky bottom-20 z-10 flex items-center justify-between gap-3 rounded-2xl bg-[#0f2a3b] ring-1 ring-white/10 px-5 py-3 text-white shadow-[var(--shadow-pop)] animate-slide-up lg:bottom-6">
           <p className="text-sm">You have unsaved changes.</p>
           <div className="flex gap-2"><Button variant="ghost" size="sm" className="text-white hover:bg-white/10 hover:text-white" onClick={() => setF({ targetRoles: pr.targetRoles, locations: pr.locations, workModes: pr.workModes, minSalaryLPA: pr.minSalaryLPA ?? "", noticePeriodDays: pr.noticePeriodDays ?? "", willingToRelocate: pr.willingToRelocate ?? false, excludedCompanies: pr.excludedCompanies })}>Discard</Button><Button size="sm" loading={busy} onClick={savePrefs}>Save changes</Button></div>
         </div>
