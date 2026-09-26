@@ -13,6 +13,7 @@ const STRINGS = {
   "nav.applications": ["Applications", "आवेदन"],
   "nav.resume": ["Resumes", "रिज़्यूमे"],
   "nav.interview": ["Interview prep", "इंटरव्यू तैयारी"],
+  "nav.employer": ["For employers", "नियोक्ताओं के लिए"],
   "nav.profile": ["Profile", "प्रोफ़ाइल"],
   "nav.settings": ["Settings", "सेटिंग्स"],
   "nav.admin": ["Admin", "एडमिन"],

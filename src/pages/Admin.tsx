@@ -5,6 +5,7 @@ import { api, errMsg } from "../lib/api";
 import { CATEGORY_LABELS } from "../lib/labels";
 import AdminAi from "../components/AdminAi";
 import AdminDiscovery from "../components/AdminDiscovery";
+import AdminModeration from "../components/AdminModeration";
 import { Badge, Button, Card, ErrorNote, PageHeader, Spinner, cn, timeAgo } from "../ui";
 
 const companyTone = (s: CompanyRecord["status"]) => (s === "active" ? "green" : s === "dead" ? "red" : s === "empty" ? "amber" : "slate") as "green" | "amber" | "red" | "slate";
@@ -102,6 +103,7 @@ export default function Admin() {
     <div className="space-y-5">
       <PageHeader title="Admin" subtitle="AI, job discovery and the company registry." />
       <AdminAi />
+      <AdminModeration />
       <ErrorNote error={error} />
       {stats && (
         <>

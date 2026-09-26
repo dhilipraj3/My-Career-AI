@@ -46,6 +46,7 @@ import { publicSearch, publicStats } from "./public.js";
 import { careerRouter } from "./career/routes.js";
 import { companionRouter } from "./companion/routes.js";
 import { interviewRouter } from "./interview/routes.js";
+import { employerRouter } from "./employer/routes.js";
 
 const wrap = (fn: (req: Request, res: Response) => Promise<unknown>): RequestHandler => (req, res, next) => {
   fn(req, res).catch(next);
@@ -106,6 +107,7 @@ export function buildRouter(): express.Router {
   r.post("/inbox/rotate", byUser, wrap(async (req, res) => { await rotateInbox(req.user!.uid); res.json(await inboxView(req.user!.uid)); }));
   r.use(companionRouter());
   r.use(interviewRouter());
+  r.use(employerRouter());
 
   // ---------------- account / profile ----------------
   r.get("/me", wrap(async (req, res) => {

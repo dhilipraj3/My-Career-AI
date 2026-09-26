@@ -10,6 +10,7 @@ import { celebrate } from "../lib/motion";
 import { useNav } from "../lib/nav";
 import { BAND_LABEL, Badge, BandPill, Button, Card, CompanyMark, ErrorNote, ScoreRing, Section, Skeleton, bandOf, cn, timeAgo, titleCase, useToast } from "../ui";
 import FormHelper from "../components/FormHelper";
+import { DirectApply, ReportJob } from "../components/DirectApply";
 import ResumeView from "./ResumeView";
 
 interface Package {
@@ -73,6 +74,7 @@ export default function JobDetail({ jobId, onBack, onChanged, openChat, me }: { 
   const { job, match, application } = data;
   const src = job.sources.find((s) => s.applyUrl) || job.sources[0];
   const pay = salaryText(job);
+  const direct = job.sources.some((s) => s.connector === "employer");
   const activeApp = pkg?.application || application;
   const resume = pkg?.resume;
 
@@ -222,6 +224,8 @@ export default function JobDetail({ jobId, onBack, onChanged, openChat, me }: { 
                 {activeApp.appliedAt && <p className="text-emerald-800/80">Applied {timeAgo(activeApp.appliedAt)}</p>}
                 <button onClick={() => nav.go("applications")} className="mt-1 font-medium underline">Manage in Applications</button>
               </div>
+            ) : direct ? (
+              <DirectApply job={job} disabled={me.profile.status !== "ready"} onApplied={() => { onChanged(); void load(); }} />
             ) : !pkg ? (
               <div className="space-y-2">
                 <Button className="w-full" size="lg" loading={busy === "prepare"} onClick={() => prepare(false)} disabled={me.profile.status !== "ready"}><Sparkles className="h-4 w-4" />{activeApp ? "Continue application" : "Prepare my application"}</Button>
@@ -249,9 +253,11 @@ export default function JobDetail({ jobId, onBack, onChanged, openChat, me }: { 
           </Card>
 
           <Card className="space-y-1.5 text-xs text-slate-500">
+            {direct && <p><Badge tone="green">Posted directly by the employer</Badge></p>}
             <p><span className="font-medium text-slate-700">Source:</span> {sourceLabel(job)}{job.sources.length > 1 ? ` · listed on ${job.sources.length} sites` : ""}</p>
             <p><span className="font-medium text-slate-700">Last checked:</span> {timeAgo(job.lastVerifiedAt)}</p>
-            {src && (src.sourceUrl || src.applyUrl) && <a className="inline-flex items-center gap-1 font-medium text-brand-600 hover:underline" href={src.sourceUrl || src.applyUrl} target="_blank" rel="noopener noreferrer">Original listing <ExternalLink className="h-3 w-3" /></a>}
+            <ReportJob jobId={job.id} />
+            {src && !direct && (src.sourceUrl || src.applyUrl) && <a className="inline-flex items-center gap-1 font-medium text-brand-600 hover:underline" href={src.sourceUrl || src.applyUrl} target="_blank" rel="noopener noreferrer">Original listing <ExternalLink className="h-3 w-3" /></a>}
           </Card>
         </aside>
       </div>

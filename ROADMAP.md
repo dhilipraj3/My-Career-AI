@@ -229,23 +229,23 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 ## Phase 4 — Bridge Features
 
 ### 4.1 Bring jobs from any portal (web only)
-- [ ] "Add a job" page: paste a Naukri / LinkedIn / Indeed / Foundit / Apna link or description → parsed, scored, added to the feed (existing base, polish)
-- [ ] Bulk paste: several links at once
-- [ ] Bookmarkable add-job URL (`/add-job?url=…`) so users can save it in their browser
-- [ ] Application form helper: copy-ready answers (name, experience, notice period, CTC, screening answers) from the approved profile — the user fills and submits
+- [x] "Add a job" page: paste a Naukri / LinkedIn / Indeed / Foundit / Apna link or description → parsed, scored, added to the feed (existing base, polish)
+- [x] Bulk paste: several links at once
+- [x] Bookmarkable add-job URL (`/add-job?url=…`) so users can save it in their browser
+- [x] Application form helper: copy-ready answers (name, experience, notice period, CTC, screening answers) from the approved profile — the user fills and submits
 
 ### 4.2 Job-alert email forwarding
-- [ ] Personal address per user (`u-xxxx@in.mycareer…`) via Cloudflare Email Routing + Worker → our webhook
-- [ ] Parsers for Naukri / LinkedIn / Indeed / Foundit / Instahyre alert formats, plus an AI fallback
-- [ ] Forwarding verification + spam protection + per-user limits
+- [x] Personal address per user (`u-xxxx@in.mycareer…`) via Cloudflare Email Routing + Worker → our webhook
+- [x] Parsers for Naukri / LinkedIn / Indeed / Foundit / Instahyre alert formats, plus an AI fallback
+- [x] Forwarding verification (Gmail code shown in the app) + spam protection + per-user limits. Needs INBOUND_EMAIL_DOMAIN, INBOUND_WEBHOOK_SECRET and the Cloudflare worker in deploy/ to go live
 
 ### 4.3 Employer side (free job posting)
-- [ ] Employer sign-up (Google) + company verification (domain email / GST optional)
-- [ ] Post a job in 60 seconds (AI turns a rough description into a structured posting); blue-collar friendly form
-- [ ] Moderation: scam rules + AI review + manual queue in admin
-- [ ] Candidates see "Posted directly by employer" and apply in-app
-- [ ] Employer inbox: ranked candidates with match explanations (the candidate chooses to share their profile)
-- [ ] Anti-abuse: rate limits, reporting, block lists
+- [x] Employer sign-up (Google) + company verification (company-domain email verifies instantly; otherwise an admin reviews). GST check: not built
+- [x] Post a job in 60 seconds (AI turns a rough description into a structured posting); blue-collar friendly form
+- [x] Moderation: scam rules + AI review + manual queue in admin
+- [x] Candidates see "Posted directly by employer" and apply in-app
+- [x] Employer inbox: ranked candidates with match explanations (the candidate chooses to share their profile)
+- [x] Anti-abuse: rate limits, reporting, block lists
 
 **Phase 4 done when:** jobs from any portal flow in via link/paste/email, and local employers can post and receive matched candidates.
 

@@ -168,6 +168,11 @@ async function ingestRawJobsUnlocked(raws: RawJob[], opts: { ownerUid?: string }
 /** Recompute freshness for every job; returns how many changed state. Run on a schedule. */
 export async function refreshFreshness(): Promise<number> {
   const store = await getStore();
+  // Jobs posted directly by employers count as "seen" for as long as the employer keeps them open (their own expiry date still applies).
+  const nowIso = new Date().toISOString();
+  for (const ej of await store.query<{ jobId?: string }>("employerJobs", { where: { status: "live" }, readOnly: true })) {
+    if (ej.jobId) await store.update<Job>("jobs", ej.jobId, { lastVerifiedAt: nowIso }).catch(() => undefined);
+  }
   const jobs = await store.query<Job>("jobs", { readOnly: true });
   const changed: string[] = [];
   for (const j of jobs) {
