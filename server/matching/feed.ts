@@ -76,7 +76,31 @@ export async function feedSummary(uid: string): Promise<FeedSummary> {
 
   const diagnosis: FeedDiagnosis[] = [];
   let roleSuggestions: Array<{ role: string; jobs: number }> = [];
-  if (profile?.status === "ready" && bands.excellent < 3) {
+  // Jobs the person's own preferences rule out. If that is most of what we found, say so: an empty screen with the wrong reason is worse than a short list.
+  const blocked = matches.filter((m) => m.hardFailures.length);
+  if (profile?.status === "ready" && blocked.length >= 3 && blocked.length >= usable.length) {
+    const types = new Map<string, number>(), modes = new Map<string, number>();
+    let pay = 0;
+    for (const m of blocked) {
+      for (const f of m.hardFailures) {
+        const t = /^Employment type is (.+)$/.exec(f)?.[1], w = /^Work mode is (w+);/.exec(f)?.[1];
+        if (t) types.set(t.replace(" ", "_"), (types.get(t.replace(" ", "_")) || 0) + 1);
+        if (w) modes.set(w, (modes.get(w) || 0) + 1);
+        if (/^Salary up to/.test(f)) pay++;
+      }
+    }
+    const parts = [
+      types.size ? `job type (${[...types.entries()].map(([t, n]) => `${t.replace("_", " ")}: ${n}`).join(", ")})` : "",
+      modes.size ? `work mode (${[...modes.entries()].map(([t, n]) => `${t}: ${n}`).join(", ")})` : "",
+      pay ? `minimum pay (${pay})` : "",
+    ].filter(Boolean);
+    if (parts.length) diagnosis.push({
+      kind: "preferences", hidden: blocked.length, title: `${blocked.length} jobs are hidden by your preferences`,
+      detail: `They don't fit your ${parts.join(", ")}. Add one back to see them.`,
+      employmentTypes: [...types.keys()], workModes: [...modes.keys()],
+    });
+  }
+  if (profile?.status === "ready" && bands.excellent < 3 && usable.length > 0) {
     // Why so few strong matches? Look at what capped the scores.
     const outside = usable.filter((m) => m.breakdown.location < 50 && m.breakdown.skills >= 60 && m.breakdown.roleAlignment >= 50);
     if (outside.length >= 3) {

@@ -113,11 +113,15 @@ export interface CandidateProfile {
 }
 
 export interface FeedDiagnosis {
-  kind: "location" | "roles" | "skills";
+  kind: "preferences" | "location" | "roles" | "skills";
   title: string;
   detail: string;
   cities?: string[];
   skills?: string[];
+  /** preferences: the job types / work modes that hide the most jobs, so each can be added back in one tap. */
+  employmentTypes?: string[];
+  workModes?: string[];
+  hidden?: number;
 }
 
 export interface FeedSummary {

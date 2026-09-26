@@ -1,10 +1,10 @@
-import { Lightbulb, MapPin, Plus, Target, Wrench } from "lucide-react";
+import { Lightbulb, MapPin, Plus, SlidersHorizontal, Target, Wrench } from "lucide-react";
 import { useState } from "react";
 import type { CandidateProfile, FeedSummary } from "@shared/types";
 import { api, errMsg } from "../lib/api";
 import { Button, cn, useToast } from "../ui";
 
-const ICON = { location: MapPin, roles: Target, skills: Wrench };
+const ICON = { preferences: SlidersHorizontal, location: MapPin, roles: Target, skills: Wrench };
 
 /** "Why you're not seeing excellent matches" — each finding comes with one-tap fixes that re-score the feed. */
 export default function Diagnosis({ summary, profile, onChanged }: { summary: FeedSummary; profile: CandidateProfile; onChanged: () => void }) {
@@ -21,6 +21,10 @@ export default function Diagnosis({ summary, profile, onChanged }: { summary: Fe
   const pr = profile.preferences;
 
   const actions = (kind: string, d: FeedSummary["diagnosis"][number]) => {
+    if (kind === "preferences") return [
+      ...(d.employmentTypes || []).map((t) => ({ id: `type:${t}`, label: `Include ${t.replace("_", " ")}`, run: () => prefs({ employmentTypes: [...pr.employmentTypes, t] }), msg: `Now including ${t.replace("_", " ")} jobs. Re-scoring…` })),
+      ...(d.workModes || []).map((m) => ({ id: `mode:${m}`, label: `Include ${m === "onsite" ? "on-site" : m}`, run: () => prefs({ workModes: [...pr.workModes, m] }), msg: `Now including ${m} jobs. Re-scoring…` })),
+    ];
     if (kind === "location") return [
       ...(d.cities || []).map((c) => ({ id: `city:${c}`, label: c, run: () => prefs({ locations: [...pr.locations, c] }), msg: `Added ${c}. Re-scoring your matches…` })),
       ...(!pr.willingToRelocate ? [{ id: "relocate", label: "I'd relocate", run: () => prefs({ willingToRelocate: true }), msg: "Noted — you're open to relocating. Re-scoring…" }] : []),
@@ -36,7 +40,7 @@ export default function Diagnosis({ summary, profile, onChanged }: { summary: Fe
     <section className="overflow-hidden rounded-2xl border border-amber-200/70 bg-gradient-to-br from-amber-50 to-white shadow-[var(--shadow-card)]">
       <div className="flex items-center gap-2 border-b border-amber-100 px-5 py-3">
         <Lightbulb className="h-5 w-5 text-amber-600" />
-        <p className="font-display font-semibold text-ink">{summary.bands.excellent === 0 ? "Why you're not seeing excellent matches yet" : "Ways to get better matches"}</p>
+        <p className="font-display font-semibold text-ink">{summary.diagnosis[0]?.kind === "preferences" ? "Why the list is short" : summary.bands.excellent === 0 ? "Why you're not seeing excellent matches yet" : "Ways to get better matches"}</p>
       </div>
       <div className="grid divide-y divide-amber-100 md:grid-cols-3 md:divide-x md:divide-y-0">
         {summary.diagnosis.map((d) => {

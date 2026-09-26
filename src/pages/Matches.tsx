@@ -76,7 +76,7 @@ export default function Matches({ me }: { me: Me }) {
   };
 
   const b = summary?.bands;
-  const subtitle = !summary ? <Skeleton className="mt-2 h-4 w-72" /> : summary.total === 0 ? "No matches yet — I'm still looking." : (
+  const subtitle = !summary ? <Skeleton className="mt-2 h-4 w-72" /> : summary.total === 0 ? (summary.diagnosis.find((d) => d.kind === "preferences") ? "Your preferences are hiding every job I found." : "No matches yet — I'm still looking.") : (
     <><strong className="text-ink">{summary.total.toLocaleString("en-IN")}</strong> jobs match you: <span className="text-emerald-700">{b!.excellent} excellent</span> · <span className="text-brand-700">{b!.good} good</span> · <span className="text-amber-700">{b!.fair} fair</span>{summary.newSinceLastVisit > 0 && <> · <strong className="text-brand-700">{summary.newSinceLastVisit} new</strong> since your last visit</>}</>
   );
   const total = result?.total ?? 0;

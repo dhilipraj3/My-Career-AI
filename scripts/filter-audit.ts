@@ -16,7 +16,7 @@ const { RESUME_TEXT, rawJob, fakeConnector } = await import("../tests/fixtures.j
 const express = (await import("express")).default;
 const puppeteer = (await import("puppeteer-core")).default;
 
-setStore(new FileStore(path.join(process.env.TEMP || ".", "mc-filter-audit.json")));
+setStore(new FileStore(path.resolve("data", "mc-filter-audit.json")));
 const user = { uid: "demo", email: "priya.sharma@example.com", name: "Priya Sharma" };
 await getOrCreateProfile(user);
 const { resume } = await storeResume(user, { buffer: Buffer.from(RESUME_TEXT), originalname: "priya.txt", mimetype: "text/plain" });
@@ -125,6 +125,7 @@ for (const screen of ["matches", "search"] as const) {
 
 await browser.close();
 server.close();
+try { fs.rmSync(path.resolve("data", "mc-filter-audit.json")); } catch { /* */ }
 console.log(`${checks} checks, ${problems.length} problem(s)`);
 for (const p of problems) console.log(" -", p);
 process.exit(problems.length ? 1 : 0);

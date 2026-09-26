@@ -18,6 +18,8 @@
     "live:sourcing": "tsx scripts/live-sourcing.ts",
     "check": "tsc --noEmit && vitest run",
     "check:filters": "tsx scripts/filter-audit.ts",
+    "check:flows": "tsx scripts/flows.ts",
+    "check:clicks": "tsx scripts/flow-audit.ts",
     "check:voice": "tsx scripts/voice-smoke.ts"
   },
   "dependencies": {
