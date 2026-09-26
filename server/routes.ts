@@ -21,6 +21,8 @@ import { runCycle, schedulerState } from "./scheduler.js";
 import { buildConnectors } from "./jobs/connectors.js";
 import { detectAts } from "./jobs/detect.js";
 import { REGISTRY_ATS, addCompany, autoDiscoverBoards, boardProblem, fetcherFor, listCompanies, removeCompany, updateCompany } from "./jobs/registry.js";
+import { ImportBody, extractLinks, importJobForUser, importLinks } from "./jobs/import.js";
+import { formHelper } from "./applications/formHelper.js";
 import { ingestRawJobs } from "./jobs/ingest.js";
 import { rawJobFromDescription, rawJobFromUrl } from "./jobs/connectors.js";
 import { UnsafeUrlError } from "./jobs/http.js";
@@ -348,53 +350,22 @@ export function buildRouter(): express.Router {
   }));
 
   r.post("/jobs/import", byUser, wrap(async (req, res) => {
-    const uid = req.user!.uid;
-    const body = z.object({
-      url: z.string().url().max(600).optional(), description: z.string().min(80).max(30000).optional(),
-      title: z.string().max(160).optional(), company: z.string().max(120).optional(), location: z.string().max(120).optional(),
-    }).refine((b) => b.url || b.description, "Provide a job URL or paste the job description.").parse(req.body);
-    const profile = await getProfile(uid);
-    if (!profile || profile.status !== "ready") throw new AppError(409, "Finish your profile first so I can score this job for you.");
-
-    let raw = body.description ? rawJobFromDescription({ ...body, description: body.description }) : null;
-    if (!raw && body.url) {
-      let fetched;
-      try { fetched = await rawJobFromUrl(body.url); } catch (e: any) {
-        if (e instanceof UnsafeUrlError) throw new AppError(400, e.message);
-        throw new AppError(422, `I couldn't open that link (${String(e.message).slice(0, 100)}). Paste the job description instead.`);
-      }
-      if (fetched.raw) raw = fetched.raw;
-      else if (fetched.needsAi) {
-        const Extract = z.object({ title: z.string().catch(""), company: z.string().catch(""), location: z.string().catch(""), description: z.string().catch("") });
-        try {
-          const x = await generateJSON({
-            task: "job_analyze", uid, schema: Extract, maxTokens: 2500,
-            system: `You extract a single job posting from web page text. ${UNTRUSTED_NOTICE}`,
-            prompt: `Return {"title","company","location","description"} for the job on this page. Use "" if not present; never invent.\n${fenceUntrusted("web_page", fetched.needsAi.text, 9000)}`,
-          });
-          raw = rawJobFromDescription({ title: x.title || body.title || fetched.needsAi.title, company: x.company || body.company, location: x.location || body.location, description: x.description, url: fetched.needsAi.url });
-          raw.connector = "user_url";
-          raw.sourceName = new URL(fetched.needsAi.url).hostname;
-        } catch (e) {
-          if (e instanceof AiQuotaError || e instanceof AiUnavailableError) throw new AppError(503, "I couldn't read that page automatically. Please paste the job description instead.");
-          throw new AppError(422, "I couldn't find a job posting on that page. Please paste the description instead.");
-        }
-      }
-    }
-    if (!raw) throw new AppError(422, "Couldn't read that job.");
-    raw.title ||= body.title || "";
-    raw.company ||= body.company || "";
-    if (!raw.company) throw new AppError(422, "I couldn't work out the company. Add it and try again.");
-    const stats = await ingestRawJobs([raw], { ownerUid: uid });
-    void autoDiscoverBoards(stats.jobIds).catch(() => undefined); // a pasted link may reveal a company board we don't read yet
-    if (!stats.jobIds.length) throw new AppError(422, `That job couldn't be added (${Object.keys(stats.rejectReasons)[0]?.replace(/_/g, " ") || "invalid"}).`);
-    await matchCandidate(uid, { jobIds: stats.jobIds });
-    const job = await getJobForUser(uid, stats.jobIds[0]);
-    await analyzeJob(job);
-    await matchCandidate(uid, { jobIds: stats.jobIds });
-    const match = await (await getStore()).get<JobMatch>("matches", matchId(uid, job.id));
-    await audit(uid, "job.imported", { jobId: job.id });
+    const { job, match } = await importJobForUser(req.user!.uid, ImportBody.parse(req.body));
     res.status(201).json({ job, match });
+  }));
+
+  /** Several links at once, or any pasted text containing links (a WhatsApp forward, notes, an email). */
+  r.post("/jobs/import-bulk", byUser, wrap(async (req, res) => {
+    const { urls, text } = z.object({ urls: z.array(z.string().url().max(600)).max(8).optional(), text: z.string().max(20000).optional() }).refine((b) => b.urls?.length || b.text, "Add at least one job link.").parse(req.body);
+    const links = [...new Set([...(urls || []), ...extractLinks(text || "")])];
+    if (!links.length) throw new AppError(422, "I couldn't find any links in that.");
+    res.json({ results: await importLinks(req.user!.uid, links), skipped: Math.max(0, links.length - 8) });
+  }));
+
+  r.get("/jobs/:id/form-helper", wrap(async (req, res) => {
+    const profile = await getProfile(req.user!.uid);
+    if (!profile) throw new AppError(409, "Upload a resume first.");
+    res.json({ fields: formHelper(profile, await getJobForUser(req.user!.uid, req.params.id)) });
   }));
 
   // ---------------- tailored resume + application ----------------

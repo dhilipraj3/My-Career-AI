@@ -33,6 +33,8 @@ async function main() {
     // The app lives at "/" (its screens are #routes). Any other unknown address is a real 404, not the app with a
     // 200 status — search engines treat those "soft 404s" as low-quality pages.
     app.get("/", (_req, res) => res.sendFile(path.join(dist, "index.html")));
+    // Bookmark target for "add this job" (never indexed); the app reads ?url= and moves to a normal address.
+    app.get("/add-job", (_req, res) => res.set("X-Robots-Tag", "noindex").sendFile(path.join(dist, "index.html")));
     app.use((req, res, next) => {
       if (req.method !== "GET" && req.method !== "HEAD") return next();
       notFoundHtml().then((html) => res.status(404).type("html").send(html)).catch(next);

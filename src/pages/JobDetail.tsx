@@ -9,6 +9,7 @@ import { CATEGORY_LABELS, EDUCATION_LABELS, salaryText, sourceLabel } from "../l
 import { celebrate } from "../lib/motion";
 import { useNav } from "../lib/nav";
 import { BAND_LABEL, Badge, BandPill, Button, Card, CompanyMark, ErrorNote, ScoreRing, Section, Skeleton, bandOf, cn, timeAgo, titleCase, useToast } from "../ui";
+import FormHelper from "../components/FormHelper";
 import ResumeView from "./ResumeView";
 
 interface Package {
@@ -192,6 +193,8 @@ export default function JobDetail({ jobId, onBack, onChanged, openChat, me }: { 
               {!resume?.approved && <p className="text-xs text-slate-500">Approve the resume above to continue.</p>}
             </Card>
           )}
+
+          {pkg && <FormHelper jobId={job.id} />}
 
           <Card className="space-y-3">
             <h2 className="text-lg font-semibold">About the role</h2>

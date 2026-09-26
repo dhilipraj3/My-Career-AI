@@ -20,6 +20,7 @@ import JobDetail from "./JobDetail";
 import JobSearch from "./JobSearch";
 import Matches from "./Matches";
 import ProfilePage from "./ProfilePage";
+import ImportJobModal from "../components/ImportJobModal";
 import Interview from "./Interview";
 import Resumes from "./Resumes";
 import Settings from "./Settings";
@@ -54,6 +55,9 @@ function NavLink({ item, active, onClick }: { item: Item; active: boolean; onCli
 export default function Shell({ me, refresh }: { me: Me; refresh: () => Promise<void> }) {
   const { t, lang, setLang } = useI18n();
   const [route, setRoute] = useState(parseHash);
+  // /add-job?url=… is a bookmark target: open the "add a job" window with that link, then move to a normal address.
+  const [addJob, setAddJob] = useState<string | null>(() => (location.pathname === "/add-job" ? new URLSearchParams(location.search).get("url") || "" : null));
+  useEffect(() => { if (location.pathname === "/add-job") history.replaceState(null, "", "/#search"); }, []);
   useEffect(() => { const on = () => setRoute(parseHash()); window.addEventListener("hashchange", on); return () => window.removeEventListener("hashchange", on); }, []);
   const [chat, setChat] = useState<{ open: boolean; prompt?: string; key?: number }>({ open: false });
   const [chatExpanded, setChatExpanded] = useState(false);
@@ -184,6 +188,8 @@ export default function Shell({ me, refresh }: { me: Me; refresh: () => Promise<
               : me.user.isAdmin ? <Admin /> : <Dashboard me={me} ai={ai} />}
           </div>
         </main>
+
+        {addJob !== null && <ImportJobModal initialUrl={addJob} onClose={() => setAddJob(null)} onDone={(id) => { setAddJob(null); nav.openJob(id); }} />}
 
         <nav className="glass-strong fixed inset-x-0 bottom-0 z-30 flex border-t pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label="Main mobile">
           {[...MAIN, ...ME].filter((i) => i.mobile).map((i) => (
