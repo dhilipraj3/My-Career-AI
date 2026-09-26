@@ -5,6 +5,8 @@ import type { Me } from "../App";
 import Diagnosis from "../components/Diagnosis";
 import FilterBar, { toParams } from "../components/FilterBar";
 import JobCard from "../components/JobCard";
+import { useJobListKeys } from "../lib/keys";
+import { listPageSize } from "../lib/lowdata";
 import { api, errMsg } from "../lib/api";
 import { track } from "../lib/analytics";
 import { useNav } from "../lib/nav";
@@ -49,12 +51,13 @@ export default function Matches({ me }: { me: Me }) {
   const load = useCallback(async (p: number, append: boolean) => {
     setLoading(true); setError(null);
     try {
-      const r = await api<JobSearchResult>(`/jobs/search?${toParams({ ...query, ...TIER_RANGE[tier], matchedOnly: true, page: p, pageSize: 20 })}`);
+      const r = await api<JobSearchResult>(`/jobs/search?${toParams({ ...query, ...TIER_RANGE[tier], matchedOnly: true, page: p, pageSize: listPageSize(20) })}`);
       setResult(r); setHits((h) => (append && h ? [...h, ...r.hits] : r.hits)); setPage(p);
     } catch (e) { setError(errMsg(e)); } finally { setLoading(false); }
   }, [query, tier]);
   useEffect(() => { void load(1, false); }, [load]);
 
+  useJobListKeys(nav.openJob, (t) => toast("info", t));
   const refreshAll = () => { void loadSummary(); void load(1, false); };
   const save = async (id: string, saved: boolean) => {
     try { await api(`/jobs/${id}/save`, { body: { saved } }); if (saved) track("job_save", { from: "matches" }); setHits((h) => h && h.map((x) => (x.job.id === id ? { ...x, saved } : x))); toast("success", saved ? "Saved" : "Removed from saved"); void loadSummary(); } catch (e) { toast("error", errMsg(e)); }
@@ -112,7 +115,7 @@ export default function Matches({ me }: { me: Me }) {
                 <JobCard job={h.job} score={h.matchScore} confidence={h.matchConfidence} reason={h.reason} gap={h.gap} saved={h.saved}
                   isNew={Boolean(lastSeen.current && h.matchedAt && h.matchedAt > lastSeen.current)} onOpen={nav.openJob} onSave={(s) => void save(h.job.id, s)}
                   actions={<div className="relative">
-                    <button aria-label="Not interested" title="Not interested" onClick={() => setMenuFor(menuFor === h.job.id ? null : h.job.id)} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><EyeOff className="h-[18px] w-[18px]" /></button>
+                    <button data-action="hide" aria-label="Not interested" title="Not interested" onClick={() => setMenuFor(menuFor === h.job.id ? null : h.job.id)} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><EyeOff className="h-[18px] w-[18px]" /></button>
                     {menuFor === h.job.id && (
                       <div className="absolute right-0 top-full z-20 mt-1 w-52 rounded-xl border border-slate-200 bg-white p-1.5 shadow-[var(--shadow-pop)] animate-fade-in">
                         <p className="px-2 py-1 text-xs font-medium text-slate-500">Why hide this?</p>

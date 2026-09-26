@@ -134,6 +134,7 @@ export default function Shell({ me, refresh }: { me: Me; refresh: () => Promise<
   return (
     <NavCtx.Provider value={nav}>
       <div className={cn("min-h-full transition-[padding] duration-200 lg:pl-64", chat.open && "lg:pr-[420px]")}>
+        <a href="#main" onClick={(e) => { e.preventDefault(); document.getElementById("main")?.focus(); }} className="skip-link">Skip to content</a>
         <aside className="glass fixed inset-y-0 left-0 z-30 hidden w-64 border-r lg:block">{sidebar}</aside>
         {drawer && (
           <div className="scrim fixed inset-0 z-50 animate-fade-in lg:hidden" onMouseDown={(e) => e.target === e.currentTarget && setDrawer(false)}>
@@ -178,7 +179,7 @@ export default function Shell({ me, refresh }: { me: Me; refresh: () => Promise<
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-6xl px-4 pb-28 pt-6 sm:px-6 lg:pb-12">
+        <main id="main" tabIndex={-1} className="mx-auto w-full max-w-6xl px-4 pb-28 pt-6 sm:px-6 lg:pb-12">
           <div key={route.jobId || page} className="animate-slide-up">
             {route.jobId ? <JobDetail jobId={route.jobId} me={me} onBack={() => (history.length > 1 ? history.back() : nav.go("matches"))} onChanged={loadNotes} openChat={() => nav.openChat()} />
               : page === "home" ? <Dashboard me={me} ai={ai} />

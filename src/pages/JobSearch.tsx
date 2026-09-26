@@ -5,6 +5,8 @@ import type { Me } from "../App";
 import FilterBar, { toParams } from "../components/FilterBar";
 import ImportJobModal from "../components/ImportJobModal";
 import JobCard from "../components/JobCard";
+import { useJobListKeys } from "../lib/keys";
+import { listPageSize } from "../lib/lowdata";
 import SyncBadge from "../components/SyncBadge";
 import { api, errMsg } from "../lib/api";
 import { track } from "../lib/analytics";
@@ -15,6 +17,7 @@ interface PortalLink { id: string; name: string; url: string; bestFor: string }
 export default function JobSearch({ me, openJob, initialQuery = "" }: { me: Me; openJob: (id: string) => void; initialQuery?: string }) {
   const prefs = me.profile.preferences;
   const toast = useToast();
+  useJobListKeys(openJob, (t) => toast("info", t));
   const defaults = (): JobQuery => ({ q: initialQuery || undefined, cities: prefs.locations.filter((l) => !/anywhere/i.test(l)).slice(0, 3), sort: initialQuery ? "relevance" : "match" });
   const [query, setQuery] = useState<JobQuery>(defaults);
   const [result, setResult] = useState<JobSearchResult | null>(null);
@@ -30,7 +33,7 @@ export default function JobSearch({ me, openJob, initialQuery = "" }: { me: Me; 
   const load = useCallback(async (p: number, append: boolean) => {
     setLoading(true); setError(null);
     try {
-      const r = await api<JobSearchResult>(`/jobs/search?${toParams({ ...query, page: p, pageSize: 20 })}`);
+      const r = await api<JobSearchResult>(`/jobs/search?${toParams({ ...query, page: p, pageSize: listPageSize(20) })}`);
       setResult(r); setHits((h) => (append && h ? [...h, ...r.hits] : r.hits)); setPage(p);
     } catch (e) { setError(errMsg(e)); } finally { setLoading(false); }
   }, [query]);

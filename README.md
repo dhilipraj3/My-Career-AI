@@ -95,7 +95,7 @@ Jobs come only from sources that allow it. Nothing is scraped from portals whose
 ## Testing
 
 ```powershell
-npm test               # 66 automated tests (unit, pipeline, full HTTP journey, adversarial cases)
+npm test               # 317 automated tests (unit, pipeline, full HTTP journey, adversarial cases)
 npm run lint           # typecheck
 $env:SELF_HOST=1; npm run smoke     # full journey over HTTP against LIVE job sources
 npm run check:formats  # real PDF (via Edge) and DOCX extraction
@@ -104,12 +104,15 @@ npm run probe:boards   # re-verify which company ATS boards exist (refresh DEFAU
 
 ## Honest status
 
-Verified: the whole backend journey (66 tests + a live run: real resume → 60 matched jobs from real company boards → tailored resume → approval → tracked application), real PDF and DOCX parsing, production build, typecheck.
+**Built and covered by automated tests (317):** understanding the user (confidence model, no-resume conversation, role discovery), resume upload including photos and scanned PDFs, resume builder and health check, job-specific tailored resumes, the placement companion (journey, next actions, weekly plan, "I got placed"), interview prep and mock interviews, message drafts, offer comparison, calendar export, bring-your-own jobs (link, paste, bulk, bookmark, forwarded alert emails), employer posting with moderation and direct applications, career insights (learning ROI, funnel, market pulse), privacy export and erasure, shareable profile, and error monitoring.
 
-**Not yet verified — do these first:**
-1. **Real AI providers.** All AI code paths are tested with fake providers only. Add a Gemini key and try a real resume; tune `server/ai/gateway.ts` `ROUTES` and the prompts if output quality needs it.
-2. **UI:** the login and job-feed screens were rendered headless (desktop + mobile, see `screenshots/`) and look right; the other screens (onboarding, job detail, resume, profile, chat) still need a human click-through.
-3. **Google sign-in and Firestore** against your real Firebase project (needs the service-account key). Also deploy `firestore.rules` that deny all client access — the server is the only reader/writer.
-4. Match scores are deliberately conservative without AI (top live results were 55–65%). AI job analysis (`analyzeJob`) enriches the top matches once a key is configured.
+**Needs you (cannot be verified from here):**
+1. **Real AI providers.** Every AI path is tested with fake providers only. Add a Gemini key and try a real resume, a photo resume, tailoring, interview prep and mock feedback; tune `server/ai/gateway.ts` `ROUTES` and the prompts if quality needs it.
+2. **A human click-through.** The new screens (Mission Control, Interview prep, Insights, For employers, the Resumes builder, Settings cards, the board's drag-and-drop) compile and build but have not been clicked through in a browser. There are no browser/UI smoke tests yet.
+3. **Google sign-in and Firestore** against the real Firebase project. Deploy `firestore.rules` (`firebase deploy --only firestore:rules`): it denies all client access, since the server is the only reader/writer.
+4. **Email forwarding** only works after you set `INBOUND_EMAIL_DOMAIN` and `INBOUND_WEBHOOK_SECRET`, route a domain through Cloudflare Email Routing and deploy `deploy/cloudflare-email-worker.js`. Alert-email layouts change: check each portal's parser with a real email.
+5. **Employer moderation is human.** Set `ADMIN_EMAILS` and check Admin → Employer moderation regularly. Company-domain sign-in verifies instantly; there is no GST check.
 
-**Not built (scope Phase 8 and extras):** interview preparation, career intelligence/salary benchmarks, email/push notification channels (in-app only), semantic embeddings (a TF-cosine proxy is used), Mode C automated apply (intentionally excluded), screenshot-based job import.
+**Estimates, not guarantees:** in-hand salary (new tax regime, employee PF, professional tax), salary ranges (from postings that state pay) and learning ROI (a re-score of your own jobs) are labelled estimates in the app.
+
+**Not built:** Tamil, Telugu, Kannada, Marathi, Bengali, Malayalam and Gujarati (needs native-speaker translation; English and Hindi ship), email/push notification channels (in-app only), Chrome built-in Gemini Nano, semantic embeddings (a TF-cosine proxy is used), automated apply (intentionally excluded), external error alerting (errors are logged and listed in Admin).

@@ -4,6 +4,7 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { buildRouter, errorHandler } from "./routes.js";
 import { requestContext } from "./log.js";
+import { publicProfileRouter } from "./publicProfile.js";
 import { employerRedirect } from "./employer/routes.js";
 import { seoRouter } from "./seo/index.js";
 
@@ -31,6 +32,7 @@ export function createApp() {
   app.use(compression({ filter: (req, res) => !req.path.endsWith("/stream") && compression.filter(req, res) }));
   app.use(express.json({ limit: "1mb" }));
   app.use(employerRedirect());
+  app.use(publicProfileRouter());
   app.use(seoRouter());
   app.use("/api", rateLimit({ windowMs: 60_000, limit: 300, standardHeaders: true, legacyHeaders: false, message: { error: "Too many requests." } }));
   app.use("/api", buildRouter());

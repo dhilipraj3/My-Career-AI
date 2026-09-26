@@ -254,32 +254,32 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 ## Phase 5 — Insights, Polish, Launch
 
 ### 5.1 Career insights
-- [ ] **Learning ROI:** re-score the user's jobs as if they had each missing skill → "Learn X → +N strong matches"
-- [ ] Free learning links for each skill (official docs, NPTEL, YouTube, free certifications)
-- [ ] Salary benchmarks: typical low/middle/high pay by role & city, with number of postings shown
-- [ ] Funnel analytics: response, interview and offer rates, days to response, weekly activity
-- [ ] Market pulse: skills in demand, top hiring companies, remote/hybrid split, trends
+- [x] **Learning ROI:** re-score the user's jobs as if they had each missing skill → "Learn X → +N strong matches"
+- [x] Free learning links for each skill (official docs, NPTEL, YouTube, free certifications)
+- [x] Salary benchmarks: typical low/middle/high pay by role & city, with number of postings shown
+- [x] Funnel analytics: response, interview and offer rates, days to response, weekly activity
+- [x] Market pulse: skills in demand, top hiring companies, remote/hybrid split, trends
 
 ### 5.2 World-class UI/UX
-- [ ] Design system: tokens, typography scale, components — **light theme only**
-- [ ] App layout: sidebar (desktop), bottom nav (mobile), responsive down to 360px
-- [ ] Command palette (Ctrl+K): jump anywhere, run agent actions
-- [ ] Keyboard shortcuts on job lists (J/K to move, S to save, H to hide)
-- [ ] Skeleton loaders, optimistic updates, smooth transitions (respecting reduced-motion)
-- [ ] Empty states that guide the next step
-- [ ] Low-data mode for slow networks
-- [ ] Accessibility: WCAG 2.2 AA, screen-reader labels, focus order, contrast
-- [ ] More languages: Tamil, Telugu, Kannada, Marathi, Bengali, Malayalam, Gujarati
-- [ ] Shareable public profile page (optional, user-controlled) for recruiters
+- [x] Design system: tokens, typography scale, components — **light theme only**
+- [x] App layout: sidebar (desktop), bottom nav (mobile), responsive down to 360px
+- [x] Command palette (Ctrl+K): jump anywhere, run agent actions
+- [x] Keyboard shortcuts on job lists (J/K to move, S to save, H to hide)
+- [x] Skeleton loaders, optimistic updates, smooth transitions (respecting reduced-motion)
+- [x] Empty states that guide the next step
+- [x] Low-data mode for slow networks
+- [x] Accessibility: WCAG 2.2 AA, screen-reader labels, focus order, contrast
+- [ ] More languages: Tamil, Telugu, Kannada, Marathi, Bengali, Malayalam, Gujarati. Not done: needs native-speaker translation, not machine output
+- [x] Shareable public profile page (optional, user-controlled) for recruiters
 
 ### 5.3 Trust, privacy, operations
-- [ ] Privacy centre: see/download/delete all data, control what's shared
-- [ ] Firestore rules deny all client access (server-only)
-- [ ] AI free-quota protection: caching, daily allowance per user, provider cooldowns, usage dashboard
-- [ ] Error monitoring + structured logs
-- [ ] Full test suite: unit, connectors, pipeline, API journey, safety/adversarial, UI smoke
-- [ ] Deploy guide: Cloud Run + Firebase, env setup, free-tier limits and how to stay within them
-- [ ] Updated README with an honest status section
+- [x] Privacy centre: see/download/delete all data, control what's shared
+- [x] Firestore rules deny all client access (server-only)
+- [x] AI free-quota protection: caching, daily allowance per user, provider cooldowns, usage dashboard
+- [x] Error monitoring + structured logs (request ids, JSON logs, admin "recent errors" list; no external alerting service)
+- [x] Test suite: unit, connectors, pipeline, API journey, safety/adversarial (300+ tests). No browser/UI smoke tests yet (needs a browser test runner)
+- [x] Deploy guide: the app deploys to Render (see README) with Firestore backup, not Cloud Run
+- [x] Updated README with an honest status section
 
 **Launch when:** all phases green, a real click-through on desktop + mobile, and real AI keys verified.
 

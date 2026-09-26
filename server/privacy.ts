@@ -22,6 +22,7 @@ export async function exportUserData(uid: string): Promise<Record<string, unknow
     // The forwarding address token is a secret: the export says an address exists, not what it is.
     out[col] = col === "inbound" ? rows.map(({ id: _id, ...rest }) => rest) : rows;
   }
+  out.publicProfile = await store.query("publicProfiles", { where: { uid } });
   out.placement = await store.get("placements", uid);
   out.employerAccount = await store.get("employers", uid);
   out.employerJobs = await store.query("employerJobs", { where: { employerUid: uid } });
@@ -43,6 +44,7 @@ export async function eraseUserData(uid: string): Promise<void> {
   for (const a of await store.query<{ id: string }>("directApplications", { where: { candidateUid: uid } })) await store.del("directApplications", a.id);
   for (const a of await store.query<{ id: string }>("directApplications", { where: { employerUid: uid } })) await store.del("directApplications", a.id);
   for (const r of await store.query<{ id: string }>("reports", { where: { reporterUid: uid } })) await store.del("reports", r.id);
+  for (const pp of await store.query<{ id: string }>("publicProfiles", { where: { uid } })) await store.del("publicProfiles", pp.id);
   await store.del("employers", uid);
   await store.del("placements", uid);
 

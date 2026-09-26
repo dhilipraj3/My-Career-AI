@@ -30,7 +30,8 @@ export type Collection =
   | "employers"
   | "employerJobs"
   | "directApplications"
-  | "reports";
+  | "reports"
+  | "publicProfiles";
 
 export interface QueryOptions {
   where?: Record<string, string | number | boolean>;

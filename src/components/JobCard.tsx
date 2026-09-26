@@ -29,7 +29,7 @@ export default function JobCard({ job, score, confidence, reason, gap, saved, is
   const pay = salaryText(job);
   const exp = job.experienceMin !== undefined ? `${job.experienceMin}${job.experienceMax ? `–${job.experienceMax}` : "+"} yrs` : null;
   return (
-    <article className={cn("group relative rounded-2xl border border-slate-200/80 bg-white shadow-[var(--shadow-card)] transition hover:-translate-y-px hover:border-brand-200 hover:shadow-[var(--shadow-lift)]", compact ? "p-4" : "p-5")}>
+    <article data-job-id={job.id} className={cn("group relative rounded-2xl border border-slate-200/80 bg-white shadow-[var(--shadow-card)] transition hover:-translate-y-px hover:border-brand-200 hover:shadow-[var(--shadow-lift)]", compact ? "p-4" : "p-5")}>
       <div className="flex gap-4">
         <CompanyMark name={job.company} size={compact ? 40 : 48} />
         <div className="min-w-0 flex-1">
@@ -68,7 +68,7 @@ export default function JobCard({ job, score, confidence, reason, gap, saved, is
           {score !== undefined && <ScoreRing score={score} size={compact ? 44 : 54} showLabel={!compact} />}
           <div className="flex items-center gap-0.5">
             {onSave && (
-              <button aria-label={saved ? "Remove from saved" : "Save job"} title={saved ? "Saved" : "Save"} onClick={() => onSave(!saved)} className={cn("rounded-lg p-1.5 transition", saved ? "text-brand-600" : "text-slate-400 hover:bg-slate-100 hover:text-slate-700")}>
+              <button data-action="save" aria-label={saved ? "Remove from saved" : "Save job"} title={saved ? "Saved" : "Save"} onClick={() => onSave(!saved)} className={cn("rounded-lg p-1.5 transition", saved ? "text-brand-600" : "text-slate-400 hover:bg-slate-100 hover:text-slate-700")}>
                 <Bookmark className={cn("h-[18px] w-[18px]", saved && "fill-current")} />
               </button>
             )}

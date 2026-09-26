@@ -47,6 +47,7 @@ import { careerRouter } from "./career/routes.js";
 import { companionRouter } from "./companion/routes.js";
 import { interviewRouter } from "./interview/routes.js";
 import { eraseUserData, exportUserData } from "./privacy.js";
+import { SettingsBody as PublicProfileBody, getPublicSettings, savePublicSettings } from "./publicProfile.js";
 import { recentErrors, recordError } from "./log.js";
 import { employerRouter } from "./employer/routes.js";
 import { insightsRouter } from "./insights/routes.js";
@@ -181,6 +182,15 @@ export function buildRouter(): express.Router {
     const { profile, understood } = await answerProfileQuestion(req.user!.uid, text);
     if (profile.status === "ready" && Object.keys(understood).length) void kickOffMatching(req.user!.uid);
     res.json({ profile, understood, understoodAnything: Object.keys(understood).length > 0 });
+  }));
+
+  r.get("/me/public-profile", wrap(async (req, res) => {
+    const s = await getPublicSettings(req.user!.uid);
+    res.json({ settings: s, url: s?.enabled ? `${config.siteUrl}/p/${s.id}` : null });
+  }));
+  r.put("/me/public-profile", wrap(async (req, res) => {
+    const s = await savePublicSettings(req.user!.uid, PublicProfileBody.parse(req.body));
+    res.json({ settings: s, url: s.enabled ? `${config.siteUrl}/p/${s.id}` : null });
   }));
 
   r.get("/me/export", wrap(async (req, res) => {

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-const reducedMotion = () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+const reducedMotion = () => typeof window !== "undefined" && (Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) || document.documentElement.classList.contains("low-data"));
 
 /** Fade-and-rise every `.reveal` element inside the container as it scrolls into view. */
 export function useReveal<T extends HTMLElement>() {

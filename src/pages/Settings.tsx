@@ -1,11 +1,13 @@
-import { BarChart3, Download, KeyRound, LogOut, PauseCircle, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
+import { BarChart3, Download, Gauge, KeyRound, LogOut, PauseCircle, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import type { AiState, Me } from "../App";
 import { api, devUser, downloadFile, errMsg } from "../lib/api";
 import { getConsent, setConsent } from "../lib/analytics";
 import { signOutUser } from "../lib/firebase";
+import { getLowData, setLowData } from "../lib/lowdata";
 import { useNav } from "../lib/nav";
 import AlertInbox from "../components/AlertInbox";
+import PublicProfileCard from "../components/PublicProfileCard";
 import { Badge, Button, Card, Modal, PageHeader, Progress, useToast } from "../ui";
 
 function Row({ icon, title, detail, children }: { icon: ReactNode; title: string; detail: ReactNode; children?: ReactNode }) {
@@ -24,6 +26,7 @@ export default function Settings({ me, ai }: { me: Me; ai: AiState }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [typed, setTyped] = useState("");
   const [busy, setBusy] = useState(false);
+  const [lowData, setLow] = useState(getLowData());
   const [analyticsOn, setAnalyticsOn] = useState(getConsent() === "granted");
   const u = me.usage;
 
@@ -63,12 +66,17 @@ export default function Settings({ me, ai }: { me: Me; ai: AiState }) {
           </Row>
         </Card>
         <Card className="p-0"><AlertInbox /></Card>
+        <Card className="p-0"><PublicProfileCard /></Card>
       </section>
 
       <section className="space-y-2">
         <h2 className="px-1 text-sm font-semibold uppercase tracking-wider text-slate-500">Account & privacy</h2>
         <Card className="divide-y divide-slate-100 p-0">
           <Row icon={<ShieldCheck className="h-5 w-5" />} title="Your data" detail="Your resume and profile are private to you. I never submit applications or share your details without your confirmation." />
+          <Row icon={<Gauge className="h-5 w-5" />} title="Low-data mode"
+            detail={lowData ? "On — no animations and smaller lists, to save data and battery on slow connections." : "Off — turn on for slow or metered connections and older phones."}>
+            <Button variant="secondary" onClick={() => { setLowData(!lowData); setLow(!lowData); toast("info", lowData ? "Low-data mode off" : "Low-data mode on"); }}>{lowData ? "Turn off" : "Turn on"}</Button>
+          </Row>
           <Row icon={<Download className="h-5 w-5" />} title="Download your data"
             detail="Get everything I hold about you as one file: profile, resumes, applications, practice sessions and activity. Stored AI keys are never included.">
             <Button variant="secondary" onClick={() => void downloadFile("/me/export", "my-mycareer-ai-data.json").catch((e) => toast("error", errMsg(e)))}>Download</Button>

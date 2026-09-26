@@ -66,6 +66,14 @@
 html, body, #root { height: 100%; }
 /* Large-text mode (Settings): everything is sized in rem, so this scales text, spacing and buttons together. */
 html.large-text { font-size: 112.5%; }
+/* Low-data mode (Settings): no animation at all. */
+html.low-data *, html.low-data *::before, html.low-data *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+
+/* Keyboard users: always see where focus is; J/K in job lists highlights the current card. */
+:focus-visible { outline: 2px solid var(--color-brand-500); outline-offset: 2px; }
+[data-job-id][data-active="true"] { outline: 2px solid var(--color-brand-500); outline-offset: 3px; }
+.skip-link { position: absolute; left: 8px; top: -48px; z-index: 100; background: #fff; color: var(--color-brand-700); padding: 8px 14px; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 16px rgb(0 0 0 / .2); }
+.skip-link:focus { top: 8px; }
 body {
   /* A soft peacock mesh behind everything, so glass surfaces have something to frost. */
   background:
