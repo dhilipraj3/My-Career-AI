@@ -41,6 +41,7 @@ import { feedSummary, markFeedSeen } from "./matching/feed.js";
 import { publicSearch, publicStats } from "./public.js";
 import { careerRouter } from "./career/routes.js";
 import { companionRouter } from "./companion/routes.js";
+import { interviewRouter } from "./interview/routes.js";
 
 const wrap = (fn: (req: Request, res: Response) => Promise<unknown>): RequestHandler => (req, res, next) => {
   fn(req, res).catch(next);
@@ -83,6 +84,7 @@ export function buildRouter(): express.Router {
   r.use(requireAuth);
   r.use(careerRouter());
   r.use(companionRouter());
+  r.use(interviewRouter());
 
   // ---------------- account / profile ----------------
   r.get("/me", wrap(async (req, res) => {
@@ -219,6 +221,7 @@ export function buildRouter(): express.Router {
     experience: z.array(z.object({ experienceId: z.string(), company: z.string(), designation: z.string(), period: z.string(), bullets: z.array(z.string().max(500)).max(10) })).max(15),
     skills: z.array(z.string().max(60)).max(40),
     education: z.array(z.object({ degree: z.string(), institution: z.string(), gradYear: z.string().optional() })).max(10),
+    fit: z.array(z.string().max(300)).max(6).optional(),
     certifications: z.array(z.string()).max(20), projects: z.array(z.object({ title: z.string(), description: z.string().max(800) })).max(6),
   });
 

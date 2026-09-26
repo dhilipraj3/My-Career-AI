@@ -1,4 +1,4 @@
-import { Bell, Briefcase, FileText, Home, LogOut, MessageCircle, MoreHorizontal, Search, Settings as SettingsIcon, Shield, Sparkles, User, X } from "lucide-react";
+import { Bell, Briefcase, FileText, Home, LogOut, MessageCircle, Mic, MoreHorizontal, Search, Settings as SettingsIcon, Shield, Sparkles, User, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, type ComponentType } from "react";
 import type { NotificationRecord } from "@shared/types";
 import { Logo, Wordmark, type AiState, type Me } from "../App";
@@ -20,6 +20,7 @@ import JobDetail from "./JobDetail";
 import JobSearch from "./JobSearch";
 import Matches from "./Matches";
 import ProfilePage from "./ProfilePage";
+import Interview from "./Interview";
 import Resumes from "./Resumes";
 import Settings from "./Settings";
 
@@ -33,11 +34,12 @@ const MAIN: Item[] = [
 ];
 const ME: Item[] = [
   { page: "profile", label: "Profile", icon: User },
+  { page: "interview", label: "Interview prep", icon: Mic },
   { page: "resume", label: "Resumes", icon: FileText },
   { page: "settings", label: "Settings", icon: SettingsIcon },
 ];
 
-const TITLES: Record<Page, string> = { home: "Home", matches: "For you", search: "Search jobs", applications: "Applications", resume: "Resumes", profile: "Profile", settings: "Settings", admin: "Admin" };
+const TITLES: Record<Page, string> = { home: "Home", matches: "For you", search: "Search jobs", applications: "Applications", resume: "Resumes", interview: "Interview prep", profile: "Profile", settings: "Settings", admin: "Admin" };
 
 function NavLink({ item, active, onClick }: { item: Item; active: boolean; onClick: () => void }) {
   const { t } = useI18n();
@@ -175,6 +177,7 @@ export default function Shell({ me, refresh }: { me: Me; refresh: () => Promise<
               : page === "matches" ? <Matches me={me} />
               : page === "search" ? <JobSearch me={me} openJob={nav.openJob} initialQuery={route.params.get("q") || ""} />
               : page === "applications" ? <Applications openJob={nav.openJob} />
+              : page === "interview" ? <Interview />
               : page === "resume" ? <Resumes me={me} refresh={refresh} />
               : page === "profile" ? <ProfilePage me={me} refresh={refresh} />
               : page === "settings" ? <Settings me={me} ai={ai} />

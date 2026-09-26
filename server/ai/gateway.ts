@@ -11,6 +11,8 @@ export type AiTask =
   | "chat"
   | "resume_extract"
   | "resume_ocr"
+  | "interview_prep"
+  | "mock_feedback"
   | "job_analyze"
   | "match_explain"
   | "resume_tailor"
@@ -25,6 +27,8 @@ export const TASK_CREDITS: Record<AiTask, number> = {
   cover_letter: 4,
   resume_extract: 5,
   resume_ocr: 6,
+  interview_prep: 4,
+  mock_feedback: 2,
   resume_tailor: 8,
 };
 
@@ -34,6 +38,8 @@ const ROUTES: Record<AiTask, Array<"gemini" | "compat">> = {
   chat: ["gemini", "compat"],
   resume_extract: ["gemini", "compat"],
   resume_ocr: ["gemini", "compat"],
+  interview_prep: ["gemini", "compat"],
+  mock_feedback: ["compat", "gemini"],
   job_analyze: ["compat", "gemini"],
   match_explain: ["compat", "gemini"],
   resume_tailor: ["gemini", "compat"],

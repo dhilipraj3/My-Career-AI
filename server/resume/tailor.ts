@@ -244,6 +244,37 @@ ${fenceUntrusted("job_posting", `${job.title} at ${job.company}\n${job.descripti
   };
 }
 
+export interface TailoringChanges {
+  headline?: { before: string; after: string };
+  summary?: { before: string; after: string };
+  fit: string[];
+  experience: Array<{ role: string; company: string; bullets: Array<{ text: string; status: "kept" | "moved up" | "reworded"; from?: string }>; dropped: number }>;
+  skillsMovedUp: string[];
+}
+
+/** Explains, in plain terms, how a tailored resume differs from the candidate's own facts. */
+export function diffTailored(p: CandidateProfile, c: TailoredResumeContent): TailoringChanges {
+  const experience = c.experience.map((e) => {
+    const src = p.experience.find((x) => x.id === e.experienceId);
+    const facts = src ? experienceFacts(src).map((f) => f.trim()) : [];
+    const bullets = e.bullets.map((b, i) => {
+      const exact = facts.findIndex((f) => norm(f) === norm(b));
+      if (exact >= 0) return { text: b, status: (exact === i ? "kept" : "moved up") as "kept" | "moved up" };
+      let best = ""; let bo = 0;
+      for (const f of facts) { const o = overlap(tokens(b), tokens(f)); if (o > bo) { bo = o; best = f; } }
+      return { text: b, status: "reworded" as const, from: best || undefined };
+    });
+    return { role: e.designation, company: e.company, bullets, dropped: Math.max(0, facts.length - e.bullets.length) };
+  });
+  const original = p.skills.filter((s) => s.source !== "ai_derived").map((s) => s.name);
+  const moved = c.skills.filter((s, i) => original.indexOf(s) > i).slice(0, 6);
+  return {
+    headline: norm(c.headline) !== norm(p.currentRole) ? { before: p.currentRole, after: c.headline } : undefined,
+    summary: norm(c.summary) !== norm(p.summary) ? { before: p.summary, after: c.summary } : undefined,
+    fit: c.fit || [], experience, skillsMovedUp: moved,
+  };
+}
+
 export function renderResumeText(p: CandidateProfile, c: TailoredResumeContent): string {
   const contact = [p.email, p.phone, [p.city, p.state].filter(Boolean).join(", "), p.links.linkedin, p.links.github].filter(Boolean).join(" | ");
   const lines = [p.fullName.toUpperCase(), c.headline, contact, "", "SUMMARY", c.summary, ""];

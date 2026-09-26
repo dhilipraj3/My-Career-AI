@@ -212,15 +212,15 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 
 ## Phase 3 — Apply & Interview
 
-- [ ] Tailored resume + cover letter with truthfulness checks (existing, polish the UI)
-- [ ] Side-by-side diff: original vs. tailored, with each change explained
-- [ ] **Pipeline board:** drag cards Saved → Preparing → Applied → Interview → Offer / Rejected; list view too
-- [ ] Interview dates with calendar (.ics) download
-- [ ] **Interview Prep per job:** likely questions (technical / behavioural / role / gap), your matching stories (STAR), questions to ask the employer, day-before checklist
-- [ ] **Mock interview:** voice or text, one question at a time, feedback on structure, clarity, evidence and length; score history
-- [ ] Message drafts: follow-up, thank-you, withdrawal, accept, salary negotiation (claim-checked)
-- [ ] Offer comparison: in-hand estimate, commute, growth, benefits side by side
-- [ ] Salary negotiation helper grounded in benchmark data
+- [x] Tailored resume + cover letter with truthfulness checks (existing, polish the UI)
+- [x] Side-by-side diff: original vs. tailored, with each change explained
+- [x] **Pipeline board:** drag cards Saved → Preparing → Applied → Interview → Offer / Rejected; list view too
+- [x] Interview dates with calendar (.ics) download
+- [x] **Interview Prep per job:** likely questions (technical / behavioural / role / gap), your matching stories (STAR), questions to ask the employer, day-before checklist
+- [x] **Mock interview:** voice or text, one question at a time, feedback on structure, clarity, evidence and length; score history
+- [x] Message drafts: follow-up, thank-you, withdrawal, accept, salary negotiation (claim-checked)
+- [x] Offer comparison: in-hand estimate, commute, growth, benefits side by side
+- [x] Salary negotiation helper grounded in benchmark data
 
 **Phase 3 done when:** a user can take a job from match → tailored resume → applied → prepped → offer, all tracked.
 
