@@ -38,7 +38,14 @@ export default function FilterBar({ query, set, facets, searchBox = true, reset 
 
   const toggle = <T,>(list: T[] | undefined, v: T) => (list?.includes(v) ? list.filter((x) => x !== v) : [...(list || []), v]);
   const addCity = (c: string) => { const v = c.trim(); if (v && !query.cities?.includes(v)) set({ cities: [...(query.cities || []), v] }); setCityInput(""); };
-  const submit = (v = text) => { setSuggestions([]); set({ q: v.trim() || undefined }); };
+  const submit = (v = text) => {
+    setSuggestions([]);
+    // A city typed but not yet added still counts: Search must apply what the box shows.
+    const pending = cityInput.trim();
+    const cities = pending && !query.cities?.includes(pending) ? [...(query.cities || []), pending] : undefined;
+    if (pending) setCityInput("");
+    set({ q: v.trim() || undefined, ...(cities ? { cities } : {}) });
+  };
   const onType = (v: string) => {
     setText(v);
     window.clearTimeout(timer.current);
@@ -64,7 +71,7 @@ export default function FilterBar({ query, set, facets, searchBox = true, reset 
         )}
         <div className={cn("relative", !searchBox && "flex-1")}>
           <MapPin className="pointer-events-none absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-          <input value={cityInput} onChange={(e) => setCityInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && cityInput.trim()) { e.preventDefault(); addCity(cityInput); } }}
+          <input value={cityInput} onChange={(e) => { const v = e.target.value; if (POPULAR_CITIES.includes(v)) addCity(v); else setCityInput(v); }} onBlur={() => { if (cityInput.trim()) addCity(cityInput); }} onKeyDown={(e) => { if (e.key === "Enter" && cityInput.trim()) { e.preventDefault(); addCity(cityInput); } }}
             list="city-list" placeholder="Add a city" aria-label="City" className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/60 pl-10 pr-3 text-sm focus:border-brand-400 focus:bg-white focus:outline-none sm:w-44" />
           <datalist id="city-list">{POPULAR_CITIES.map((c) => <option key={c} value={c} />)}</datalist>
         </div>
