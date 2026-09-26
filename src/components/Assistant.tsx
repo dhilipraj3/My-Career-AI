@@ -385,13 +385,13 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
         </div>
 
         {/* Composer */}
-        <form onSubmit={(e) => { e.preventDefault(); void send(input); }} className={cn("shrink-0 border-t border-slate-200/70 px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2.5", expanded && "mx-auto w-full max-w-2xl border-t-0")}>
+        <form onSubmit={(e) => { e.preventDefault(); void send(input); }} className={cn("shrink-0 border-t border-slate-200/70 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3", expanded && "mx-auto w-full max-w-2xl border-t-0")}>
           <div className={cn("rounded-2xl border bg-white/90 shadow-sm transition focus-within:border-brand-400 focus-within:ring-4 focus-within:ring-brand-100", dictation.listening ? "border-red-300" : "border-slate-200")}>
             <textarea ref={box} value={input} onChange={(e) => setInput(e.target.value)} rows={1} maxLength={1500}
               placeholder={dictation.listening ? "Listening…" : context.jobId ? "Ask about this job…" : "Ask anything — e.g. “Remote jobs above 20 LPA”"}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send(input); } }}
               aria-label="Message the assistant"
-              className="block max-h-40 w-full resize-none bg-transparent px-3.5 pt-3 text-[14.5px] text-ink outline-none placeholder:text-slate-400" />
+              className="block max-h-40 w-full resize-none border-0 bg-transparent px-3.5 pt-3 text-[14.5px] text-ink shadow-none outline-none ring-0 placeholder:text-slate-400" />
             <div className="flex items-center gap-1 px-2 pb-2 pt-1">
               {speechSupported && (
                 <>

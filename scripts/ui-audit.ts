@@ -104,6 +104,7 @@ for (const dev of only) {
     await page.reload({ waitUntil: "networkidle0" });
     await page.evaluate(() => [...document.querySelectorAll<HTMLButtonElement>("header button")].find((b) => /assistant/i.test(b.textContent || ""))?.click());
     await new Promise((r) => setTimeout(r, 1200));
+    await page.focus("textarea").catch(() => undefined);
     await page.screenshot({ path: path.join(OUT, "d-chat.png") });
   }
   await page.close();
