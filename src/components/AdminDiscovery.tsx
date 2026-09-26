@@ -124,8 +124,8 @@ function SourceCard({ c, runs, settings, running, onChange, onError }: { c: Conn
           }}>Remove key</Button>
         )}
         {c.setup?.from === "env" && <span className="text-xs text-slate-500">Key set in .env</span>}
-        <label className="ml-auto flex items-center gap-2 text-xs text-slate-600">On
-          <input type="checkbox" checked={c.enabled} onChange={async (e) => {
+        <label className="ml-auto flex min-h-9 cursor-pointer items-center gap-2 text-xs text-slate-600">On
+          <input type="checkbox" className="h-4 w-4 accent-brand-600" checked={c.enabled} onChange={async (e) => {
             try { await api(`/admin/connectors/${c.id}/toggle`, { body: { enabled: e.target.checked } }); onChange(); } catch (er) { onError(errMsg(er)); }
           }} />
         </label>

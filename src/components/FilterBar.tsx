@@ -1,5 +1,5 @@
 import { MapPin, Search, SlidersHorizontal, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { EducationLevel, JobCategory, JobQuery, JobSearchResult, WorkMode } from "@shared/types";
 import { api } from "../lib/api";
 import { CATEGORY_LABELS, EDUCATION_LABELS, POPULAR_CITIES } from "../lib/labels";
@@ -27,7 +27,7 @@ const Select = ({ label, value, onChange, children }: { label: string; value: st
 );
 
 /** Search box + city chips + filters + sort. Used by "For you" and "Search". */
-export default function FilterBar({ query, set, facets, searchBox = true, reset }: {
+export default function FilterBar({ query, set: setRaw, facets, searchBox = true, reset }: {
   query: JobQuery; set: (patch: Partial<JobQuery>) => void; facets?: JobSearchResult["facets"]; searchBox?: boolean; reset: () => void;
 }) {
   const [text, setText] = useState(query.q || "");
@@ -35,17 +35,15 @@ export default function FilterBar({ query, set, facets, searchBox = true, reset 
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
   const timer = useRef<number>();
+  useEffect(() => { setText(query.q || ""); }, [query.q]); // a reset or a chip elsewhere changes the query: keep the box in step
+  /** Whatever is typed but not yet applied (title box, city box) travels with every change, so nothing looks applied while it is not. */
+  const pendingText = text.trim() !== (query.q || "") ? { q: text.trim() || undefined } : {};
+  const pendingCity = cityInput.trim() && !query.cities?.includes(cityInput.trim()) ? { cities: [...(query.cities || []), cityInput.trim()] } : {};
+  const set = (patch: Partial<JobQuery>) => { setRaw({ ...pendingText, ...pendingCity, ...patch }); if (pendingCity.cities && !patch.cities) setCityInput(""); };
 
   const toggle = <T,>(list: T[] | undefined, v: T) => (list?.includes(v) ? list.filter((x) => x !== v) : [...(list || []), v]);
   const addCity = (c: string) => { const v = c.trim(); if (v && !query.cities?.includes(v)) set({ cities: [...(query.cities || []), v] }); setCityInput(""); };
-  const submit = (v = text) => {
-    setSuggestions([]);
-    // A city typed but not yet added still counts: Search must apply what the box shows.
-    const pending = cityInput.trim();
-    const cities = pending && !query.cities?.includes(pending) ? [...(query.cities || []), pending] : undefined;
-    if (pending) setCityInput("");
-    set({ q: v.trim() || undefined, ...(cities ? { cities } : {}) });
-  };
+  const submit = (v = text) => { setSuggestions([]); setRaw({ ...pendingCity, q: v.trim() || undefined }); if (pendingCity.cities) setCityInput(""); };
   const onType = (v: string) => {
     setText(v);
     window.clearTimeout(timer.current);
@@ -90,7 +88,7 @@ export default function FilterBar({ query, set, facets, searchBox = true, reset 
             <span key={c} className="inline-flex h-7 items-center gap-1 rounded-full bg-brand-50 pl-3 pr-1.5 text-sm text-brand-700">{c}
               <button aria-label={`Remove ${c}`} onClick={() => set({ cities: query.cities!.filter((x) => x !== c) })} className="-mr-1 flex h-7 w-7 items-center justify-center rounded-full hover:bg-brand-100"><X className="h-3.5 w-3.5" /></button></span>
           ))}
-          <label className="ml-1 flex items-center gap-1.5 text-xs text-slate-600"><input type="checkbox" className="accent-brand-600" checked={!query.strictCity} onChange={(e) => set({ strictCity: !e.target.checked })} />Include remote & Pan-India</label>
+          <label className="ml-1 flex min-h-9 cursor-pointer items-center gap-2 text-xs text-slate-600"><input type="checkbox" className="h-4 w-4 accent-brand-600" checked={!query.strictCity} onChange={(e) => set({ strictCity: !e.target.checked })} />Include remote & Pan-India</label>
         </div>
       )}
 

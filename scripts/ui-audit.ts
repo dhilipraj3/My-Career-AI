@@ -84,6 +84,8 @@ for (const dev of only) {
       }
       for (const e of document.querySelectorAll<HTMLElement>("button, a, input, select")) {
         const r = e.getBoundingClientRect();
+        const hit = e.closest("label")?.getBoundingClientRect(); // a checkbox inside a big enough label is tapped through the label
+        if (hit && hit.height >= 28) continue;
         if (r.width && r.height && r.height < 28 && r.width < 28 && getComputedStyle(e).visibility !== "hidden" && !e.closest(".sr-only")) out.push(`small tap target (${Math.round(r.width)}x${Math.round(r.height)}): ${e.getAttribute("aria-label") || (e.textContent || "").trim().slice(0, 20) || e.tagName}`);
       }
       for (const e of document.querySelectorAll<HTMLElement>("h1,h2,h3,p,span,button,a,label")) {

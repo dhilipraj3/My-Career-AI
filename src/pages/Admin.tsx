@@ -143,9 +143,9 @@ export default function Admin() {
                   <td className="px-3 py-2"><Badge tone={companyTone(c.status)}>{c.status}</Badge></td>
                   <td className="px-3 py-2 tabular-nums">{c.lastJobCount}</td>
                   <td className="px-3 py-2 text-xs text-slate-500">{c.lastFetchedAt ? timeAgo(c.lastFetchedAt) : "never"}</td>
-                  <td className="px-3 py-2"><input type="checkbox" aria-label={`Enable ${c.name}`} checked={c.enabled} onChange={async (e) => {
+                  <td className="px-1 py-0"><label className="flex h-10 w-10 cursor-pointer items-center justify-center"><input type="checkbox" className="h-4 w-4 accent-brand-600" aria-label={`Enable ${c.name}`} checked={c.enabled} onChange={async (e) => {
                     try { await api(`/admin/companies/${c.id}`, { method: "PATCH", body: { enabled: e.target.checked } }); await load(); } catch (er) { setError(errMsg(er)); }
-                  }} /></td>
+                  }} /></label></td>
                 </tr>
               ))}
             </tbody>

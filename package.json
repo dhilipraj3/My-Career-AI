@@ -17,6 +17,7 @@
     "detect:ats": "tsx scripts/detect-ats.ts",
     "live:sourcing": "tsx scripts/live-sourcing.ts",
     "check": "tsc --noEmit && vitest run",
+    "check:filters": "tsx scripts/filter-audit.ts",
     "check:voice": "tsx scripts/voice-smoke.ts"
   },
   "dependencies": {
