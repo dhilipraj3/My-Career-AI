@@ -25,7 +25,8 @@ export type Collection =
   | "plans"
   | "placements"
   | "interviewPrep"
-  | "mockInterviews";
+  | "mockInterviews"
+  | "inbound";
 
 export interface QueryOptions {
   where?: Record<string, string | number | boolean>;

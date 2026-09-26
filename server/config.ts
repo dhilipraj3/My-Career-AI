@@ -40,6 +40,8 @@ export const config = {
   /** Set when GOOGLE_APPLICATION_CREDENTIALS names a file that doesn't exist (shown as a configuration warning). */
   googleCredentialsMissing: creds.missing,
   devAuthBypass: process.env.DEV_AUTH_BYPASS === "true" && process.env.NODE_ENV !== "production",
+  /** Forwarding of job-alert emails: needs an inbound address domain (Cloudflare Email Routing) and a shared secret. */
+  inboundEmail: { domain: (process.env.INBOUND_EMAIL_DOMAIN || "").trim().toLowerCase(), secret: process.env.INBOUND_WEBHOOK_SECRET || "" },
   gemini: {
     apiKey: process.env.GEMINI_API_KEY || "",
     models: list(process.env.GEMINI_MODELS).length ? list(process.env.GEMINI_MODELS) : ["gemini-2.5-flash", "gemini-2.5-flash-lite"],

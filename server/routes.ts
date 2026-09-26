@@ -21,6 +21,8 @@ import { runCycle, schedulerState } from "./scheduler.js";
 import { buildConnectors } from "./jobs/connectors.js";
 import { detectAts } from "./jobs/detect.js";
 import { REGISTRY_ATS, addCompany, autoDiscoverBoards, boardProblem, fetcherFor, listCompanies, removeCompany, updateCompany } from "./jobs/registry.js";
+import crypto from "node:crypto";
+import { LIMITS, addressOf, getInbox, handleInbound, inboundEnabled, readMime, rotateInbox } from "./inbound/service.js";
 import { ImportBody, extractLinks, importJobForUser, importLinks } from "./jobs/import.js";
 import { formHelper } from "./applications/formHelper.js";
 import { ingestRawJobs } from "./jobs/ingest.js";
@@ -83,8 +85,25 @@ export function buildRouter(): express.Router {
     res.json(await publicSearch(q, city || undefined));
   }));
 
+  // Emails arrive from the Cloudflare worker (raw MIME + a shared secret), never from a browser.
+  r.post("/inbound/email", express.raw({ type: () => true, limit: "5mb" }), wrap(async (req, res) => {
+    const given = Buffer.from(String(req.get("x-inbound-secret") || ""));
+    const want = Buffer.from(config.inboundEmail.secret);
+    if (!inboundEnabled() || given.length !== want.length || !crypto.timingSafeEqual(given, want)) return res.status(401).json({ error: "Unauthorized" });
+    const out = await handleInbound(String(req.get("x-inbound-to") || ""), await readMime(Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0)));
+    res.json({ ok: true, accepted: out.accepted });
+  }));
+
   r.use(requireAuth);
   r.use(careerRouter());
+
+  // ---- personal address for forwarding job-alert emails ----
+  const inboxView = async (uid: string) => {
+    const rec = await getInbox(uid);
+    return { enabled: inboundEnabled(), address: inboundEnabled() ? addressOf(rec.id) : null, verification: rec.verification || null, events: rec.events, limits: LIMITS, emailsToday: rec.emailsToday, jobsToday: rec.jobsToday };
+  };
+  r.get("/inbox", wrap(async (req, res) => res.json(await inboxView(req.user!.uid))));
+  r.post("/inbox/rotate", byUser, wrap(async (req, res) => { await rotateInbox(req.user!.uid); res.json(await inboxView(req.user!.uid)); }));
   r.use(companionRouter());
   r.use(interviewRouter());
 

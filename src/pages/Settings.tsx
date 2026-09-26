@@ -5,6 +5,7 @@ import { api, devUser, errMsg } from "../lib/api";
 import { getConsent, setConsent } from "../lib/analytics";
 import { signOutUser } from "../lib/firebase";
 import { useNav } from "../lib/nav";
+import AlertInbox from "../components/AlertInbox";
 import { Badge, Button, Card, Modal, PageHeader, Progress, useToast } from "../ui";
 
 function Row({ icon, title, detail, children }: { icon: ReactNode; title: string; detail: ReactNode; children?: ReactNode }) {
@@ -61,6 +62,7 @@ export default function Settings({ me, ai }: { me: Me; ai: AiState }) {
             <Button variant="secondary" onClick={togglePause}>{me.profile.discoveryPaused ? "Resume" : "Pause"}</Button>
           </Row>
         </Card>
+        <Card className="p-0"><AlertInbox /></Card>
       </section>
 
       <section className="space-y-2">

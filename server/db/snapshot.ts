@@ -52,7 +52,7 @@ const AUDIT_KEEP = 3000;
 export type SnapshotPart = "core" | "bulk";
 export const PARTS: Record<SnapshotPart, { collections: Collection[]; debounceMs: number }> = {
   core: {
-    collections: ["profiles", "resumes", "resumeVersions", "applications", "notifications", "aiUsage", "audit", "conversations", "pendingActions", "settings", "userKeys", "agentUndo", "agentFeedback", "plans", "placements", "interviewPrep", "mockInterviews"],
+    collections: ["profiles", "resumes", "resumeVersions", "applications", "notifications", "aiUsage", "audit", "conversations", "pendingActions", "settings", "userKeys", "agentUndo", "agentFeedback", "plans", "placements", "interviewPrep", "mockInterviews", "inbound"],
     debounceMs: 15_000,
   },
   bulk: { collections: ["jobs", "matches", "companies", "connectors", "discoveryRuns"], debounceMs: 20 * 60_000 },
