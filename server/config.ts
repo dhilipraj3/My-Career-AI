@@ -42,6 +42,8 @@ export const config = {
   devAuthBypass: process.env.DEV_AUTH_BYPASS === "true" && process.env.NODE_ENV !== "production",
   /** Forwarding of job-alert emails: needs an inbound address domain (Cloudflare Email Routing) and a shared secret. */
   inboundEmail: { domain: (process.env.INBOUND_EMAIL_DOMAIN || "").trim().toLowerCase(), secret: process.env.INBOUND_WEBHOOK_SECRET || "" },
+  /** Gemini Live model for talking with Asha (users' own keys). */
+  liveModel: process.env.GEMINI_LIVE_MODEL || "gemini-3.8-live",
   gemini: {
     apiKey: process.env.GEMINI_API_KEY || "",
     models: list(process.env.GEMINI_MODELS).length ? list(process.env.GEMINI_MODELS) : ["gemini-2.5-flash", "gemini-2.5-flash-lite"],

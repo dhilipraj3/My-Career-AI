@@ -14,6 +14,7 @@ export const PreferencePatch = z
     excludedCompanies: z.array(z.string().trim().min(1).max(80)).max(50),
     excludedKeywords: z.array(z.string().trim().min(1).max(60)).max(50),
     motivations: z.array(z.string().trim().min(2).max(40)).max(6),
+    shifts: z.array(z.enum(["day", "night", "rotational", "flexible", "any"])).max(5),
   })
   .partial()
   .strict();

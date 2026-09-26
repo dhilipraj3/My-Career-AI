@@ -167,3 +167,15 @@ describe("admin AI setup", () => {
     expect((await (await getStore()).get<any>("settings", "ai_pool"))?.keys || []).toHaveLength(0);
   });
 });
+
+import { pingProvider } from "../server/ai/providers.js";
+describe("key test with thinking models", () => {
+  it("accepts a valid key even when the model's short reply is cut off by its thinking", async () => {
+    const trimmed = new FakeProvider("gemini", () => '{"');
+    await expect(pingProvider(trimmed)).resolves.toBeUndefined();
+    expect(trimmed.calls[0].maxTokens).toBeGreaterThanOrEqual(40);
+  });
+  it("still fails on an empty reply", async () => {
+    await expect(pingProvider(new FakeProvider("gemini", () => "   "))).rejects.toThrow(/empty reply/);
+  });
+});

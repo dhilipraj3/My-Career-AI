@@ -133,7 +133,8 @@ export default function JobDetail({ jobId, onBack, onChanged, openChat, me }: { 
               <Fact icon={Clock}>Posted {timeAgo(job.postedAt || job.firstSeenAt)}</Fact>
             </div>
             <div className="mt-3 flex flex-wrap gap-1.5">
-              <Badge>{sentenceCase(job.employmentType === "unknown" ? "full_time" : job.employmentType)}</Badge>
+              {job.employmentType !== "unknown" && <Badge>{sentenceCase(job.employmentType)}</Badge>}
+              {job.shift && <Badge tone={job.shift === "night" || job.shift === "rotational" ? "amber" : "slate"}>{job.shift === "flexible" ? "Flexible hours" : `${sentenceCase(job.shift)} shift`}</Badge>}
               {job.category && job.category !== "other" && <Badge>{CATEGORY_LABELS[job.category]}</Badge>}
               {job.freshersWelcome && <Badge tone="green">Freshers welcome</Badge>}
               {job.status === "stale" && <Badge tone="amber">May be closed</Badge>}

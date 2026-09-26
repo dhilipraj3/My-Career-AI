@@ -63,7 +63,12 @@ export interface CandidatePreferences {
   excludedKeywords: string[];
   /** What matters most in the next job (growth, pay, stability…). */
   motivations?: string[];
+  /** Working hours they can do. Empty = not asked yet. "any" = no preference. */
+  shifts?: ShiftPref[];
 }
+
+export type Shift = "day" | "night" | "rotational" | "flexible";
+export type ShiftPref = Shift | "any";
 
 export type ProfileStatus = "empty" | "parsing" | "needs_info" | "ready";
 
@@ -235,6 +240,7 @@ export interface Job {
   freshersWelcome?: boolean;
   salaryPeriod?: "year" | "month" | "day" | "hour";
   salaryDisplay?: string; // human text in the posting's own terms, e.g. "₹15,000–20,000/month"
+  shift?: Shift; // working hours the posting states (night includes US/UK-hours shifts)
 }
 
 export type JobCategory =
@@ -386,6 +392,8 @@ export interface ChatMessage {
   changes?: Array<{ id: string; summary: string; undone?: boolean }>;
   suggestions?: string[];
   rating?: "up" | "down";
+  /** Said out loud in a live voice conversation (shown with a small voice mark). */
+  voice?: boolean;
 }
 
 export interface ChatStep {

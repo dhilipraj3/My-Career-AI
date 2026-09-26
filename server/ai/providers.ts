@@ -28,6 +28,9 @@ export interface AiProvider {
 export const isCapacityError = (err: unknown) => /429|RESOURCE_EXHAUSTED|quota|rate.?limit|503|UNAVAILABLE|overloaded/i.test(String((err as any)?.message || err));
 export const isAuthError = (err: unknown) => /API_KEY_INVALID|API key not valid|PERMISSION_DENIED|401|403|invalid.?api.?key|unauthori[sz]ed/i.test(String((err as any)?.message || err));
 
+/** Extra output tokens allowed for a model's thinking on top of what the answer itself needs. */
+export const THINKING_HEADROOM = 2048;
+
 export class GeminiProvider implements AiProvider {
   kind = "gemini" as const;
   private client: GoogleGenAI | null = null;
@@ -46,7 +49,9 @@ export class GeminiProvider implements AiProvider {
       config: {
         ...(req.system ? { systemInstruction: req.system } : {}),
         ...(req.json ? { responseMimeType: "application/json" } : {}),
-        ...(req.maxTokens ? { maxOutputTokens: req.maxTokens } : {}),
+        // Newer Gemini models think before answering, and thinking counts against this limit. Leave room for it, or a
+        // short answer comes back cut off (even empty).
+        ...(req.maxTokens ? { maxOutputTokens: req.maxTokens + THINKING_HEADROOM } : {}),
         temperature: 0.3,
       },
     };
@@ -199,6 +204,7 @@ export async function detectGeminiModels(apiKey: string): Promise<string[]> {
 
 /** One tiny real request, so "Test" proves the key works end to end. */
 export async function pingProvider(p: AiProvider): Promise<void> {
-  const r = await p.generate({ prompt: 'Reply with the JSON {"ok":true}', json: true, maxTokens: 20 });
-  if (!/ok/i.test(r.text)) throw new Error("Unexpected reply from the model");
+  const r = await p.generate({ prompt: 'Reply with the JSON {"ok":true}', json: true, maxTokens: 40 });
+  // Any real reply proves the key works; the exact wording doesn't matter (and thinking models may trim it).
+  if (!r.text.trim()) throw new Error("The model sent an empty reply");
 }

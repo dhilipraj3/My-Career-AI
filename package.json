@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch server/index.ts",
     "dev:web": "vite",
-    "build": "vite build",
+    "build": "node scripts/build.mjs",
     "start": "node scripts/start.mjs",
     "lint": "tsc --noEmit",
     "test": "vitest run",
@@ -16,7 +16,8 @@
     "probe:companies": "tsx scripts/probe-companies.ts",
     "detect:ats": "tsx scripts/detect-ats.ts",
     "live:sourcing": "tsx scripts/live-sourcing.ts",
-    "check": "tsc --noEmit && vitest run"
+    "check": "tsc --noEmit && vitest run",
+    "check:voice": "tsx scripts/voice-smoke.ts"
   },
   "dependencies": {
     "@google/genai": "^1.0.0",
@@ -41,7 +42,8 @@
     "tailwind-merge": "^3.7.0",
     "tsx": "^4.19.2",
     "word-extractor": "^1.0.4",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "zod-to-json-schema": "^3.25.2"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",

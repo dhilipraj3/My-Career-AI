@@ -38,6 +38,13 @@ await matchCandidate("demo", { notifyNew: true });
 const jobs = await (await getStore()).query<any>("jobs");
 const pkg = await prepareApplication("demo", jobs[0].id);
 await approveResumeVersion("demo", pkg.resume!.id);
+// Voice: the demo user has their own (fake) key, and tokens come from a fake mint, so the call reaches Google and is refused.
+const { encryptSecret } = await import("../server/ai/secrets.js");
+const { setTokenFactory } = await import("../server/voice/session.js");
+const { setProviders } = await import("../server/ai/gateway.js");
+setProviders([], async () => null); // other AI features must not spend (and so invalidate) the fake key
+await (await getStore()).put("userKeys", "demo", { uid: "demo", kind: "gemini", keyEnc: encryptSecret("AIzaFAKE-KEY-FOR-UI-AUDIT-000"), last4: "0000", models: ["gemini-2.5-flash"], addedAt: new Date().toISOString(), status: "ok" });
+setTokenFactory(async () => "auth_tokens/ui-audit-fake");
 await updateStatus("demo", pkg.application.id, "applied");
 
 const dist = path.resolve(process.env.AUDIT_DIST || "dist-shots");
@@ -47,7 +54,7 @@ app.get("*", (_req, res) => res.sendFile(path.join(dist, "index.html")));
 const server = await new Promise<import("node:http").Server>((r) => { const s = app.listen(3198, () => r(s)); });
 
 const edge = ["C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe", "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe"].find((p) => fs.existsSync(p))!;
-const browser = await puppeteer.launch({ executablePath: edge, headless: true, args: ["--no-first-run", "--disable-gpu"] });
+const browser = await puppeteer.launch({ executablePath: edge, headless: true, args: ["--no-first-run", "--disable-gpu", "--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", "--autoplay-policy=no-user-gesture-required"] });
 const THEME = process.env.SHOT_THEME || "dark";
 const OUT = path.resolve("screenshots/audit");
 fs.mkdirSync(OUT, { recursive: true });
@@ -109,6 +116,49 @@ for (const dev of only) {
   }
   await page.close();
 }
+// ---------------- voice flow (desktop) ----------------
+if (only.includes("d")) {
+  const page = await browser.newPage();
+  await page.setViewport(DEVICES.d);
+  await page.evaluateOnNewDocument(() => { try { localStorage.setItem("mc_analytics_consent", "denied"); localStorage.setItem("mc_guide", JSON.stringify({ mode: "quiet", voice: false })); localStorage.setItem("mc_lang", "en"); } catch { /* */ } });
+  const openChat = async () => {
+    await page.goto(`http://localhost:3198/?dev=demo&notour&theme=${THEME}`, { waitUntil: "networkidle0" });
+    await page.evaluate(() => [...document.querySelectorAll<HTMLButtonElement>("header button")].find((b) => /assistant/i.test(b.textContent || ""))?.click());
+    await new Promise((r) => setTimeout(r, 600)); // press Talk quickly: it must still pick live on a good line
+  };
+  page.on("pageerror", (e) => console.log("[voice] PAGE ERROR:", String(e).slice(0, 300)));
+  page.on("console", (m) => { if (m.type() === "error") console.log("[voice] console error:", m.text().slice(0, 200)); if (m.text().startsWith("[call]")) console.log("   ", m.text().slice(0, 300)); });
+  await page.evaluateOnNewDocument(() => { (window as unknown as { __callDebug: boolean }).__callDebug = true; });
+  const statusText = () => page.evaluate(() => document.querySelector("aside [aria-live=polite]")?.textContent || "");
+  await openChat();
+  const why = await page.evaluate(async () => { const r = await fetch("/api/me", { headers: { Authorization: "Bearer dev:demo" } }); const j = await r.json(); return JSON.stringify({ key: j.ai?.ownKey?.status, pref: localStorage.getItem("mc_voice_quality"), low: localStorage.getItem("mc_lowdata"), hdr: [...document.querySelectorAll("header button")].map((b) => (b.textContent || b.getAttribute("aria-label") || "").trim()).slice(0, 12), url: location.href, header: [...document.querySelectorAll("aside button")].map((b) => b.getAttribute("aria-label")).filter(Boolean).slice(0, 6) }); });
+  const talk = await page.$('button[aria-label="Talk with Asha"]');
+  if (!talk) console.log("[voice] no Talk button:", why);
+  if (!talk) problems.push("[voice] no Talk button with a key on a good connection");
+  else {
+    await talk.click();
+    await new Promise((r) => setTimeout(r, 400));
+    const first = await statusText();
+    if (!/Connecting|Listening|Couldn/.test(first)) problems.push(`[voice] call screen didn't open (status: "${first}")`);
+    let final = first;
+    // Google takes a moment to refuse a fake token: wait for the final state (up to 8 s).
+    for (let i = 0; i < 16 && !/Couldn/.test(final); i++) { await new Promise((r) => setTimeout(r, 500)); final = await statusText(); }
+    const detail = await page.evaluate(() => [...document.querySelectorAll("aside p")].map((p) => p.textContent).filter((t) => /Google|Couldn|model|key/i.test(t || "")).join(" | "));
+    console.log(`[voice] with a fake token, the call ended as: "${final}" ${detail ? `(${detail})` : ""}`);
+    if (!/Couldn/.test(final)) problems.push(`[voice] call stuck at "${final}"`);
+    await page.screenshot({ path: path.join(OUT, "d-voice.png") });
+    const back = await page.evaluateHandle(() => [...document.querySelectorAll<HTMLButtonElement>("aside button")].find((b) => /Back to chat|End call/i.test(b.textContent || b.getAttribute("aria-label") || "")));
+    await (back as any).click?.();
+    await new Promise((r) => setTimeout(r, 800));
+    if (!(await page.$("aside textarea")) || !(await page.evaluate(() => { const t = document.querySelector("aside textarea"); return Boolean(t && (t as HTMLElement).offsetParent); }))) problems.push("[voice] didn't return to the chat after the call");
+  }
+  // Text-only preference hides the Talk button
+  await page.evaluate(() => localStorage.setItem("mc_voice_quality", "text"));
+  await openChat();
+  if (await page.$('button[aria-label="Talk with Asha"]')) problems.push("[voice] Talk shown although Text only is chosen");
+  await page.close();
+}
+
 await browser.close();
 server.close();
 fs.writeFileSync(path.join(OUT, "problems.txt"), problems.join("\n") + "\n");

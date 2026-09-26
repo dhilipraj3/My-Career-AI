@@ -3,7 +3,7 @@ import { getStore } from "../db/store.js";
 import { jaccard, overlap, shingles } from "../nlp/text.js";
 import { titleSimilarity } from "../nlp/skills.js";
 import { syncJobs } from "../search/index.js";
-import { assessQuality, computeFreshness, isRejected, normalizeRaw, sha, type RawJob } from "./normalize.js";
+import { assessQuality, computeFreshness, detectShift, isRejected, normalizeRaw, sha, type RawJob } from "./normalize.js";
 
 export interface IngestStats {
   received: number;
@@ -84,6 +84,7 @@ export function mergeJobs(existing: Job, incoming: Job): Job {
     experienceMax: existing.experienceMax ?? incoming.experienceMax,
     skills: [...new Set([...existing.skills, ...incoming.skills])],
     companyUrl: existing.companyUrl || incoming.companyUrl,
+    shift: existing.shift ?? incoming.shift,
     industry: existing.industry || incoming.industry,
   };
   // If the description materially changed, cached AI analysis may be stale.
@@ -177,8 +178,10 @@ export async function refreshFreshness(): Promise<number> {
   const changed: string[] = [];
   for (const j of jobs) {
     const s = computeFreshness(j);
-    if (s !== j.status) {
-      await store.update<Job>("jobs", j.id, { status: s });
+    // Jobs stored before shifts were read get them now (once: the field stays set after this).
+    const shift = j.shift === undefined ? detectShift(`${j.title}\n${j.description}`) : undefined;
+    if (s !== j.status || shift) {
+      await store.update<Job>("jobs", j.id, { status: s, ...(shift ? { shift } : {}) });
       changed.push(j.id);
     }
   }

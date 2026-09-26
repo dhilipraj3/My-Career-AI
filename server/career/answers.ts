@@ -107,6 +107,13 @@ export async function applyAnswer(uid: string, questionId: string, choicesIn: st
       changed.push(`Work mode: ${modes.join(", ")}`);
       break;
     }
+    case "shifts": {
+      const picked = choices.filter((c) => ["day", "night", "rotational", "flexible", "any"].includes(c)) as NonNullable<PreferencePatchT["shifts"]>;
+      if (!picked.length) throw new AppError(400, "Pick at least one.");
+      prefs.shifts = picked.includes("any") ? ["any"] : picked;
+      changed.push(`Shifts: ${prefs.shifts.join(", ")}`);
+      break;
+    }
     case "employment": {
       const types = choices.filter((c) => ["full_time", "part_time", "contract", "internship"].includes(c)) as EmploymentType[];
       if (!types.length) throw new AppError(400, "Pick at least one.");

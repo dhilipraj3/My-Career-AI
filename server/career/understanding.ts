@@ -23,6 +23,11 @@ const T = {
       skills_add_why: "Each confirmed skill can turn good matches into excellent ones.",
       skills_free: "What are you good at? List skills, tools, machines or languages you know.",
       experience: "How much work experience do you have?",
+      experience_confirm: (y: string) => `Your resume suggests about ${y} of experience. Is that right?`,
+      experience_confirm_why: "Your resume's job dates weren't all clear, so I estimated. Employers filter by experience.",
+      yes_about: (y: string) => `Yes, about ${y}`,
+      shifts: "Which working hours can you do?",
+      shifts_why: "Many jobs (support, operations, healthcare, delivery) have night or rotational shifts. I'll keep the ones you can't do out of your top matches.",
       experience_why: "Employers filter by experience; this keeps you from seeing jobs that are too junior or too senior.",
       locations: "Where would you like to work?",
       locations_why: "Jobs outside your cities are scored lower unless you're open to relocating.",
@@ -42,6 +47,7 @@ const T = {
       fresher: "Fresher", lt1: "Less than 1 year", y1_3: "1–3 years", y3_5: "3–5 years", y5_10: "5–10 years", y10: "10+ years",
       anywhere: "Anywhere in India", relocate: "I can relocate", flexible: "Flexible", immediate: "Immediately", d15: "15 days", d30: "30 days", d60: "60 days", d90: "90 days",
       remote: "Remote", hybrid: "Hybrid", onsite: "In-office", any: "Any", full_time: "Full-time", part_time: "Part-time", contract: "Contract", internship: "Internship",
+      day: "Day shift", night: "Night shift", rotational: "Rotational shifts", flexHours: "Flexible hours", anyShift: "Any shift",
       none: "None of these",
       m: { growth: "Career growth", pay: "Better pay", stability: "Job security", balance: "Work-life balance", learning: "Learning new skills", near: "Close to home", brand: "A well-known company", impact: "Meaningful work" },
     },
@@ -57,6 +63,11 @@ const T = {
       skills_add_why: "हर पुष्टि किया गया कौशल अच्छे मैच को बेहतरीन बना सकता है।",
       skills_free: "आप किसमें अच्छे हैं? अपने कौशल, टूल, मशीनें या भाषाएँ लिखें।",
       experience: "आपके पास कितना कार्य-अनुभव है?",
+      experience_confirm: (y: string) => `आपके रिज़्यूमे से लगभग ${y} का अनुभव लगता है। क्या यह सही है?`,
+      experience_confirm_why: "रिज़्यूमे में सभी तारीखें साफ़ नहीं थीं, इसलिए मैंने अंदाज़ा लगाया।",
+      yes_about: (y: string) => `हाँ, लगभग ${y}`,
+      shifts: "आप किस शिफ़्ट में काम कर सकते हैं?",
+      shifts_why: "कई नौकरियों में रात या रोटेशनल शिफ़्ट होती है। जो आप नहीं कर सकते, वे आपके शीर्ष मैच में नहीं आएँगी।",
       experience_why: "कंपनियाँ अनुभव के हिसाब से छाँटती हैं।",
       locations: "आप कहाँ काम करना चाहेंगे?",
       locations_why: "आपके शहरों के बाहर की नौकरियों का स्कोर कम रहता है, जब तक आप शहर बदलने को तैयार न हों।",
@@ -76,6 +87,7 @@ const T = {
       fresher: "फ्रेशर", lt1: "1 साल से कम", y1_3: "1–3 साल", y3_5: "3–5 साल", y5_10: "5–10 साल", y10: "10+ साल",
       anywhere: "भारत में कहीं भी", relocate: "मैं शहर बदल सकता/सकती हूँ", flexible: "कोई शर्त नहीं", immediate: "तुरंत", d15: "15 दिन", d30: "30 दिन", d60: "60 दिन", d90: "90 दिन",
       remote: "घर से (रिमोट)", hybrid: "हाइब्रिड", onsite: "ऑफिस से", any: "कोई भी", full_time: "फुल-टाइम", part_time: "पार्ट-टाइम", contract: "कॉन्ट्रैक्ट", internship: "इंटर्नशिप",
+      day: "दिन की शिफ़्ट", night: "रात की शिफ़्ट", rotational: "रोटेशनल शिफ़्ट", flexHours: "लचीला समय", anyShift: "कोई भी शिफ़्ट",
       none: "इनमें से कोई नहीं",
       m: { growth: "करियर में तरक्की", pay: "बेहतर वेतन", stability: "नौकरी की सुरक्षा", balance: "काम और जीवन का संतुलन", learning: "नई चीज़ें सीखना", near: "घर के पास", brand: "नामी कंपनी", impact: "सार्थक काम" },
     },
@@ -148,9 +160,10 @@ export function areasFor(p: CandidateProfile, lang: Lang = "en"): UnderstandingA
 
   // Availability
   const av: UnderstandingArea = { id: "availability", label: t.area.availability, score: 0, evidence: [], gaps: [] };
-  if (pr.noticePeriodDays !== undefined || answered(p, "noticePeriodDays")) { av.score += 45; av.evidence.push(pr.noticePeriodDays ? `Can join in ${pr.noticePeriodDays} days` : "Can join immediately"); } else av.gaps.push("When you can join");
-  if (pr.workModes.length) { av.score += 35; av.evidence.push(`Work mode: ${pr.workModes.join(", ")}`); } else av.gaps.push("Remote, hybrid or office");
+  if (pr.noticePeriodDays !== undefined || answered(p, "noticePeriodDays")) { av.score += 40; av.evidence.push(pr.noticePeriodDays ? `Can join in ${pr.noticePeriodDays} days` : "Can join immediately"); } else av.gaps.push("When you can join");
+  if (pr.workModes.length) { av.score += 25; av.evidence.push(`Work mode: ${pr.workModes.join(", ")}`); } else av.gaps.push("Remote, hybrid or office");
   if (pr.employmentTypes.length) { av.score += 20; av.evidence.push(`Job type: ${pr.employmentTypes.map((e) => e.replace("_", "-")).join(", ")}`); } else av.gaps.push("Full-time, part-time or contract");
+  if (pr.shifts?.length) { av.score += 15; av.evidence.push(pr.shifts.includes("any") ? "Any shift" : `Shifts: ${pr.shifts.join(", ")}`); } else av.gaps.push("Which shifts you can work (day, night, rotational)");
   areas.push(av);
 
   // Motivation
@@ -190,11 +203,16 @@ export async function nextQuestion(p: CandidateProfile, areas: UnderstandingArea
         if (p.skills.length < 5) return { id: "skills_free", area: "skills", text: t.q.skills_free, why: t.q.skills_add_why, choices: [], multi: false, allowText: true, placeholder: "e.g. Excel, Tally, driving licence, English, customer handling" };
         return null;
       }
-      case "experience":
-        return {
-          id: "experience", area: "experience", text: t.q.experience, why: t.q.experience_why, multi: false, allowText: false,
-          choices: [["years:0", t.c.fresher], ["years:0.5", t.c.lt1], ["years:2", t.c.y1_3], ["years:4", t.c.y3_5], ["years:7", t.c.y5_10], ["years:12", t.c.y10]].map(([value, label]) => ({ value, label })),
-        };
+      case "experience": {
+        const ranges = [["years:0", t.c.fresher], ["years:0.5", t.c.lt1], ["years:2", t.c.y1_3], ["years:4", t.c.y3_5], ["years:7", t.c.y5_10], ["years:12", t.c.y10]].map(([value, label]) => ({ value, label }));
+        // When the resume gave us an estimate, ask to confirm it rather than asking as if we knew nothing.
+        if (p.totalExperienceYears > 0) {
+          const y = experienceText(p.totalExperienceYears);
+          return { id: "experience", area: "experience", text: t.q.experience_confirm(y), why: t.q.experience_confirm_why, multi: false, allowText: true, placeholder: "Or type it, e.g. 9 years",
+            choices: [{ value: `years:${wholeYears(p.totalExperienceYears) || p.totalExperienceYears}`, label: t.q.yes_about(y) }, ...ranges.filter((r) => r.value !== "years:0")] };
+        }
+        return { id: "experience", area: "experience", text: t.q.experience, why: t.q.experience_why, multi: false, allowText: false, choices: ranges };
+      }
       case "locationPay":
         if (!pr.locations.length && !answered(p, "locations")) {
           const cities = [...new Set([p.city, ...POPULAR_CITIES].filter(Boolean))].slice(0, 7);
@@ -206,6 +224,9 @@ export async function nextQuestion(p: CandidateProfile, areas: UnderstandingArea
           return { id: "notice", area: "availability", text: t.q.notice, why: t.q.notice_why, multi: false, allowText: true, choices: [["days:0", t.c.immediate], ["days:15", t.c.d15], ["days:30", t.c.d30], ["days:60", t.c.d60], ["days:90", t.c.d90]].map(([value, label]) => ({ value, label })) };
         if (!pr.workModes.length)
           return { id: "workModes", area: "availability", text: t.q.workModes, why: t.q.workModes_why, multi: true, allowText: false, choices: [["remote", t.c.remote], ["hybrid", t.c.hybrid], ["onsite", t.c.onsite], ["any", t.c.any]].map(([value, label]) => ({ value, label })) };
+        if (pr.employmentTypes.length && !pr.shifts?.length)
+          return { id: "shifts", area: "availability", text: t.q.shifts, why: t.q.shifts_why, multi: true, allowText: false, choices: [["day", t.c.day], ["night", t.c.night], ["rotational", t.c.rotational], ["flexible", t.c.flexHours], ["any", t.c.anyShift]].map(([value, label]) => ({ value, label })) };
+        if (pr.employmentTypes.length) return null;
         return { id: "employment", area: "availability", text: t.q.employment, why: t.q.employment_why, multi: true, allowText: false, choices: [["full_time", t.c.full_time], ["part_time", t.c.part_time], ["contract", t.c.contract], ["internship", t.c.internship]].map(([value, label]) => ({ value, label })) };
       case "motivation":
         return { id: "motivation", area: "motivation", text: t.q.motivation, why: t.q.motivation_why, multi: true, allowText: false, choices: MOTIVATIONS.map((m) => ({ value: m, label: t.c.m[m] })) };

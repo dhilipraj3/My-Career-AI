@@ -21,6 +21,14 @@ export function setGuideSettings(patch: Partial<GuideSettings>) {
 }
 export const useGuideSettings = () => useSyncExternalStore((cb) => { settingListeners.add(cb); return () => settingListeners.delete(cb); }, getGuideSettings);
 
+/** Asha's live-call voice (Gemini voice name). Warm, clear voices only; the server rejects anything else. */
+export const ASHA_VOICES: Array<{ id: string; label: string }> = [
+  { id: "Sulafat", label: "Warm" }, { id: "Achernar", label: "Soft" }, { id: "Aoede", label: "Breezy" },
+  { id: "Vindemiatrix", label: "Gentle" }, { id: "Leda", label: "Youthful" }, { id: "Kore", label: "Firm" },
+];
+export const getAshaVoice = (): string => { try { return localStorage.getItem("mc_asha_voice") || "Sulafat"; } catch { return "Sulafat"; } };
+export const setAshaVoice = (v: string) => { try { localStorage.setItem("mc_asha_voice", v); } catch { /* private mode */ } };
+
 // ---------------- pose bus: other parts of the app (the chat) can make her think or talk ----------------
 let pose: GuidePose = "idle";
 let holdTimer: ReturnType<typeof setTimeout> | undefined;

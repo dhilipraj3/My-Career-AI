@@ -1,11 +1,12 @@
-import { BarChart3, Download, Gauge, Palette, Volume2, KeyRound, LogOut, PauseCircle, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
+import { AudioLines, BarChart3, Download, Gauge, Palette, Signal, Volume2, KeyRound, LogOut, PauseCircle, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import type { AiState, Me } from "../App";
 import { api, devUser, downloadFile, errMsg } from "../lib/api";
 import { getConsent, setConsent } from "../lib/analytics";
 import { signOutUser } from "../lib/firebase";
 import { getLowData, setLowData } from "../lib/lowdata";
-import { GUIDE_NAME, guideSpeak, setGuideSettings, useGuideSettings, type GuideMode } from "../lib/guide";
+import { ASHA_VOICES, GUIDE_NAME, getAshaVoice, guideSpeak, setAshaVoice, setGuideSettings, useGuideSettings, type GuideMode } from "../lib/guide";
+import { getVoicePreference, setVoicePreference, useVoiceTier, type VoicePreference } from "../lib/netQuality";
 import { useTheme, type ThemeChoice } from "../lib/theme";
 import { useNav } from "../lib/nav";
 import AlertInbox from "../components/AlertInbox";
@@ -31,6 +32,10 @@ export default function Settings({ me, ai }: { me: Me; ai: AiState }) {
   const [lowData, setLow] = useState(getLowData());
   const theme = useTheme();
   const guide = useGuideSettings();
+  const net = useVoiceTier();
+  const [voicePref, setPref] = useState<VoicePreference>(getVoicePreference());
+  const [ashaVoice, setVoiceName] = useState(getAshaVoice());
+  const tierText = { live: "Live voice", lite: "Tap to talk", text: "Text only" } as const;
   const [analyticsOn, setAnalyticsOn] = useState(getConsent() === "granted");
   const u = me.usage;
 
@@ -84,6 +89,17 @@ export default function Settings({ me, ai }: { me: Me; ai: AiState }) {
           </Row>
           <Row icon={<Volume2 className="h-5 w-5" />} title={GUIDE_NAME + "'s voice"} detail={guide.voice ? "On. She reads her messages and answers aloud, in English or Hindi." : "Off. She only shows text."}>
             <Button variant="secondary" onClick={() => { setGuideSettings({ voice: !guide.voice }); if (!guide.voice) guideSpeak("Hi, I am " + GUIDE_NAME + ". This is my voice."); }}>{guide.voice ? "Turn off" : "Turn on"}</Button>
+          </Row>
+          <Row icon={<Signal className="h-5 w-5" />} title="Voice quality"
+            detail={<>Auto picks the best that your connection can carry. {net.quality ? <>Right now: <strong>{tierText[net.tier]}</strong>{net.quality.rttMs !== null ? ` (response time ${net.quality.rttMs} ms)` : ""}. {net.quality.reason}</> : "Checking your connection…"}{net.tier === "live" && !ai.ownKey ? " Live voice needs your free Google key." : ""}</>}>
+            <div className="flex rounded-xl bg-slate-100 p-0.5" role="group" aria-label="Voice quality">
+              {([["auto", "Auto"], ["live", "Live voice"], ["text", "Text only"]] as Array<[VoicePreference, string]>).map(([v, l]) => <button key={v} aria-pressed={voicePref === v} onClick={() => { setVoicePreference(v); setPref(v); net.recheck(); }} className={"rounded-lg px-3 py-1.5 text-sm font-medium " + (voicePref === v ? "bg-white text-ink shadow-sm" : "text-slate-500")}>{l}</button>)}
+            </div>
+          </Row>
+          <Row icon={<AudioLines className="h-5 w-5" />} title={GUIDE_NAME + "'s live voice"} detail="Used in live voice calls (with your own Google key). Listen to them in Google AI Studio to choose.">
+            <select aria-label="Asha's live voice" value={ashaVoice} onChange={(e) => { setAshaVoice(e.target.value); setVoiceName(e.target.value); }} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm">
+              {ASHA_VOICES.map((v) => <option key={v.id} value={v.id}>{v.id} · {v.label}</option>)}
+            </select>
           </Row>
           <Row icon={<Palette className="h-5 w-5" />} title="Appearance" detail="Dark glass or light. Automatic follows your device.">
             <div className="flex rounded-xl bg-slate-100 p-0.5" role="group" aria-label="Theme">

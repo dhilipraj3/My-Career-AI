@@ -210,7 +210,7 @@ async function savePending(uid: string, tool: string, args: Record<string, unkno
 }
 
 /** Run a tool as the agent. Sensitive (or taint-downgraded) tools become pending confirmations. */
-async function invoke(ctx: { uid: string }, name: string, rawArgs: unknown, state: { tainted: boolean; modifies: number }): Promise<{ result?: ToolResult; pending?: PendingAction; error?: string }> {
+export async function invoke(ctx: { uid: string }, name: string, rawArgs: unknown, state: { tainted: boolean; modifies: number }): Promise<{ result?: ToolResult; pending?: PendingAction; error?: string }> {
   const tool = TOOL_MAP.get(name);
   if (!tool) return { error: `Unknown tool "${name}". Use only the listed tools.` };
   const parsed = tool.schema.safeParse(rawArgs ?? {});

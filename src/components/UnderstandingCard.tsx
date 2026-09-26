@@ -75,6 +75,14 @@ export default function UnderstandingCard({ onChanged, className }: { onChanged?
       <div className="space-y-1.5 text-sm leading-relaxed text-slate-700">
         {(u.summary || "…").split(/(?<=\.)\s+(?=[A-Z])/).map((line, i) => <p key={i}>{line}</p>)}
       </div>
+      {u.areas.some((a) => a.gaps.length) && (
+        <div className="rounded-xl border border-slate-200 p-3">
+          <p className="mb-1.5 text-xs font-semibold text-slate-600">What I don't know yet</p>
+          <ul className="flex flex-wrap gap-1.5">
+            {u.areas.flatMap((a) => a.gaps).slice(0, 8).map((g) => <li key={g} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-700">{g}</li>)}
+          </ul>
+        </div>
+      )}
       <p className={cn("flex items-start gap-1.5 text-xs font-medium", u.ready ? "text-emerald-700" : "text-amber-700")}>
         {u.ready ? <Check className="mt-px h-3.5 w-3.5 shrink-0" /> : <Sparkles className="mt-px h-3.5 w-3.5 shrink-0" />}{u.ready ? t("u.ready") : t("u.notReady")}
       </p>

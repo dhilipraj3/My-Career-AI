@@ -202,6 +202,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 - [x] Diagnosis from outcomes: many applications / no responses → fix the resume or change level; interviews / no offers → interview coaching
 - [x] Agent activity timeline: everything the agent did, and why (transparency)
 - [x] Streaming chat replies (SSE) + tool progress (done in Assistant 2.0)
+- [x] Live voice with Asha on the user's own key (Gemini Live: natural voice, interruptions, lip sync, tool calls with confirmations), adapting to the connection (live / tap to talk / text)
 - [ ] ~~Chrome built-in Gemini Nano~~ — deferred: browser support is too patchy to rely on
 - [x] "I got placed" flow: celebrate, confirm details, pause search, career-growth mode
 - [ ] In-app notification centre (+ optional email digest)

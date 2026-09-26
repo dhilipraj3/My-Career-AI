@@ -1,13 +1,17 @@
 import {
   ArrowUp, Bookmark, BookmarkCheck, Briefcase, Check, ChevronDown, CircleAlert, Copy, KeyRound, Loader2, Maximize2, Mic, Minimize2,
-  RotateCcw, Search, Sparkles, Square, SquarePen, Target, ThumbsDown, ThumbsUp, TrendingUp, Undo2, X,
+  AudioLines, Phone, RotateCcw, Search, Sparkles, Square, SquarePen, Target, ThumbsDown, ThumbsUp, TrendingUp, Undo2, X,
 } from "lucide-react";
+import VoiceCall from "./VoiceCall";
+import { effectiveTier, getVoicePreference, measureNetwork, useVoiceTier } from "../lib/netQuality";
+import { getLowData } from "../lib/lowdata";
+import { speak, stopSpeaking, useI18n } from "../lib/i18n";
 import ReactMarkdown from "react-markdown";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ComponentType } from "react";
 import type { ChatMessage, ChatStep, FeedSummary, PendingAction } from "@shared/types";
 import type { AiState } from "../App";
 import AshaAvatar from "./AshaAvatar";
-import { GUIDE_NAME, useGuidePose, useGuideSpeaking } from "../lib/guide";
+import { GUIDE_NAME, getAshaVoice, useGuidePose, useGuideSpeaking } from "../lib/guide";
 import { track } from "../lib/analytics";
 import { api, clearApiCache, errMsg } from "../lib/api";
 import { streamChat } from "../lib/assistantStream";
@@ -149,6 +153,14 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
   const [busy, setBusy] = useState(false);
   const [noteHidden, setNoteHidden] = useState(() => { try { return sessionStorage.getItem("mc_chat_note") === "1"; } catch { return false; } });
   const guidePose = useGuidePose();
+  // Voice: "live" = Gemini Live call (own key + good connection), "lite" = tap to talk (device speech), "off" = typing.
+  const { quality, tier } = useVoiceTier();
+  const { lang: uiLang } = useI18n();
+  const [voice, setVoice] = useState<"off" | "live" | "lite">("off");
+  const voiceRef = useRef(voice);
+  voiceRef.current = voice;
+  const liveOk = ai.ownKey?.status === "ok" && tier === "live";
+  const canTalk = tier !== "text" && (liveOk || speechSupported);
   const speakingNow = useGuideSpeaking();
   const [basicReason, setBasicReason] = useState<"no_ai" | "busy" | "quota" | undefined>(ai.available ? undefined : "no_ai");
   const [lang, setLang] = useState<"en-IN" | "hi-IN">("en-IN");
@@ -159,6 +171,13 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
   const toast = useToast();
   const dictation = useDictation((t) => setInput(t));
   useEffect(() => { if (dictation.listening) setGuidePose("listening"); else if (getGuidePose() === "listening") setGuidePose("idle"); }, [dictation.listening]);
+  // Tap-to-talk: when they stop speaking, send what they said.
+  const wasListening = useRef(false);
+  useEffect(() => {
+    if (wasListening.current && !dictation.listening && voiceRef.current === "lite" && input.trim()) void send(input);
+    wasListening.current = dictation.listening;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dictation.listening]);
 
   // Load history, starters for this page, and a one-line insight for the empty state.
   useEffect(() => {
@@ -210,7 +229,9 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
         id: r.id, role: "assistant", text: r.reply, at: new Date().toISOString(), cards: r.cards.length ? r.cards : undefined, steps: r.steps,
         changes: r.changes.length ? r.changes : undefined, pendingAction: r.pendingAction, suggestions: r.suggestions,
       }));
-      guideSpeak(speakable(r.reply));
+      if (voiceRef.current === "lite") {
+        speak(speakable(r.reply), { onEnd: () => { if (voiceRef.current === "lite") setTimeout(() => dictation.start(lang), 250); } });
+      } else guideSpeak(speakable(r.reply));
       if (r.openUrl) window.open(r.openUrl, "_blank", "noopener,noreferrer");
       if (r.navigate) setTimeout(() => onNavigate(r.navigate!), 500);
       if (r.changes.length || r.navigate) onActed();
@@ -262,6 +283,22 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
     setTimeout(() => box.current?.focus(), 30);
   }
 
+  async function startTalking() {
+    stopSpeaking();
+    // Pressed before the connection check finished? Finish it first, so a good line isn't mistaken for a slow one.
+    const measured = quality ?? await measureNetwork().catch(() => null);
+    const t = measured ? effectiveTier(measured.tier, getVoicePreference(), getLowData()) : tier;
+    if (ai.ownKey?.status === "ok" && t === "live") { setVoice("live"); return; }
+    setVoice("lite");
+    if (!dictation.listening) dictation.start(lang);
+  }
+  function stopTalking() { setVoice("off"); if (dictation.listening) dictation.stop(); stopSpeaking(); }
+  async function afterCall() {
+    setVoice("off");
+    try { const r = await api<{ messages: ChatMessage[] }>("/agent/history"); setMessages(r.messages); } catch { /* keep what we have */ }
+    onActed();
+  }
+
   const lastUser = [...messages].reverse().find((m) => m.role === "user");
   const lastIdx = messages.length - 1;
   const mode = busy ? "Thinking…" : basicReason ? "Basic mode" : ai.ownKey?.status === "ok" ? "Smart · your own AI key" : "Smart";
@@ -282,7 +319,11 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
               <span className={cn("h-1.5 w-1.5 rounded-full", basicReason ? "bg-amber-400" : "bg-emerald-500")} />{mode}
             </p>
           </div>
-          <button onClick={() => void newChat()} disabled={busy || !messages.length} title="New chat" aria-label="New chat" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 disabled:opacity-40"><SquarePen className="h-[18px] w-[18px]" /></button>
+          {canTalk && voice === "off" && (
+            <button onClick={() => void startTalking()} title={liveOk ? "Talk with Asha (live voice)" : "Talk with Asha (tap to talk)"} aria-label="Talk with Asha"
+              className="mr-1 inline-flex h-9 items-center gap-1.5 rounded-xl bg-peacock px-3 text-sm font-semibold text-white shadow-sm transition hover:brightness-110"><Phone className="h-4 w-4" />Talk</button>
+          )}
+          <button onClick={() => void newChat()} disabled={busy || !messages.length || voice === "live"} title="New chat" aria-label="New chat" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 disabled:opacity-40"><SquarePen className="h-[18px] w-[18px]" /></button>
           <button onClick={() => setExpanded(!expanded)} title={expanded ? "Dock to the side" : "Expand"} aria-label={expanded ? "Dock to the side" : "Expand"} className="hidden rounded-lg p-2 text-slate-500 hover:bg-slate-100 lg:block">
             {expanded ? <Minimize2 className="h-[18px] w-[18px]" /> : <Maximize2 className="h-[18px] w-[18px]" />}
           </button>
@@ -297,8 +338,17 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
           </div>
         )}
 
+        {voice === "live" && (
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <VoiceCall ctx={{ page: context.page, jobId: context.jobId, lang: uiLang, voice: getAshaVoice(), rttMs: quality?.rttMs ?? null }}
+              onEnd={() => void afterCall()}
+              onStepDown={(reason) => { if (reason) toast("info", `${reason} Switching to tap-to-talk, so nothing gets cut off.`); void afterCall().then(() => { setVoice("lite"); dictation.start(lang); }); }}
+              openJob={openJob} onNavigate={(pg) => onNavigate(pg as Page)} onActed={onActed} />
+          </div>
+        )}
+
         {/* Conversation */}
-        <div ref={scroller} onScroll={onScroll} className="chat-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        <div ref={scroller} onScroll={onScroll} className={cn("chat-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain", voice === "live" && "hidden")}>
           <div className={cn("mx-auto flex min-h-full flex-col space-y-5 px-4 pb-4 pt-5", expanded && "max-w-2xl")}>
             {messages.length === 0 && (
               <div className="flex flex-1 animate-fade-in flex-col gap-5 pt-1">
@@ -384,8 +434,17 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
           </div>
         </div>
 
+        {voice === "lite" && (
+          <div className="flex items-center gap-2 border-t border-slate-200/70 bg-brand-50/60 px-4 py-2 text-xs text-brand-900">
+            <AudioLines className={cn("h-4 w-4 shrink-0 text-brand-600", dictation.listening && "animate-pulse")} />
+            <span className="min-w-0 flex-1">{dictation.listening ? "Listening… speak now" : busy ? "Thinking…" : "Tap-to-talk is on. I'll read my answers aloud."}{!ai.ownKey && " Add your free Google key for live voice."}</span>
+            {!dictation.listening && !busy && <button onClick={() => dictation.start(lang)} className="rounded-md px-2 py-1 font-semibold text-brand-700 hover:bg-brand-100">Speak</button>}
+            <button onClick={stopTalking} className="rounded-md px-2 py-1 font-semibold text-slate-600 hover:bg-slate-100">Stop</button>
+          </div>
+        )}
+
         {/* Composer */}
-        <form onSubmit={(e) => { e.preventDefault(); void send(input); }} className={cn("shrink-0 border-t border-slate-200/70 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3", expanded && "mx-auto w-full max-w-2xl border-t-0")}>
+        <form onSubmit={(e) => { e.preventDefault(); void send(input); }} className={cn(voice === "live" && "hidden", "shrink-0 border-t border-slate-200/70 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3", expanded && "mx-auto w-full max-w-2xl border-t-0")}>
           <div className={cn("rounded-2xl border bg-white/90 shadow-sm transition focus-within:border-brand-400 focus-within:ring-4 focus-within:ring-brand-100", dictation.listening ? "border-red-300" : "border-slate-200")}>
             <textarea ref={box} value={input} onChange={(e) => setInput(e.target.value)} rows={1} maxLength={1500}
               placeholder={dictation.listening ? "Listening…" : context.jobId ? "Ask about this job…" : "Ask anything — e.g. “Remote jobs above 20 LPA”"}

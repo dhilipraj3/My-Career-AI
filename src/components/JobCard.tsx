@@ -52,6 +52,7 @@ export default function JobCard({ job, score, confidence, reason, gap, saved, is
               {job.freshersWelcome && <Badge tone="green">Freshers welcome</Badge>}
               {job.category && job.category !== "other" && <Badge>{CATEGORY_LABELS[job.category]}</Badge>}
               {job.employmentType !== "full_time" && job.employmentType !== "unknown" && <Badge tone="sky">{sentenceCase(job.employmentType)}</Badge>}
+              {job.shift && job.shift !== "day" && <Badge tone={job.shift === "flexible" ? "green" : "amber"}>{job.shift === "flexible" ? "Flexible hours" : `${sentenceCase(job.shift)} shift`}</Badge>}
               {job.status === "stale" && <Badge tone="amber">May be closed</Badge>}
               {confidence === "low" && <Badge tone="amber">Limited job details</Badge>}
             </div>

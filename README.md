@@ -102,11 +102,28 @@ npm run check:formats  # real PDF (via Edge) and DOCX extraction
 npm run probe:boards   # re-verify which company ATS boards exist (refresh DEFAULT_BOARDS)
 ```
 
+## Talking with Asha (voice)
+
+Asha adapts to the connection (Settings → Voice quality: Auto / Live voice / Text only):
+
+| Connection | Mode | How |
+|---|---|---|
+| Good (fast, low delay) + the user's own Google key | **Live voice** | Gemini Live (`GEMINI_LIVE_MODEL`, default `gemini-3.8-live`): natural voice, you can talk over her, lips follow her voice, she uses the app's tools (sensitive ones need a tap to confirm) |
+| Slower, or no key | **Tap to talk** | Speech is turned into text on the device, answers are read aloud by the device's most natural voice |
+| Poor, Data Saver or low-data mode | **Text only** | Chat with no audio |
+
+During a live call the app watches for gaps in her audio and a backed-up microphone; if the line keeps breaking up it switches to tap-to-talk. Google's 15-minute session limit is handled by resuming the session.
+
+Security: the browser never sees the user's key. The server mints a single-use token that expires in minutes and is locked to Asha's model, voice, instructions and tools (`server/voice/`).
+
+Check it against the real API with your own key: `GEMINI_API_KEY=... npm run check:voice` (or `USE_UID=<your uid> npm run check:voice` to use the key saved in the app).
+
 ## Honest status
 
 **Built and covered by automated tests (317):** understanding the user (confidence model, no-resume conversation, role discovery), resume upload including photos and scanned PDFs, resume builder and health check, job-specific tailored resumes, the placement companion (journey, next actions, weekly plan, "I got placed"), interview prep and mock interviews, message drafts, offer comparison, calendar export, bring-your-own jobs (link, paste, bulk, bookmark, forwarded alert emails), employer posting with moderation and direct applications, career insights (learning ROI, funnel, market pulse), privacy export and erasure, shareable profile, and error monitoring.
 
 **Needs you (cannot be verified from here):**
+0. **Live voice against real Gemini.** Everything around it is tested (tokens, tools, safety, adaptive quality, and a real browser reaching Google and handling a refused connection), but a full spoken conversation needs a real key: run , then press Talk in the chat.
 1. **Real AI providers.** Every AI path is tested with fake providers only. Add a Gemini key and try a real resume, a photo resume, tailoring, interview prep and mock feedback; tune `server/ai/gateway.ts` `ROUTES` and the prompts if quality needs it.
 2. **A human click-through.** The new screens (Mission Control, Interview prep, Insights, For employers, the Resumes builder, Settings cards, the board's drag-and-drop) compile and build but have not been clicked through in a browser. There are no browser/UI smoke tests yet.
 3. **Google sign-in and Firestore** against the real Firebase project. Deploy `firestore.rules` (`firebase deploy --only firestore:rules`): it denies all client access, since the server is the only reader/writer.

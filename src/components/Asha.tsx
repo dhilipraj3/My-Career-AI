@@ -6,11 +6,12 @@ import type { GuidePose } from "../lib/guide";
  * move. Each pose changes her arms, eyebrows, eyes and mouth; she blinks on her own and her mouth moves while she
  * speaks. Palette: peacock blazer, white top, gold pendant and earrings, teal headset.
  */
-export default function Asha({ pose, mouthOpen = false, face = false, className }: { pose: GuidePose; mouthOpen?: boolean; face?: boolean; className?: string }) {
+export default function Asha({ pose, mouthOpen = false, level, face = false, className }: { pose: GuidePose; mouthOpen?: boolean; /** Voice loudness 0..1: when given, the mouth follows it (real lip sync). */ level?: number; face?: boolean; className?: string }) {
   const u = useId().replace(/:/g, "");
   const id = (n: string) => `${u}-${n}`;
   const happy = pose === "celebrating" || pose === "encouraging" || pose === "waving";
-  const talking = pose === "talking" || mouthOpen;
+  const open = level !== undefined ? Math.min(1, level * 1.6) : mouthOpen ? 1 : 0.35;
+  const talking = pose === "talking" || mouthOpen || (level ?? 0) > 0.04;
 
   // Eyebrows: raised when happy or listening, one lifted when thinking.
   const brows = pose === "thinking"
@@ -104,8 +105,8 @@ export default function Asha({ pose, mouthOpen = false, face = false, className 
       {/* mouth */}
       {talking ? (
         <g>
-          <path d={mouthOpen ? "M94 135 q11 13 22 0 q-11 -4 -22 0z" : "M95 135 q10 8 20 0 q-10 -3 -20 0z"} fill="#7c2d38" />
-          <path d={mouthOpen ? "M97 135.5 q8 -2 16 0 l0 2 q-8 -1 -16 0z" : "M98 135.5 q7 -1.5 14 0 l0 1.4 q-7 -1 -14 0z"} fill="#fff" />
+          <path d={`M${95 - open} 135 q${10 + open} ${6 + open * 8} ${20 + open * 2} 0 q-${10 + open} -${2.5 + open * 1.5} -${20 + open * 2} 0z`} fill="#7c2d38" />
+          {open > 0.3 && <path d="M97 135.5 q8 -2 16 0 l0 2 q-8 -1 -16 0z" fill="#fff" />}
         </g>
       ) : happy ? (
         <g>

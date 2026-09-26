@@ -196,3 +196,10 @@ export async function noteUserKeyResult(uid: string, err?: unknown): Promise<voi
 export async function countUserKeys(): Promise<number> {
   return (await (await getStore()).query("userKeys")).length;
 }
+
+/** The user's own key, decrypted, for server-side use only (e.g. minting a short-lived voice token). Never sent to a browser. */
+export async function userKeyRaw(uid: string): Promise<string | null> {
+  const k = await getUserKey(uid);
+  if (!k || k.status === "invalid") return null;
+  try { return decryptSecret(k.keyEnc); } catch { return null; }
+}

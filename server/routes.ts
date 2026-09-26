@@ -53,6 +53,7 @@ import { SettingsBody as PublicProfileBody, getPublicSettings, savePublicSetting
 import { recentErrors, recordError } from "./log.js";
 import { employerRouter } from "./employer/routes.js";
 import { insightsRouter } from "./insights/routes.js";
+import { voiceRouter } from "./voice/routes.js";
 
 const wrap = (fn: (req: Request, res: Response) => Promise<unknown>): RequestHandler => (req, res, next) => {
   fn(req, res).catch(next);
@@ -115,6 +116,7 @@ export function buildRouter(): express.Router {
   r.use(interviewRouter());
   r.use(employerRouter());
   r.use(insightsRouter());
+  r.use(voiceRouter());
 
   // ---------------- account / profile ----------------
   r.get("/me", wrap(async (req, res) => {

@@ -135,12 +135,21 @@ function locationScore(p: CandidateProfile, j: Job): number {
   return pr.willingToRelocate ? 0.5 : 0.15;
 }
 
+/** The job's hours clash with the hours the person said they can work. */
+export function shiftMismatch(p: CandidateProfile, j: Job): boolean {
+  const want = p.preferences.shifts || [];
+  if (!j.shift || !want.length || want.includes("any") || want.includes(j.shift)) return false;
+  return !(j.shift === "flexible"); // flexible hours suit everyone
+}
+const SHIFT_WORD: Record<string, string> = { day: "day", night: "night", rotational: "rotational", flexible: "flexible" };
+
 function preferenceScore(p: CandidateProfile, j: Job): number {
   const pr = p.preferences;
   let score = 0.6;
   if (pr.workModes.length) score += j.workMode === "unknown" || pr.workModes.includes(j.workMode as any) ? 0.2 : -0.3;
   if (pr.minSalaryLPA && j.salaryMaxLPA) score += j.salaryMaxLPA >= pr.minSalaryLPA ? 0.2 : -0.3;
   if (pr.industries.length && j.industry) score += pr.industries.some((i) => j.industry!.toLowerCase().includes(i.toLowerCase())) ? 0.1 : 0;
+  if (shiftMismatch(p, j)) score -= 0.35;
   return clamp(score, 0, 1);
 }
 
@@ -190,6 +199,7 @@ export function computeMatch({ profile: p, job: j, now = Date.now() }: MatchInpu
   if (j.salaryMaxLPA && p.preferences.minSalaryLPA && j.salaryMaxLPA >= p.preferences.minSalaryLPA) reasons.push(`Salary up to ${j.salaryMaxLPA} LPA meets your ${p.preferences.minSalaryLPA} LPA minimum`);
   if (breakdown.domain >= 55) reasons.push("Responsibilities are similar to work in your experience");
   if (sk.missing.length || sk.relatedOnly.length) gaps.push(`Skills not found in your profile: ${missingNames.slice(0, 6).join(", ")}`);
+  if (shiftMismatch(p, j)) gaps.push(`${SHIFT_WORD[j.shift!].charAt(0).toUpperCase()}${SHIFT_WORD[j.shift!].slice(1)} shift job; you said you work ${(p.preferences.shifts || []).map((s) => SHIFT_WORD[s] || s).join(" or ")} shifts`);
   if (j.experienceMin !== undefined && p.totalExperienceYears < j.experienceMin) gaps.push(`Asks for ${j.experienceMin}+ years; you have ${experienceText(p.totalExperienceYears)}`);
   gaps.push(...hardFailures);
   if (outsideCities) gaps.push(`Based in ${j.cities?.length ? j.cities.join(", ") : j.city || j.location}, outside your preferred locations (${p.preferences.locations.join(", ")})`);

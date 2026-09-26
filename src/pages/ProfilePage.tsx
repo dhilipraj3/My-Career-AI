@@ -1,7 +1,7 @@
 import { experienceText } from "@shared/format";
 import { Briefcase, GraduationCap, MapPin, Plus, Sparkles, Target, Wrench, X } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
-import type { CandidatePreferences, FeedSummary, SkillEntry, WorkMode } from "@shared/types";
+import type { CandidatePreferences, EmploymentType, FeedSummary, ShiftPref, SkillEntry, WorkMode } from "@shared/types";
 import type { Me } from "../App";
 import { api, errMsg } from "../lib/api";
 import { POPULAR_CITIES } from "../lib/labels";
@@ -55,17 +55,18 @@ export default function ProfilePage({ me, refresh }: { me: Me; refresh: () => Pr
   const [busy, setBusy] = useState(false);
   const [newSkill, setNewSkill] = useState("");
   const [roleIdeas, setRoleIdeas] = useState<string[]>([]);
-  const [f, setF] = useState({
+  const initial = () => ({
     targetRoles: pr.targetRoles, locations: pr.locations, workModes: pr.workModes, minSalaryLPA: pr.minSalaryLPA ?? "", noticePeriodDays: pr.noticePeriodDays ?? "",
-    willingToRelocate: pr.willingToRelocate ?? false, excludedCompanies: pr.excludedCompanies,
-  });
+    willingToRelocate: pr.willingToRelocate ?? false, excludedCompanies: pr.excludedCompanies, employmentTypes: pr.employmentTypes, shifts: pr.shifts || [],
+  } as { targetRoles: string[]; locations: string[]; workModes: WorkMode[]; minSalaryLPA: number | string; noticePeriodDays: number | string; willingToRelocate: boolean; excludedCompanies: string[]; employmentTypes: EmploymentType[]; shifts: ShiftPref[] });
+  const [f, setF] = useState(initial);
   useEffect(() => { void api<FeedSummary>("/feed/summary").then((s) => setRoleIdeas(s.roleSuggestions.map((r) => r.role))).catch(() => undefined); }, []);
 
-  const dirty = JSON.stringify(f) !== JSON.stringify({ targetRoles: pr.targetRoles, locations: pr.locations, workModes: pr.workModes, minSalaryLPA: pr.minSalaryLPA ?? "", noticePeriodDays: pr.noticePeriodDays ?? "", willingToRelocate: pr.willingToRelocate ?? false, excludedCompanies: pr.excludedCompanies });
+  const dirty = JSON.stringify(f) !== JSON.stringify(initial());
 
   const wrap = async (fn: () => Promise<unknown>, msg: string) => { setBusy(true); try { await fn(); await refresh(); toast("success", msg); } catch (e) { toast("error", errMsg(e)); } finally { setBusy(false); } };
   const savePrefs = () => wrap(() => {
-    const patch: Partial<CandidatePreferences> = { targetRoles: f.targetRoles, locations: f.locations, workModes: f.workModes, willingToRelocate: f.willingToRelocate, excludedCompanies: f.excludedCompanies };
+    const patch: Partial<CandidatePreferences> = { targetRoles: f.targetRoles, locations: f.locations, workModes: f.workModes, willingToRelocate: f.willingToRelocate, excludedCompanies: f.excludedCompanies, employmentTypes: f.employmentTypes, ...(f.shifts.length ? { shifts: f.shifts } : {}) };
     if (f.minSalaryLPA !== "") patch.minSalaryLPA = Number(f.minSalaryLPA);
     if (f.noticePeriodDays !== "") patch.noticePeriodDays = Number(f.noticePeriodDays);
     return api("/profile/preferences", { method: "PUT", body: patch });
@@ -112,6 +113,23 @@ export default function ProfilePage({ me, refresh }: { me: Me; refresh: () => Pr
             <label className="text-sm font-medium text-slate-700">Notice period (days)<input type="number" min={0} value={f.noticePeriodDays} onChange={(e) => setF({ ...f, noticePeriodDays: e.target.value })} className="mt-1 h-10 w-full rounded-xl border border-slate-200 px-3" placeholder="e.g. 30" /></label>
           </div>
           <p className="text-xs text-slate-500">₹1 LPA ≈ ₹8,300/month. For monthly pay, 3.6 LPA ≈ ₹30,000/month.</p>
+          <div>
+            <p className="mb-1.5 text-sm font-medium text-slate-700">Job type</p>
+            <div className="flex flex-wrap gap-2">
+              {([["full_time", "Full-time"], ["part_time", "Part-time"], ["contract", "Contract"], ["internship", "Internship"]] as Array<[EmploymentType, string]>).map(([v, l]) => (
+                <Chip key={v} on={f.employmentTypes.includes(v)} onClick={() => setF({ ...f, employmentTypes: f.employmentTypes.includes(v) ? f.employmentTypes.filter((x) => x !== v) : [...f.employmentTypes, v] })}>{l}</Chip>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="mb-1.5 text-sm font-medium text-slate-700">Shifts you can work</p>
+            <div className="flex flex-wrap gap-2">
+              {([["day", "Day"], ["night", "Night"], ["rotational", "Rotational"], ["flexible", "Flexible hours"], ["any", "Any shift"]] as Array<[ShiftPref, string]>).map(([v, l]) => (
+                <Chip key={v} on={f.shifts.includes(v)} onClick={() => setF({ ...f, shifts: v === "any" ? (f.shifts.includes("any") ? [] : ["any"]) : f.shifts.includes(v) ? f.shifts.filter((x) => x !== v) : [...f.shifts.filter((x) => x !== "any"), v] })}>{l}</Chip>
+              ))}
+            </div>
+            <p className="mt-1.5 text-xs text-slate-500">Jobs on shifts you can't do won't be among your top matches.</p>
+          </div>
         </Block>
 
         <Block icon={<X className="h-[18px] w-[18px]" />} title="Companies to avoid" hint="You won't see jobs from these.">
@@ -122,7 +140,7 @@ export default function ProfilePage({ me, refresh }: { me: Me; refresh: () => Pr
       {dirty && (
         <div className="sticky bottom-20 z-10 flex items-center justify-between gap-3 rounded-2xl bg-[#0f2a3b] ring-1 ring-white/10 px-5 py-3 text-white shadow-[var(--shadow-pop)] animate-slide-up lg:bottom-6">
           <p className="text-sm">You have unsaved changes.</p>
-          <div className="flex gap-2"><Button variant="ghost" size="sm" className="text-white hover:bg-white/10 hover:text-white" onClick={() => setF({ targetRoles: pr.targetRoles, locations: pr.locations, workModes: pr.workModes, minSalaryLPA: pr.minSalaryLPA ?? "", noticePeriodDays: pr.noticePeriodDays ?? "", willingToRelocate: pr.willingToRelocate ?? false, excludedCompanies: pr.excludedCompanies })}>Discard</Button><Button size="sm" loading={busy} onClick={savePrefs}>Save changes</Button></div>
+          <div className="flex gap-2"><Button variant="ghost" size="sm" className="text-white hover:bg-white/10 hover:text-white" onClick={() => setF(initial())}>Discard</Button><Button size="sm" loading={busy} onClick={savePrefs}>Save changes</Button></div>
         </div>
       )}
 

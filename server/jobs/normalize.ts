@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import type { EmploymentType, Job, JobFreshness, WorkMode } from "../../shared/types.js";
+import type { EmploymentType, Job, JobFreshness, Shift, WorkMode } from "../../shared/types.js";
 import type { JobCategory } from "../../shared/types.js";
 import { detectSeniority, extractSkillKeys, normalizeTitle } from "../nlp/skills.js";
 import { FRONTLINE, classifyCategory, freshersWelcome, minimumEducation } from "./classify.js";
@@ -281,9 +281,19 @@ export function normalizeRaw(raw: RawJob, now = new Date()): { job: Job } | Reje
     category, education: minimumEducation(description), freshersWelcome: freshersWelcome(title, description, exp.min),
     skills, description, industry: raw.industry, seniority: detectSeniority(title),
     postedAt: toIso(raw.postedAt), updatedAtSource: toIso(raw.updatedAt), lastVerifiedAt: nowIso, firstSeenAt: nowIso, deadline: toIso(raw.deadline),
-    status: "new", sources: partial.sources, dedupeKey: key, quality: assessQuality(partial),
+    status: "new", sources: partial.sources, dedupeKey: key, quality: assessQuality(partial), shift: detectShift(`${title}\n${description}`),
   };
   return { job };
+}
+
+/** Working hours a posting states, if any. US-hours and graveyard shifts count as night; "general shift" as day. */
+export function detectShift(text: string): Shift | undefined {
+  const t = text.toLowerCase();
+  if (/\brotational shifts?\b|\brotating shifts?\b|\b24\s*[x*]\s*7\b.*\bshifts?\b|\bshifts? (on )?rotation\b/.test(t)) return "rotational";
+  if (/\bnight shifts?\b|\bgraveyard\b|\bus shifts?\b|\bus (time ?zone|hours)\b|\b(9|10|11)\s*(pm|p\.m\.)\s*(to|-|–)\s*\d/.test(t)) return "night";
+  if (/\bflexible (hours|timings?|shifts?)\b|\bflexi[- ]?(time|timings?|hours)\b|\bwork at your own pace\b/.test(t)) return "flexible";
+  if (/\b(day|general|morning) shifts?\b|\b(9|10)\s*(am|a\.m\.)\s*(to|-|–)\s*(5|6|7)\s*(pm|p\.m\.)/.test(t)) return "day";
+  return undefined;
 }
 
 export function isRejected(x: { job: Job } | Rejected): x is Rejected {
