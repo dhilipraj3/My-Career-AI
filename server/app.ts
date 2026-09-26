@@ -1,4 +1,5 @@
 import compression from "compression";
+import { trackUsers } from "./busy.js";
 import express from "express";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
@@ -28,6 +29,7 @@ export function createApp() {
     }),
   );
   app.use(requestContext());
+  app.use("/api", trackUsers());
   // Gzip responses — except the assistant's live stream, which must reach the browser as it's written.
   app.use(compression({ filter: (req, res) => !req.path.endsWith("/stream") && compression.filter(req, res) }));
   app.use(express.json({ limit: "1mb" }));

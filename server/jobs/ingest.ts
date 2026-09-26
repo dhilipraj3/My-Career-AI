@@ -1,4 +1,5 @@
 import type { Job } from "../../shared/types.js";
+import { yieldToUsers } from "../busy.js";
 import { getStore } from "../db/store.js";
 import { jaccard, overlap, shingles } from "../nlp/text.js";
 import { titleSimilarity } from "../nlp/skills.js";
@@ -51,8 +52,6 @@ function shinglesOf(j: Job): Set<string> {
   if (!s) shingleCache.set(j, (s = shingles(j.description)));
   return s;
 }
-
-const tick = () => new Promise<void>((resolve) => setImmediate(resolve));
 
 export function mergeJobs(existing: Job, incoming: Job): Job {
   const sources = [...existing.sources];
@@ -124,7 +123,7 @@ async function ingestRawJobsUnlocked(raws: RawJob[], opts: { ownerUid?: string }
   let processed = 0;
   for (const raw of raws) {
     // Ingest is CPU-bound; yield regularly so the API keeps serving requests while discovery runs.
-    if (++processed % 15 === 0) await tick();
+    await yieldToUsers();
     const n = normalizeRaw(raw);
     if (isRejected(n)) {
       stats.rejected++;
@@ -177,6 +176,7 @@ export async function refreshFreshness(): Promise<number> {
   const jobs = await store.query<Job>("jobs", { readOnly: true });
   const changed: string[] = [];
   for (const j of jobs) {
+    await yieldToUsers();
     const s = computeFreshness(j);
     // Jobs stored before shifts were read get them now (once: the field stays set after this).
     const shift = j.shift === undefined ? detectShift(`${j.title}\n${j.description}`) : undefined;

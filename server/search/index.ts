@@ -2,6 +2,7 @@
 // Behind a small interface so it can move to Typesense/Meilisearch when volume demands.
 import { count, create, insertMultiple, remove, search, type AnyOrama } from "@orama/orama";
 import type { EducationLevel, Job, JobMatch, JobQuery, JobSearchResult } from "../../shared/types.js";
+import { yieldToUsers } from "../busy.js";
 import { getStore, type Store } from "../db/store.js";
 import { educationRank } from "../jobs/classify.js";
 import { RECOMMENDABLE, companyKey } from "../jobs/normalize.js";
@@ -74,6 +75,7 @@ export async function syncJobs(ids: string[]): Promise<void> {
   const store = await getStore();
   const idx = await getIndex();
   for (const id of new Set(ids)) {
+    await yieldToUsers();
     if (idx.ids.has(id)) {
       await remove(idx.db, id);
       idx.ids.delete(id);

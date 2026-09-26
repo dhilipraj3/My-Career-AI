@@ -6,6 +6,7 @@ import { config } from "./config.js";
 import { flushBackups, getStore } from "./db/store.js";
 import { startScheduler } from "./scheduler.js";
 import { loadDiscoverySettings } from "./jobs/settings.js";
+import { indexSize } from "./search/index.js";
 import { notFoundHtml } from "./seo/pages.js";
 import { printConfigWarnings } from "./configCheck.js";
 
@@ -52,6 +53,8 @@ async function main() {
   if (config.devAuthBypass) console.warn("WARNING: DEV_AUTH_BYPASS is on — never enable it in production.");
   printConfigWarnings();
   await loadDiscoverySettings();
+  // Build the job search index now, not on the first visitor's request (it takes a moment on a small server).
+  void indexSize().then((n) => console.log(`[search] index ready (${n} jobs)`)).catch((e) => console.warn("[search] warm-up failed", e));
   startScheduler();
 
   // Render (and most hosts) send SIGTERM before stopping or sleeping an instance: save backups first.

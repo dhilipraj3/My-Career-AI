@@ -1,4 +1,5 @@
 import { config } from "../config.js";
+import { yieldToUsers } from "../busy.js";
 import type { ConnectorHealth } from "../../shared/types.js";
 import { getStore } from "../db/store.js";
 import { parseLocation } from "../nlp/location.js";
@@ -166,7 +167,9 @@ export function runDiscovery(opts: { keywords?: string[]; connectorIds?: string[
     const results: Array<Awaited<ReturnType<typeof runConnector>>> = new Array(chosen.length);
     let nextIdx = 0;
     await Promise.all(Array.from({ length: Math.max(1, Math.min(config.sources.concurrency, chosen.length)) }, async () => {
-      while (nextIdx < chosen.length) {
+      while (true) {
+        await yieldToUsers(); // wait first, then check what is left: another worker may have taken the last one meanwhile
+        if (nextIdx >= chosen.length) break;
         const i = nextIdx++;
         results[i] = await runConnector(chosen[i], opts.keywords || []);
       }

@@ -1,5 +1,6 @@
 import type { ApplicationRecord, CandidateProfile, NotificationRecord } from "../shared/types.js";
 import { config } from "./config.js";
+import { yieldToUsers } from "./busy.js";
 import { getStore } from "./db/store.js";
 import { isDiscoveryRunning, runDiscovery, type RunTrigger } from "./jobs/discovery.js";
 import { discoverySettings, onSettingsChange } from "./jobs/settings.js";
@@ -13,6 +14,7 @@ export async function runCycle(trigger: RunTrigger = "schedule"): Promise<{ user
   const profiles = (await store.query<CandidateProfile>("profiles")).filter((p) => p.status === "ready" && !p.discoveryPaused);
   const report = await runDiscovery({ keywords: profileKeywords(profiles), trigger, respectIntervals: trigger === "schedule" });
   for (const p of profiles) {
+    await yieldToUsers();
     try {
       await matchCandidate(p.uid, { notifyNew: true });
       await enrichTop(p.uid, 5);
@@ -96,8 +98,20 @@ export function startScheduler() {
     scheduleNext(prev.paused && !s.paused ? 15_000 : s.intervalMinutes * 60_000);
     prev = { paused: s.paused, interval: s.intervalMinutes };
   });
-  scheduleNext(15_000);
+  // Not right at start-up: people arriving after a wake-up should get the whole (small) server first. And if a cycle ran
+  // recently, wait until the next one is due instead of repeating it.
+  void firstDelay().then(scheduleNext);
   console.log(discoverySettings().paused ? "[scheduler] paused (resume it in Admin → Discovery)" : `[scheduler] running every ${discoverySettings().intervalMinutes} min`);
+}
+
+const BOOT_GRACE_MS = 3 * 60_000;
+async function firstDelay(): Promise<number> {
+  try {
+    const runs = await (await getStore()).query<{ finishedAt?: string }>("discoveryRuns", { readOnly: true });
+    const last = runs.map((r) => r.finishedAt || "").sort().pop();
+    if (last) return Math.max(BOOT_GRACE_MS, new Date(last).getTime() + discoverySettings().intervalMinutes * 60_000 - Date.now());
+  } catch { /* no history yet */ }
+  return BOOT_GRACE_MS;
 }
 
 export function stopScheduler() {
