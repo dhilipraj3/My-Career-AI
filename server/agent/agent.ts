@@ -1,3 +1,4 @@
+import { journeyFor } from "../companion/service.js";
 import { experienceText, wholeYears } from "../../shared/format.js";
 import crypto from "node:crypto";
 import { z } from "zod";
@@ -57,11 +58,11 @@ export interface RunOptions {
 }
 
 const BASIC_REASON_TEXT: Record<BasicReason, string> = {
-  no_ai: "Smart chat isn't switched on yet (no AI key is configured), but",
-  busy: "The AI is busy right now, but",
-  quota: "You've used today's AI credits, so smart chat is paused until tomorrow, but",
+  no_ai: "I can't chat freely yet, but I can help with a lot:",
+  busy: "My smart chat is busy for a moment, but I can still help with:",
+  quota: "Today's free AI credits are used up (they reset tomorrow), but I can still help with:",
 };
-const CAN_DO = "I can still **find jobs**, **show today's best opportunities**, **show my applications**, **pause/resume job search**, or update preferences like *\"Chennai, hybrid, 15 LPA\"*.";
+const CAN_DO = "\n- **Find jobs**, e.g. *\"find remote jobs above 15 LPA\"*\n- **Your best matches today**\n- **What to do next** in your search\n- On a job: **why you match**, **what's missing**, a **cover letter**, or **prepare the application**\n- **Update preferences**, e.g. *\"Chennai, hybrid, 15 LPA\"*";
 const GREETING = /^\s*(hi+|hey+|hello+|hola|namaste|namaskar|vanakkam|good (morning|afternoon|evening)|yo)\b[\s!.,👋🙏]*$/i;
 // Closing/decline messages that need a friendly word, not a round-trip to the model. "yes", "ok" and "sure" are NOT
 // here: they usually accept something the assistant just offered, so they need the conversation context.
@@ -274,6 +275,8 @@ export async function undoChange(uid: string, changeId: string): Promise<{ messa
 interface Intent {
   tool: string;
   args: Record<string, unknown>;
+  /** How to word the answer, e.g. "missing" leads with gaps, "why" with what fits. */
+  flavor?: "missing" | "why";
 }
 
 const PAGE_WORDS: Array<[AppPage, RegExp]> = [
@@ -285,8 +288,18 @@ const PAGE_WORDS: Array<[AppPage, RegExp]> = [
   ["home", /\b(home|dashboard)\b/],
 ];
 
-export function routeIntent(message: string): Intent | null {
+export function routeIntent(message: string, ctx?: ChatContext): Intent | null {
   const t = message.toLowerCase();
+  if (ctx?.jobId) {
+    const jobId = ctx.jobId;
+    if (/cover letter/.test(t)) return { tool: "generate_cover_letter", args: { jobId } };
+    if (/(tailor|prepare|apply|application|resume for)/.test(t) && !/(why|what|how)\b.*\b(match|fit)/.test(t)) return { tool: "prepare_application", args: { jobId } };
+    if (/\bsave\b/.test(t)) return { tool: "save_job", args: { jobId, saved: true } };
+    if (/(miss|lack|gap|don'?t have|do not have|need to learn|what.*(learn|add)|short of)/.test(t)) return { tool: "analyze_job_match", args: { jobId }, flavor: "missing" };
+    if (/(why|match|fit|suit|good for|right for|eligible|chance|score|this job)/.test(t)) return { tool: "analyze_job_match", args: { jobId }, flavor: "why" };
+  }
+  if (/(what should i do|what do i do|next step|what next|where (do|should) i start|how (do|should) i start|what now|guide me|help me get (a )?job)/.test(t)) return { tool: "__next_steps", args: {} };
+  if (/(how (do|does|to) (i )?use|what can you do|help$|^help|how does (this|the app) work)/.test(t)) return { tool: "__how_to", args: {} };
   if (/^\s*(open|go to|goto|take me to|show me|show)\b/.test(t)) {
     const hit = PAGE_WORDS.find(([, re]) => re.test(t));
     if (hit) return { tool: "open_page", args: { page: hit[0] } };
@@ -312,15 +325,19 @@ export function routeIntent(message: string): Intent | null {
 
 function basicReply(intent: Intent | null, out: { result?: ToolResult; pending?: PendingAction; error?: string } | null, why: BasicReason, message: string, name: string): string {
   if (!intent) {
-    const hello = GREETING.test(message) ? `Hi${name ? ` ${name}` : ""}! I'm your job-search assistant. ` : "";
-    return `${hello}${BASIC_REASON_TEXT[why]} ${CAN_DO}`;
+    const hello = GREETING.test(message) ? `Hi${name ? ` ${name}` : ""}! ` : "";
+    return `${hello}${BASIC_REASON_TEXT[why]}${CAN_DO}`;
   }
   // Answering from rules is fine, but people should know why the reply is simpler than usual.
-  if (why === "quota") return `You've used today's AI credits, so I'm in basic mode. ${basicReply(intent, out, "busy", message, name)}`;
+  if (why === "quota" && !intent.tool.startsWith("__")) return `${basicReply(intent, out, "busy", message, name)}\n\n*Today's free AI credits are used up, so this answer is a simple one.*`;
   if (!out || out.error) return out?.error || "Something went wrong.";
   if (out.pending) return `I need your confirmation: ${out.pending.summary}`;
   const d: any = out.result?.data;
   switch (intent.tool) {
+    case "analyze_job_match": return matchText(d, intent.flavor);
+    case "generate_cover_letter": return `Here's a cover letter for **${d.jobTitle || "this job"}**, written only from what's in your profile. Edit the parts in your own words before sending:\n\n${d.coverLetter}`;
+    case "prepare_application": return `Your application is ready to review: a resume tailored to this job and a cover letter, both built only from your real experience. ${d.nextStep || ""}`.trim();
+    case "save_job": return "Saved. You'll find it under **For you → Saved**.";
     case "search_jobs": return d.count ? `I found **${d.count}** matching job${d.count === 1 ? "" : "s"}. Here are the best ones:` : (d.note || "No matching jobs right now.");
     case "get_todays_summary": return `In the last 24 hours I found **${d.newInLast24h}** new jobs for you. **${d.strong}** are strong matches (80%+) and **${d.potential}** are potential matches.`;
     case "get_application_summary": return `You have **${d.total}** application${d.total === 1 ? "" : "s"}; **${d.appliedInPeriod.length}** applied recently and **${d.pending}** pending.`;
@@ -329,8 +346,31 @@ function basicReply(intent: Intent | null, out: { result?: ToolResult; pending?:
     case "get_profile_advice": return adviceText(d);
     case "open_page": return `Opening ${d.opened === "matches" ? "your matches" : d.opened === "home" ? "your dashboard" : `your ${d.opened}`}…`;
     case "run_job_search": return d.started ? "Started a fresh search across all sources. I'll notify you when it's done." : `A search ran recently — try again in about ${Math.ceil((d.retryInSeconds || 60) / 60)} min.`;
+    case "__next_steps": case "__how_to": return d.text;
     default: return "Done.";
   }
+}
+
+/** "Why do I match?" / "What am I missing?" from the match itself (no AI needed). */
+function matchText(d: any, flavor?: Intent["flavor"]): string {
+  if (!d || d.error) return d?.error || "I couldn't read this job.";
+  const title = d.job?.title ? `**${d.job.title}**${d.job.company ? ` at ${d.job.company}` : ""}` : "this job";
+  const band = d.score >= 80 ? "an excellent" : d.score >= 65 ? "a good" : d.score >= 50 ? "a fair" : "a weak";
+  const fits = (d.why || []).slice(0, 3).map((x: string) => `- ${x}`).join("\n");
+  const missing: string[] = d.missingSkills || [];
+  const gaps = (d.gaps || []).filter((g: string) => !/skills not found/i.test(g)).slice(0, 2);
+  if (flavor === "missing") {
+    if (!missing.length && !gaps.length) return `Good news: for ${title} your profile already covers what the job asks for. You're ${band} match (**${d.score}%**).`;
+    const lines = [`For ${title}, here's what your profile doesn't show yet:`];
+    if (missing.length) lines.push(`- **Skills:** ${missing.slice(0, 6).join(", ")}`);
+    for (const g of gaps) lines.push(`- ${g}`);
+    lines.push("", missing.length ? "If you've really used any of these, add them in **Profile → Skills** and your score will go up. If not, mention the closest thing you've done in your cover letter." : "Mention how your experience covers these in your cover letter.");
+    return lines.join("\n");
+  }
+  const lines = [`You're ${band} match for ${title} (**${d.score}%**).`];
+  if (fits) lines.push("", "**What fits:**", fits);
+  if (missing.length || gaps.length) lines.push("", "**What's missing:**", ...(missing.length ? [`- ${missing.slice(0, 5).join(", ")}`] : []), ...gaps.map((g: string) => `- ${g}`));
+  return lines.join("\n");
 }
 
 /** Rules-only version of the profile advice, used when the AI is unavailable. */
@@ -465,8 +505,8 @@ export async function runAgent(uid: string, message: string, history: ChatMessag
     if (!(err instanceof AiUnavailableError || err instanceof AiQuotaError)) console.warn("[agent] error", err);
     // Degrade gracefully: deterministic intent routing keeps core functions usable without AI.
     if (streamedAny) emit({ type: "reset" });
-    const intent = routeIntent(message);
-    const out = intent ? await runStep(intent.tool, intent.args, { tainted: false, modifies: 0 }) : null;
+    const intent = routeIntent(message, opts.context);
+    const out = intent && intent.tool.startsWith("__") ? await basicLocal(uid, intent.tool) : intent ? await runStep(intent.tool, intent.args, { tainted: false, modifies: 0 }) : null;
     collect(out?.result);
     const why: BasicReason = err instanceof AiQuotaError ? "quota" : (await aiStatus()).some((p) => p.configured) || (await getUserKey(uid)) ? "busy" : "no_ai";
     const reply = basicReply(intent, out, why, message, firstName(profile?.fullName || ""));
@@ -495,4 +535,25 @@ export async function saveFeedback(uid: string, messageId: string, rating: "up" 
   await (await getStore()).put("agentFeedback", `${uid}_${messageId}`, { uid, messageId, rating, reason: reason?.slice(0, 200), at: new Date().toISOString() });
   await saveConversation(uid, convo.map((m) => (m.id === messageId ? { ...m, rating } : m)));
   await audit(uid, "agent.feedback", { rating });
+}
+
+/** Basic-mode answers that are not tools: the next steps from the placement companion, and how to use the app. */
+async function basicLocal(uid: string, tool: string): Promise<{ result?: ToolResult; pending?: PendingAction; error?: string }> {
+  if (tool === "__next_steps") {
+    const j = await journeyFor(uid).catch(() => null);
+    const actions = (j?.actions || []).slice(0, 3);
+    const text = actions.length
+      ? ["Here's what I'd do next:", ...actions.map((a, i) => `${i + 1}. **${a.title}**. ${a.detail}`)].join("\n")
+      : "You're all caught up. I'll tell you as soon as a strong new match appears.";
+    return { result: { data: { text } } };
+  }
+  return { result: { data: { text: [
+    "Here's how to get the most out of MyCareer.AI:",
+    "1. **Home** shows what to do today, your weekly plan and your progress.",
+    "2. **For you** lists jobs ranked by how well they fit. Open one to see why, then **Prepare my application**.",
+    "3. **Applications** tracks everything you've applied for. Drag cards as things move.",
+    "4. **Interview prep** gives likely questions and a mock interview you can speak.",
+    "5. **Resumes** has your resume, a check with fixes, and a PDF download.",
+    "You can also just ask me, or tap the microphone and talk.",
+  ].join("\n") } } };
 }

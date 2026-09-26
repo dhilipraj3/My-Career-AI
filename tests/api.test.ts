@@ -323,7 +323,7 @@ describe("AI agent", () => {
     const apps = await request(app).post("/api/agent/chat").set(A).send({ message: "What did I apply for this week?" });
     expect(apps.body.reply).toMatch(/application/i);
     const help = await request(app).post("/api/agent/chat").set(A).send({ message: "asdf qwerty" });
-    expect(help.body.reply).toMatch(/AI is busy.*I can still \*\*find jobs\*\*/i);
+    expect(help.body.reply).toMatch(/smart chat is busy.*\*\*Find jobs\*\*/is);
     expect(help.body.basicReason).toBe("busy");
   });
 

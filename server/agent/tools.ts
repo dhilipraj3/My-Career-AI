@@ -265,7 +265,7 @@ export const TOOLS: Tool[] = [
       if (!p) throw new AppError(409, "Upload a resume first.");
       const job = await getJobForUser(uid, jobId);
       const r = await generateCoverLetter(uid, p, job);
-      return { data: { coverLetter: r.text, generatedBy: r.generatedBy } };
+      return { data: { coverLetter: r.text, generatedBy: r.generatedBy, jobTitle: job.title } };
     },
   },
   {

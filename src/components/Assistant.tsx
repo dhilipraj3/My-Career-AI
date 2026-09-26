@@ -147,6 +147,7 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
   const [summary, setSummary] = useState<FeedSummary | null>(null);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [noteHidden, setNoteHidden] = useState(() => { try { return sessionStorage.getItem("mc_chat_note") === "1"; } catch { return false; } });
   const guidePose = useGuidePose();
   const speakingNow = useGuideSpeaking();
   const [basicReason, setBasicReason] = useState<"no_ai" | "busy" | "quota" | undefined>(ai.available ? undefined : "no_ai");
@@ -270,7 +271,7 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
     <>
       {expanded && <div className="scrim fixed inset-0 z-40 hidden animate-fade-in lg:block" onMouseDown={() => setExpanded(false)} />}
       <aside role="complementary" aria-label="AI assistant"
-        className={cn("glass-strong fixed inset-0 z-50 flex flex-col animate-slide-in-right lg:inset-y-0 lg:left-auto lg:right-0 lg:border-l",
+        className={cn("glass-strong fixed inset-0 z-50 flex h-[100dvh] flex-col animate-slide-in-right lg:inset-y-0 lg:left-auto lg:right-0 lg:border-l",
           expanded ? "lg:w-[min(780px,calc(100vw-2rem))]" : "lg:w-[420px]")}>
         {/* Header */}
         <div className="flex items-center gap-3 border-b border-white/70 px-4 py-3">
@@ -288,20 +289,17 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
           <button onClick={onClose} title="Close (Esc)" aria-label="Close assistant" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X className="h-5 w-5" /></button>
         </div>
 
-        {basicReason && !ai.ownKey && messages.length > 0 && (
-          <div className="mx-4 mt-3 flex items-start gap-3 rounded-2xl border border-brand-100 bg-brand-50 p-3 text-sm">
-            <KeyRound className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
-            <div className="flex-1">
-              <p className="font-medium text-brand-900">{basicReason === "quota" ? "Today's free AI credits are used up" : basicReason === "busy" ? "The shared AI is busy right now" : "Smart chat isn't switched on yet"}</p>
-              <p className="mt-0.5 text-brand-800/80">I can still find jobs and show matches. Add your free Google key for full, unlimited AI.</p>
-              <Button size="sm" className="mt-2" onClick={onAiSetup}>Unlock free AI</Button>
-            </div>
+        {basicReason && !ai.ownKey && messages.length > 0 && !noteHidden && (
+          <div className="flex items-center gap-2 border-b border-slate-200/70 bg-brand-50/70 px-4 py-2 text-xs text-brand-900">
+            <KeyRound className="h-3.5 w-3.5 shrink-0 text-brand-600" />
+            <span className="min-w-0 flex-1">{basicReason === "quota" ? "Today's free AI credits are used up." : basicReason === "busy" ? "Smart chat is busy right now." : "Basic mode: simple answers."} <button onClick={onAiSetup} className="font-semibold text-brand-700 underline underline-offset-2">Switch on smart chat</button></span>
+            <button onClick={() => { setNoteHidden(true); try { sessionStorage.setItem("mc_chat_note", "1"); } catch { /* private mode */ } }} aria-label="Hide this note" className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-brand-700/70 hover:bg-brand-100"><X className="h-3.5 w-3.5" /></button>
           </div>
         )}
 
         {/* Conversation */}
-        <div ref={scroller} onScroll={onScroll} className="flex-1 overflow-y-auto overscroll-contain">
-          <div className={cn("mx-auto flex min-h-full flex-col space-y-6 px-4 py-5", expanded && "max-w-2xl")}>
+        <div ref={scroller} onScroll={onScroll} className="chat-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <div className={cn("mx-auto flex min-h-full flex-col space-y-5 px-4 pb-4 pt-5", expanded && "max-w-2xl")}>
             {messages.length === 0 && (
               <div className="flex flex-1 animate-fade-in flex-col gap-5 pt-1">
                 <div className="flex items-center gap-4">
@@ -350,7 +348,7 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
 
             {messages.map((m, i) => m.role === "user" ? (
               <div key={i} className="flex justify-end animate-fade-in">
-                <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-brand-50 px-3.5 py-2 text-[14.5px] text-ink ring-1 ring-brand-100">{m.text}</p>
+                <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-brand-600 px-3.5 py-2 text-[14.5px] text-white shadow-sm">{m.text}</p>
               </div>
             ) : (
               <div key={i} className="group flex gap-2.5 animate-fade-in">
@@ -374,9 +372,9 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
                     <MessageActions m={m} isLast={i === lastIdx} onRate={(r) => void rate(m, r)} onRegenerate={() => lastUser && void send(lastUser.text, { regenerate: true })} />
                   )}
                   {i === lastIdx && !m.streaming && !busy && m.suggestions && m.suggestions.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
+                    <div className="mt-3 flex flex-wrap gap-1.5">
                       {m.suggestions.slice(0, 3).map((s) => (
-                        <button key={s} onClick={() => void send(s)} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[13px] text-slate-700 transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700">{s}</button>
+                        <button key={s} onClick={() => void send(s)} className="inline-flex h-8 items-center rounded-full border border-brand-200 bg-brand-50/60 px-3 text-[13px] font-medium text-brand-800 transition hover:border-brand-400 hover:bg-brand-50">{s}</button>
                       ))}
                     </div>
                   )}
@@ -387,7 +385,7 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
         </div>
 
         {/* Composer */}
-        <form onSubmit={(e) => { e.preventDefault(); void send(input); }} className={cn("px-3 pb-3 pt-2", expanded && "mx-auto w-full max-w-2xl")}>
+        <form onSubmit={(e) => { e.preventDefault(); void send(input); }} className={cn("shrink-0 border-t border-slate-200/70 px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2.5", expanded && "mx-auto w-full max-w-2xl border-t-0")}>
           <div className={cn("rounded-2xl border bg-white/90 shadow-sm transition focus-within:border-brand-400 focus-within:ring-4 focus-within:ring-brand-100", dictation.listening ? "border-red-300" : "border-slate-200")}>
             <textarea ref={box} value={input} onChange={(e) => setInput(e.target.value)} rows={1} maxLength={1500}
               placeholder={dictation.listening ? "Listening…" : context.jobId ? "Ask about this job…" : "Ask anything — e.g. “Remote jobs above 20 LPA”"}
@@ -405,7 +403,7 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
                     className="rounded-md px-1.5 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-100">{lang === "en-IN" ? "EN" : "हिं"}</button>
                 </>
               )}
-              <span className="ml-auto hidden text-[11px] text-slate-400 sm:block">Enter to send · Shift+Enter for a new line</span>
+              <span className="ml-auto hidden truncate text-[11px] text-slate-400 xl:block">Enter to send · Shift+Enter for a new line</span>
               {busy ? (
                 <button type="button" onClick={() => abort.current?.abort()} aria-label="Stop" title="Stop" className="ml-2 flex h-8 w-8 items-center justify-center rounded-lg bg-[#0f2a3b] text-white hover:bg-slate-700"><Square className="h-3.5 w-3.5 fill-current" /></button>
               ) : (
@@ -414,7 +412,7 @@ export default function Assistant({ onClose, initialPrompt, ai, context, openJob
             </div>
           </div>
           {dictation.error && <p className="mt-1 px-1 text-xs text-red-600">{dictation.error}</p>}
-          <p className="mt-1.5 text-center text-[11px] text-slate-400">I can make mistakes, and I always ask before doing anything important.</p>
+          <p className="mt-1.5 truncate text-center text-[11px] text-slate-400">I can make mistakes. I always ask before doing anything important.</p>
         </form>
       </aside>
     </>
