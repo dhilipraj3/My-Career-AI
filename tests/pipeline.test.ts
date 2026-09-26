@@ -195,6 +195,21 @@ describe("resume truthfulness (scope §29.1)", () => {
     expect(c.skills.length).toBeGreaterThan(3);
   });
 
+  it("tailoring argues fit for the selected job instead of repeating the resume", async () => {
+    const p = await readyProfile();
+    const n = normalizeRaw(rawJob()); if (isRejected(n)) throw new Error();
+    const c = deterministicTailoring(p, n.job);
+    expect(c.headline).toContain(n.job.title);
+    expect(c.summary).toContain(n.job.company);
+    expect(c.summary).not.toBe(p.summary);
+    expect(c.fit!.length).toBeGreaterThan(0);
+    expect(validateTailored(c, p).ok).toBe(true);
+    // A fit point claiming a skill the candidate lacks is rejected, then dropped by repair.
+    const bad = { ...c, fit: [...c.fit!, "Kubernetes: ran production clusters"] };
+    expect(validateTailored(bad, p).ok).toBe(false);
+    expect(repairTailored(bad, p).fit).not.toContain("Kubernetes: ran production clusters");
+  });
+
   async function baseContent() {
     const p = await readyProfile();
     const n = normalizeRaw(rawJob()); if (isRejected(n)) throw new Error();

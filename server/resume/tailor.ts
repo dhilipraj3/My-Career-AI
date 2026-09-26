@@ -4,7 +4,7 @@ import type { CandidateProfile, ExperienceEntry, Job, JobMatch, ResumeVersion, T
 import { generateJSON, generateText } from "../ai/gateway.js";
 import { audit } from "../audit.js";
 import { getStore } from "../db/store.js";
-import { extractSkillKeys, normalizeSkillKey } from "../nlp/skills.js";
+import { displayName, extractSkillKeys, normalizeSkillKey } from "../nlp/skills.js";
 import { UNTRUSTED_NOTICE, fenceUntrusted, overlap, tokenize } from "../nlp/text.js";
 import { notify } from "../notifications.js";
 
@@ -27,7 +27,7 @@ function experienceFacts(e: ExperienceEntry): string[] {
   return [...e.responsibilities, ...e.achievements];
 }
 
-function isGroundedBullet(bullet: string, sources: string[], allProfileText: string): { ok: boolean; reason?: string } {
+function isGroundedBullet(bullet: string, sources: string[], allProfileText: string, claimable?: Set<string>, minOverlap = 0.45): { ok: boolean; reason?: string } {
   const bt = tokens(bullet);
   if (!bt.size) return { ok: false, reason: "empty bullet" };
   let best = 0;
@@ -36,12 +36,17 @@ function isGroundedBullet(bullet: string, sources: string[], allProfileText: str
     const o = overlap(bt, tokens(src));
     if (o > best) { best = o; bestSrc = src; }
   }
-  if (best < 0.6) return { ok: false, reason: "does not correspond to anything in your resume for this role" };
+  if (best < minOverlap) return { ok: false, reason: "does not correspond to anything in your resume for this role" };
+  const foreign = claimable ? extractSkillKeys(bullet).find((k) => !claimable.has(k)) : undefined;
+  if (foreign) return { ok: false, reason: `mentions "${foreign.replace(/_/g, " ")}", which isn't a verified skill in your profile` };
   const srcNums = new Set(numbersIn(bestSrc + " " + allProfileText));
   const invented = numbersIn(bullet).find((n) => !srcNums.has(n));
   if (invented) return { ok: false, reason: `contains the figure "${invented}", which isn't in your resume` };
   return { ok: true };
 }
+
+const SKILLS_ONLY = /^also skilled in:/i;
+const allFacts = (p: CandidateProfile) => [...p.experience.flatMap(experienceFacts), ...p.projects.map((x) => x.description)];
 
 /** Everything a text may mention about the candidate, for claim checking (summary, cover letters). */
 export function checkClaims(text: string, p: CandidateProfile, path: string): ValidationIssue[] {
@@ -86,11 +91,15 @@ export function validateTailored(c: TailoredResumeContent, p: CandidateProfile):
     if (norm(e.designation) !== norm(src.designation)) issues.push({ severity: "error", path: `experience[${i}].designation`, message: `Job title was changed (expected "${src.designation}")` });
     if (e.period !== periodOf(src)) issues.push({ severity: "error", path: `experience[${i}].period`, message: `Dates were changed (expected "${periodOf(src)}")` });
     e.bullets.forEach((b, j) => {
-      const g = isGroundedBullet(b, experienceFacts(src), all);
+      const g = isGroundedBullet(b, experienceFacts(src), all, claimable);
       if (!g.ok) issues.push({ severity: "error", path: `experience[${i}].bullets[${j}]`, message: `Bullet ${g.reason}` });
     });
   });
 
+  c.fit?.forEach((f, i) => {
+    issues.push(...checkClaims(f, p, `fit[${i}]`));
+    if (!SKILLS_ONLY.test(f)) { const g = isGroundedBullet(f, allFacts(p), all, claimable, 0.4); if (!g.ok) issues.push({ severity: "error", path: `fit[${i}]`, message: `Fit point ${g.reason}` }); }
+  });
   c.skills.forEach((s, i) => {
     if (!claimable.has(normalizeSkillKey(s))) issues.push({ severity: "error", path: `skills[${i}]`, message: `"${s}" is not a verified skill in your profile` });
   });
@@ -120,7 +129,7 @@ export function repairTailored(c: TailoredResumeContent, p: CandidateProfile): T
       if (!src) return null;
       return {
         experienceId: src.id, company: src.company, designation: src.designation, period: periodOf(src),
-        bullets: e.bullets.filter((b) => isGroundedBullet(b, experienceFacts(src), all).ok),
+        bullets: e.bullets.filter((b) => isGroundedBullet(b, experienceFacts(src), all, claimable).ok),
       };
     })
     .filter((e): e is NonNullable<typeof e> => Boolean(e));
@@ -129,6 +138,7 @@ export function repairTailored(c: TailoredResumeContent, p: CandidateProfile): T
     headline: c.headline,
     summary: summaryIssues.length ? p.summary || "" : c.summary,
     experience,
+    fit: c.fit?.filter((f) => checkClaims(f, p, "fit").every((i) => i.severity !== "error") && (SKILLS_ONLY.test(f) || isGroundedBullet(f, allFacts(p), all, claimable, 0.4).ok)),
     skills: c.skills.filter((s) => claimable.has(normalizeSkillKey(s))),
     education: c.education.filter((e) => p.education.some((x) => norm(x.institution) === norm(e.institution) && norm(x.degree) === norm(e.degree))),
     certifications: c.certifications.filter((n) => p.certifications.some((x) => norm(x.name) === norm(n))),
@@ -157,14 +167,23 @@ export function deterministicTailoring(p: CandidateProfile, job: Job): TailoredR
   const skills = claimable.slice(0, 20).map((s) => s.name);
   const companies = [...new Set(p.experience.map((e) => e.company).filter(Boolean))].slice(0, 3);
   const topSkills = claimable.filter((s) => jobSkills.has(s.key)).slice(0, 5).map((s) => s.name);
-  const summary = p.summary && p.provenance.summary !== "ai_derived"
-    ? p.summary
-    : [
-        `${p.currentRole || "Professional"}${p.totalExperienceYears ? ` with ${Math.floor(p.totalExperienceYears)} years of experience` : ""}${companies.length ? ` at ${companies.join(", ")}` : ""}.`,
-        topSkills.length ? `Skilled in ${topSkills.join(", ")}.` : "",
-      ].filter(Boolean).join(" ");
+  const yrs = Math.floor(p.totalExperienceYears);
+  const summary = [
+    `${p.currentRole || "Professional"}${yrs ? ` with ${yrs}+ years of experience` : ""}${companies.length ? ` at ${companies.join(", ")}` : ""}, applying for the ${job.title} role at ${job.company}.`,
+    topSkills.length ? `Brings hands-on ${topSkills.join(", ")} — the skills this role asks for.` : "",
+  ].filter(Boolean).join(" ");
+  // "Why I'm a fit": each skill the job asks for and the candidate really has, with the candidate's own evidence for it.
+  const facts = allFacts(p);
+  const fit: string[] = [];
+  const undocumented: string[] = [];
+  for (const s of claimable.filter((x) => jobSkills.has(x.key)).slice(0, 8)) {
+    const ev = facts.find((f) => extractSkillKeys(f).includes(s.key));
+    if (ev && fit.length < 5) fit.push(`${displayName(s.key, s.name)}: ${ev.replace(/^[•\-–\s]+/, "").replace(/[.\s]+$/, "")}`);
+    else undocumented.push(s.name);
+  }
+  if (undocumented.length) fit.push(`Also skilled in: ${undocumented.join(", ")}`);
   return {
-    headline: p.currentRole || job.title, summary,
+    headline: [p.currentRole, `Seeking ${job.title}`].filter(Boolean).join(" · "), summary, fit,
     experience,
     skills,
     education: p.education.map((e) => ({ degree: e.degree, institution: e.institution, gradYear: e.gradYear })),
@@ -178,6 +197,7 @@ export function deterministicTailoring(p: CandidateProfile, job: Job): TailoredR
 const AiTailored = z.object({
   headline: z.string().catch(""),
   summary: z.string().catch(""),
+  fit: z.array(z.string()).catch([]),
   experience: z.array(z.object({ experienceId: z.string(), bullets: z.array(z.string()).catch([]) })).catch([]),
   skills: z.array(z.string()).catch([]),
   projects: z.array(z.object({ title: z.string(), description: z.string() })).catch([]),
@@ -190,13 +210,18 @@ async function aiTailoring(uid: string, p: CandidateProfile, job: Job, match: Jo
     verifiedSkills: p.skills.filter((s) => s.source !== "ai_derived").map((s) => s.name),
     projects: p.projects.map((x) => ({ title: x.title, description: x.description })),
   };
-  const prompt = `Tailor this candidate's resume for the job. You may ONLY reorder, select and lightly rephrase the candidate's verified facts.
+  const prompt = `Write this candidate's resume so it argues clearly why THEY FIT THIS SPECIFIC JOB. It must read differently from their generic resume: aimed at this job's title, requirements and vocabulary. You may ONLY select, reorder and rephrase the candidate's verified facts (rephrase to echo the job's wording when the candidate truly did that work).
+WHAT TO PRODUCE:
+- headline: aimed at the job, e.g. "<their current role> · Seeking <job title>" (a short line, no claims beyond their facts).
+- summary: 2-3 sentences positioning the candidate for THIS job and company, naming the verified skills and experience that match what the job asks for.
+- fit: 3-5 points, each pairing a requirement of the job with the candidate's own evidence for it (e.g. "Agile delivery: led 3 Scrum teams at Acme"). Only requirements the candidate genuinely meets. Never mention a requirement they lack.
+- experience bullets: pick the 3-5 most relevant to this job per role, most relevant first, phrased toward the job's needs.
 STRICT RULES:
 - Never add skills, tools, employers, titles, dates, numbers, certifications, projects or responsibilities that are not in CANDIDATE FACTS.
 - Every bullet must restate a fact from the same role's "facts" list (keep any numbers exactly). Choose the 3-5 most relevant per role; put the most relevant first.
 - "skills" must be chosen only from verifiedSkills, most relevant to the job first.
 - Summary: 2-3 sentences using only verified facts; do not claim more years than ${Math.ceil(p.totalExperienceYears)}.
-Return JSON: {"headline":"","summary":"","experience":[{"experienceId":"","bullets":[""]}],"skills":[""],"projects":[{"title":"","description":""}]}
+Return JSON: {"headline":"","summary":"","fit":[""],"experience":[{"experienceId":"","bullets":[""]}],"skills":[""],"projects":[{"title":"","description":""}]}
 
 CANDIDATE FACTS:
 ${JSON.stringify(facts)}
@@ -208,6 +233,7 @@ ${fenceUntrusted("job_posting", `${job.title} at ${job.company}\n${job.descripti
   return {
     headline: r.headline || p.currentRole,
     summary: r.summary,
+    fit: r.fit.filter(Boolean).slice(0, 5),
     experience: [...p.experience]
       .sort((a, b) => (b.current ? 1 : 0) - (a.current ? 1 : 0) || (b.startDate || "").localeCompare(a.startDate || ""))
       .map((e) => ({ experienceId: e.id, company: e.company, designation: e.designation, period: periodOf(e), bullets: bullets.get(e.id) || [] })),
@@ -221,6 +247,7 @@ ${fenceUntrusted("job_posting", `${job.title} at ${job.company}\n${job.descripti
 export function renderResumeText(p: CandidateProfile, c: TailoredResumeContent): string {
   const contact = [p.email, p.phone, [p.city, p.state].filter(Boolean).join(", "), p.links.linkedin, p.links.github].filter(Boolean).join(" | ");
   const lines = [p.fullName.toUpperCase(), c.headline, contact, "", "SUMMARY", c.summary, ""];
+  if (c.fit?.length) lines.push("WHY I'M A FIT FOR THIS ROLE", ...c.fit.map((f) => `• ${f}`), "");
   if (c.skills.length) lines.push("SKILLS", c.skills.join(", "), "");
   if (c.experience.length) {
     lines.push("EXPERIENCE");

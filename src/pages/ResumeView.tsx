@@ -48,6 +48,12 @@ export default function ResumeView({ version, profile, onApprove, busy, error }:
           <h3 className="mb-1 text-xs font-bold uppercase tracking-wide text-slate-500">Summary</h3>
           {editing ? <textarea value={content.summary} onChange={(e) => setContent({ ...content, summary: e.target.value })} rows={3} className="w-full rounded border border-slate-300 p-2" /> : <p>{content.summary}</p>}
         </section>
+        {content.fit && content.fit.length > 0 && (
+          <section>
+            <h3 className="mb-1 text-xs font-bold uppercase tracking-wide text-brand-700">Why I'm a fit for this role</h3>
+            <ul className="list-disc space-y-1 pl-5">{content.fit.map((f, i) => <li key={i}>{f}</li>)}</ul>
+          </section>
+        )}
         {content.skills.length > 0 && (
           <section>
             <h3 className="mb-1 text-xs font-bold uppercase tracking-wide text-slate-500">Skills</h3>

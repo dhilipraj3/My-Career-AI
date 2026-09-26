@@ -146,6 +146,8 @@ export interface TailoredResumeContent {
   education: Array<{ degree: string; institution: string; gradYear?: string }>;
   certifications: string[];
   projects: Array<{ title: string; description: string }>;
+  /** "Why I'm a fit for this role": each point pairs something the job asks for with the candidate's own evidence. */
+  fit?: string[];
 }
 
 export interface ValidationIssue {
