@@ -5,6 +5,19 @@ import { Badge, Button, Card, ErrorNote, Section, Spinner, timeAgo, useToast } f
 
 interface Queue { jobs: Array<EmployerJob & { employer: Employer | null }>; employers: Employer[]; reports: JobReport[] }
 
+function RecentErrors() {
+  const [errors, setErrors] = useState<Array<{ at: string; requestId: string; method: string; path: string; status: number; message: string }> | null>(null);
+  useEffect(() => { api<{ errors: NonNullable<typeof errors> }>("/admin/errors").then((r) => setErrors(r.errors)).catch(() => setErrors([])); }, []);
+  if (!errors) return null;
+  return (
+    <Section title={`Recent errors (${errors.length})`}>
+      <Card className="p-4">{errors.length === 0 ? <p className="text-sm text-slate-500">No unexpected errors since the server started.</p> : (
+        <ul className="divide-y divide-slate-100 text-sm">{errors.slice(0, 10).map((e) => <li key={e.requestId + e.at} className="py-1.5"><span className="font-mono text-xs text-slate-500">{e.requestId}</span> <Badge tone="red">{e.status}</Badge> <span className="font-medium">{e.method} {e.path}</span> <span className="text-slate-600">{e.message}</span> <span className="text-xs text-slate-400">{timeAgo(e.at)}</span></li>)}</ul>
+      )}</Card>
+    </Section>
+  );
+}
+
 /** Employer jobs waiting for a human decision, companies to verify, and candidate reports. */
 export default function AdminModeration() {
   const toast = useToast();
@@ -16,8 +29,11 @@ export default function AdminModeration() {
 
   if (error) return <ErrorNote error={error} />;
   if (!q) return <Spinner />;
+  const errorsView = <RecentErrors />;
   const empty = !q.jobs.length && !q.employers.length && !q.reports.length;
   return (
+    <>
+    {errorsView}
     <Section title={`Employer moderation${empty ? "" : ` (${q.jobs.length + q.employers.length + q.reports.length})`}`}>
       {empty ? <Card className="text-sm text-slate-500">Nothing waiting. 🎉</Card> : (
         <div className="space-y-3">
@@ -49,5 +65,6 @@ export default function AdminModeration() {
         </div>
       )}
     </Section>
+    </>
   );
 }

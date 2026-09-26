@@ -1,7 +1,7 @@
-import { BarChart3, KeyRound, LogOut, PauseCircle, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
+import { BarChart3, Download, KeyRound, LogOut, PauseCircle, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import type { AiState, Me } from "../App";
-import { api, devUser, errMsg } from "../lib/api";
+import { api, devUser, downloadFile, errMsg } from "../lib/api";
 import { getConsent, setConsent } from "../lib/analytics";
 import { signOutUser } from "../lib/firebase";
 import { useNav } from "../lib/nav";
@@ -69,6 +69,10 @@ export default function Settings({ me, ai }: { me: Me; ai: AiState }) {
         <h2 className="px-1 text-sm font-semibold uppercase tracking-wider text-slate-500">Account & privacy</h2>
         <Card className="divide-y divide-slate-100 p-0">
           <Row icon={<ShieldCheck className="h-5 w-5" />} title="Your data" detail="Your resume and profile are private to you. I never submit applications or share your details without your confirmation." />
+          <Row icon={<Download className="h-5 w-5" />} title="Download your data"
+            detail="Get everything I hold about you as one file: profile, resumes, applications, practice sessions and activity. Stored AI keys are never included.">
+            <Button variant="secondary" onClick={() => void downloadFile("/me/export", "my-mycareer-ai-data.json").catch((e) => toast("error", errMsg(e)))}>Download</Button>
+          </Row>
           <Row icon={<BarChart3 className="h-5 w-5" />} title="Usage analytics"
             detail={analyticsOn ? "On — anonymous usage counts (pages, searches, saves) help us improve. No name, email or resume details are sent." : "Off — nothing about how you use the app is sent to Google Analytics."}>
             <Button variant="secondary" onClick={() => { setConsent(!analyticsOn); setAnalyticsOn(!analyticsOn); toast("info", analyticsOn ? "Analytics turned off" : "Thanks — analytics turned on"); }}>{analyticsOn ? "Turn off" : "Turn on"}</Button>

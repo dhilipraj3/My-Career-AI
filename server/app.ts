@@ -3,6 +3,7 @@ import express from "express";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { buildRouter, errorHandler } from "./routes.js";
+import { requestContext } from "./log.js";
 import { employerRedirect } from "./employer/routes.js";
 import { seoRouter } from "./seo/index.js";
 
@@ -25,6 +26,7 @@ export function createApp() {
       crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }, // required for Google sign-in popup
     }),
   );
+  app.use(requestContext());
   // Gzip responses — except the assistant's live stream, which must reach the browser as it's written.
   app.use(compression({ filter: (req, res) => !req.path.endsWith("/stream") && compression.filter(req, res) }));
   app.use(express.json({ limit: "1mb" }));

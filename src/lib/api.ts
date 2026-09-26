@@ -30,3 +30,15 @@ export async function api<T = any>(path: string, opts: { method?: string; body?:
 }
 
 export const errMsg = (e: unknown) => (e instanceof Error ? e.message : "Something went wrong");
+
+/** Download a file the server generates for the signed-in user (data export, calendar file…). */
+export async function downloadFile(path: string, filename: string): Promise<void> {
+  const t = await token();
+  const res = await fetch(`/api${path}`, { headers: t ? { Authorization: `Bearer ${t}` } : {} });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || "Download failed");
+  const url = URL.createObjectURL(await res.blob());
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}

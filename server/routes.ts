@@ -46,6 +46,8 @@ import { publicSearch, publicStats } from "./public.js";
 import { careerRouter } from "./career/routes.js";
 import { companionRouter } from "./companion/routes.js";
 import { interviewRouter } from "./interview/routes.js";
+import { eraseUserData, exportUserData } from "./privacy.js";
+import { recentErrors, recordError } from "./log.js";
 import { employerRouter } from "./employer/routes.js";
 import { insightsRouter } from "./insights/routes.js";
 
@@ -181,20 +183,15 @@ export function buildRouter(): express.Router {
     res.json({ profile, understood, understoodAnything: Object.keys(understood).length > 0 });
   }));
 
+  r.get("/me/export", wrap(async (req, res) => {
+    await audit(req.user!.uid, "privacy.exported", {});
+    res.setHeader("Content-Disposition", 'attachment; filename="my-mycareer-ai-data.json"');
+    res.json(await exportUserData(req.user!.uid));
+  }));
+
   r.delete("/account", wrap(async (req, res) => {
-    const uid = req.user!.uid;
-    const store = await getStore();
-    await deleteUserKey(uid);
-    for (const col of ["resumes", "resumeVersions", "matches", "applications", "notifications", "aiUsage", "conversations", "pendingActions"] as const) {
-      const rows = await store.query<{ id?: string; uid?: string }>(col, { where: { uid } });
-      for (const row of rows) if (row.id) await store.del(col, row.id);
-    }
-    const ownedJobs = await store.query<Job>("jobs", { where: { ownerUid: uid } });
-    for (const j of ownedJobs) await store.del("jobs", j.id);
-    await syncJobs(ownedJobs.map((j) => j.id));
-    await store.del("conversations", uid);
-    await store.del("profiles", uid);
-    await audit(uid, "account.deleted", {});
+    await eraseUserData(req.user!.uid);
+    console.log(JSON.stringify({ level: "info", msg: "account.deleted", at: new Date().toISOString() }));
     res.json({ deleted: true });
   }));
 
@@ -516,6 +513,7 @@ export function buildRouter(): express.Router {
   }));
 
   // ---------------- admin ----------------
+  r.get("/admin/errors", requireAdmin, wrap(async (_req, res) => res.json({ errors: recentErrors() })));
   r.get("/admin/connectors", requireAdmin, wrap(async (_req, res) => res.json({ connectors: await listConnectorHealth() })));
   r.post("/admin/connectors/:id/toggle", requireAdmin, wrap(async (req, res) => {
     const { enabled } = z.object({ enabled: z.boolean() }).parse(req.body);
@@ -696,7 +694,7 @@ export function buildRouter(): express.Router {
   return r;
 }
 
-export function errorHandler(err: any, _req: Request, res: Response, _next: NextFunction) {
+export function errorHandler(err: any, req: Request, res: Response, _next: NextFunction) {
   if (err instanceof AppError) return res.status(err.status).json({ error: err.message });
   if (err instanceof ResumeError) return res.status(err.code === "too_large" ? 413 : 422).json({ error: err.message, code: err.code });
   if (err instanceof z.ZodError) return res.status(400).json({ error: "Invalid request", details: err.issues.slice(0, 5).map((i) => `${i.path.join(".")}: ${i.message}`) });
@@ -707,6 +705,6 @@ export function errorHandler(err: any, _req: Request, res: Response, _next: Next
   // body-parser and friends signal client mistakes (bad JSON, payload too large) with a 4xx status.
   if (Number.isInteger(err?.status) && err.status >= 400 && err.status < 500)
     return res.status(err.status).json({ error: err.type === "entity.too.large" ? "Request is too large." : err.type === "entity.parse.failed" ? "Invalid JSON in request body." : "Bad request." });
-  console.error("[error]", err);
-  res.status(500).json({ error: "Something went wrong. Please try again." });
+  const requestId = recordError(req, err);
+  res.status(500).json({ error: "Something went wrong. Please try again.", requestId });
 }
