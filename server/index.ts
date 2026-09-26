@@ -20,7 +20,7 @@ async function main() {
     if (req.path.startsWith("/api/")) return res.status(503).json({ error: "MyCareer.AI is starting up — please try again in a few seconds." });
     res.status(503).set("Retry-After", "10").type("html").send('<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="8"><title>Starting…</title><body style="font-family:system-ui;display:grid;place-items:center;height:90vh;color:#0a2230"><div style="text-align:center"><p style="font-size:20px;font-weight:700">MyCareer.AI is starting up…</p><p>This page will refresh by itself.</p></div>');
   });
-  const server = root.listen(config.port, "0.0.0.0", () => console.log(`[server] listening on port ${config.port}, getting ready…`));
+  const server = root.listen(config.port, () => console.log(`[server] listening on port ${config.port}, getting ready…`));
 
   const store = await getStore();
   const app = createApp();
