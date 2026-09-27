@@ -67,9 +67,12 @@ export default function Dashboard({ me, ai }: { me: Me; ai: AiState }) {
         {co?.journey && !co.journey.placement && stage >= 2 && <button className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700 hover:underline" onClick={() => setPlacing(true)}><PartyPopper className="h-4 w-4" />I got placed</button>}
       </section>
 
+      {/* Lead with quality, not volume: a big raw count ("2,048 matches") reads as a pile to sift through, not a
+          curated result — the opposite of the confidence this screen is meant to give. Excellent leads; the total
+          is still there, just as context underneath, not the headline number. */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Matches for you" value={summary ? <CountUp value={summary.total} /> : <Skeleton className="h-7 w-16" />} hint="fair or better" onClick={tile("matches")} icon={<Sparkles className="h-3.5 w-3.5" />} />
-        <Stat label="Strong matches" tone="green" value={summary ? <CountUp value={summary.bands.excellent + summary.bands.good} /> : <Skeleton className="h-7 w-10" />} hint={summary ? `${summary.bands.excellent} excellent · ${summary.bands.good} good` : " "} onClick={tile("matches")} />
+        <Stat label="Excellent matches" tone="green" value={summary ? <CountUp value={summary.bands.excellent} /> : <Skeleton className="h-7 w-10" />} hint={summary ? `your strongest fits, of ${summary.total.toLocaleString("en-IN")} found` : " "} onClick={tile("matches")} icon={<Sparkles className="h-3.5 w-3.5" />} />
+        <Stat label="Good matches" value={summary ? <CountUp value={summary.bands.good} /> : <Skeleton className="h-7 w-10" />} hint="close seconds, worth a look" onClick={tile("matches")} />
         <Stat label="Applications" tone="brand" value={apps ? active.length : <Skeleton className="h-7 w-10" />} hint={interviews.length ? `${interviews.length} interview${interviews.length === 1 ? "" : "s"} coming up` : "in progress"} onClick={tile("applications")} icon={<Briefcase className="h-3.5 w-3.5" />} />
         <Stat label="Profile strength" tone={p.completeness.score >= 90 ? "green" : "amber"} value={<><CountUp value={p.completeness.score} />%</>} hint={<Progress value={p.completeness.score} tone={p.completeness.score >= 90 ? "green" : "amber"} className="mt-1.5 h-1.5" />} onClick={tile("profile")} />
       </div>
@@ -88,7 +91,7 @@ export default function Dashboard({ me, ai }: { me: Me; ai: AiState }) {
         </Section>
 
         <div className="space-y-6">
-          <UnderstandingCard onChanged={() => void nav.refresh()} />
+          <UnderstandingCard compact onChanged={() => void nav.refresh()} />
           {co?.journey && <PulseCard journey={co.journey} />}
           {co && <ActivityCard activity={co.activity} />}
 

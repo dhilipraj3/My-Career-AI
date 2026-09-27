@@ -22,7 +22,7 @@ export function UnderstandingRing({ score, size = 72 }: { score: number; size?: 
   );
 }
 
-export default function UnderstandingCard({ onChanged, className }: { onChanged?: () => void; className?: string }) {
+export default function UnderstandingCard({ onChanged, className, compact }: { onChanged?: () => void; className?: string; compact?: boolean }) {
   const { lang, t } = useI18n();
   const toast = useToast();
   const [u, setU] = useState<Understanding | null>(null);
@@ -66,7 +66,12 @@ export default function UnderstandingCard({ onChanged, className }: { onChanged?
   return (
     <Card className={cn("space-y-4 overflow-hidden", className)}>
       <div className="flex items-center gap-3">
-        <UnderstandingRing score={u.score} size={56} />
+        {/* On the dashboard, the hero already shows one combined confidence score — a second big ring here just
+            repeats it. A small pill still says where the number comes from, without competing for the first
+            glance; the full ring stays wherever this card is the only score on the screen (profile, onboarding). */}
+        {compact
+          ? <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-600 to-accent-600 text-xs font-bold text-white">{u.score}%</span>
+          : <UnderstandingRing score={u.score} size={56} />}
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold text-brand-700">{t("u.score")}</p>
           <h3 className="font-display text-base font-bold leading-snug text-ink sm:text-lg">{t("u.title")}</h3>
