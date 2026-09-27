@@ -132,11 +132,15 @@ export function Gauge({ value, label, sublabel, size = 96 }: { value: number; la
   const c = 2 * Math.PI * r;
   return (
     <div className="flex items-center gap-3">
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0 -rotate-90" role="img" aria-label={`${label}: ${v} out of 100`}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0" role="img" aria-label={`${label}: ${v} out of 100`}>
         <circle cx={size / 2} cy={size / 2} r={r} strokeWidth={8} className="fill-none stroke-slate-100" />
+        {/* Rotate only the ring's own strokes (an SVG attribute, not a CSS class) so it starts at 12 o'clock; the
+            number stays a normal, unrotated, un-transformed text node — nothing here depends on how a browser
+            resolves a CSS transform-origin on an SVG element, which is inconsistent enough across engines to
+            misplace or blur text drawn the other way. */}
         <circle cx={size / 2} cy={size / 2} r={r} strokeWidth={8} strokeLinecap="round" className={cn("fill-none transition-[stroke-dashoffset] duration-700", tone)} stroke="currentColor"
-          strokeDasharray={c} strokeDashoffset={c * (1 - v / 100)} />
-        <text x={size / 2} y={size / 2} dy="0.32em" textAnchor="middle" className={cn("rotate-90 font-display text-2xl font-bold tabular-nums", tone)} style={{ transformOrigin: "center", fill: "currentColor" }}>{v}</text>
+          strokeDasharray={c} strokeDashoffset={c * (1 - v / 100)} transform={`rotate(-90 ${size / 2} ${size / 2})`} />
+        <text x={size / 2} y={size / 2} dy="0.32em" textAnchor="middle" className={cn("font-display text-2xl font-bold tabular-nums", tone)} fill="currentColor">{v}</text>
       </svg>
       <div className="min-w-0">
         <p className="font-display text-sm font-bold text-ink">{label}</p>
