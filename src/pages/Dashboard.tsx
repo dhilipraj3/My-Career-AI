@@ -91,7 +91,9 @@ export default function Dashboard({ me, ai }: { me: Me; ai: AiState }) {
         </Section>
 
         <div className="space-y-6">
-          <UnderstandingCard compact onChanged={() => void nav.refresh()} />
+          {/* A title of its own, the same size and spacing as "Top picks for you" opposite it, so both columns
+              start their first card at the same height instead of this one sitting above it with nothing over it. */}
+          <Section title="Your profile"><UnderstandingCard compact onChanged={() => void nav.refresh()} /></Section>
           {co?.journey && <PulseCard journey={co.journey} />}
           {co && <ActivityCard activity={co.activity} />}
 

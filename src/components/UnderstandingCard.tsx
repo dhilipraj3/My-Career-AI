@@ -73,7 +73,9 @@ export default function UnderstandingCard({ onChanged, className, compact }: { o
           ? <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-600 to-accent-600 text-xs font-bold text-white">{u.score}%</span>
           : <UnderstandingRing score={u.score} size={56} />}
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold text-brand-700">{t("u.score")}</p>
+          {/* In compact mode a Section title already sits above this card (so its top edge lines up with the
+              column beside it) and says the same thing this label would — showing both would just repeat it. */}
+          {!compact && <p className="text-xs font-semibold text-brand-700">{t("u.score")}</p>}
           <h3 className="font-display text-base font-bold leading-snug text-ink sm:text-lg">{t("u.title")}</h3>
         </div>
       </div>

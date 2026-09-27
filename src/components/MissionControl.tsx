@@ -22,14 +22,20 @@ export function NextActions({ actions }: { actions: NextAction[] }) {
     if (a.cta.jobId) return nav.openJob(a.cta.jobId);
     if (a.cta.page) return nav.go(a.cta.page as Page);
   };
+  // The outer div, not Section itself, is the grid cell: a CSS grid stretches direct children to the row's full
+  // height by default, and this passes that height on (flex-1 on Section, then on the Card) so a shorter card
+  // still ends at the same bottom edge as its taller neighbour, instead of leaving a jagged gap under it. Scoped to
+  // just this one component rather than Section itself, which is used all over the app in contexts that must not
+  // stretch this way (e.g. nested inside a column that's already been stretched by a grid one level up).
   if (actions.length === 0) return (
-    <Section title="What to do today"><Card className="p-5 text-sm text-slate-500">You're all caught up. 🎉</Card></Section>
+    <div className="flex h-full flex-col"><Section title="What to do today" className="flex flex-1 flex-col"><Card className="flex flex-1 items-center p-5 text-sm text-slate-500">You're all caught up. 🎉</Card></Section></div>
   );
   const [first, ...rest] = actions;
   const FirstIcon = ICONS[first.kind] || Sparkles;
   return (
-    <Section title="What to do today">
-      <Card className="divide-y divide-slate-100 p-0">
+    <div className="flex h-full flex-col">
+    <Section title="What to do today" className="flex flex-1 flex-col">
+      <Card className="flex flex-1 flex-col divide-y divide-slate-100 p-0">
         <button onClick={() => run(first)} className="flex w-full items-start gap-3 p-4 text-left transition hover:bg-slate-50">
           <span className={cn("mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl", TONE[first.kind] || "bg-brand-50 text-brand-600")}><FirstIcon className="h-5 w-5" /></span>
           <span className="min-w-0 flex-1"><span className="block font-display text-base font-bold text-ink">{first.title}</span><span className="mt-0.5 block text-sm text-slate-500">{first.detail}</span></span>
@@ -52,6 +58,7 @@ export function NextActions({ actions }: { actions: NextAction[] }) {
         })}
       </Card>
     </Section>
+    </div>
   );
 }
 
@@ -63,18 +70,21 @@ export function WeeklyPlanCard({ plan, onChange }: { plan: WeeklyPlan; onChange:
     try { onChange((await api<{ plan: WeeklyPlan }>("/companion/plan/tick", { body: { goal, done: Math.max(0, done) } })).plan); } catch { /* non-critical */ }
   }
   if (!expanded) return (
-    <Section title="This week's plan">
-      <Card className="p-4">
+    <div className="flex h-full flex-col">
+    <Section title="This week's plan" className="flex flex-1 flex-col">
+      <Card className="flex flex-1 items-center p-4">
         <button className="flex w-full items-center justify-between gap-3 text-left" onClick={() => setExpanded(true)}>
           <Gauge value={(total / Math.max(1, max)) * 100} label={total >= max ? "Week complete" : `${plan.goals.length} goals this week`} sublabel={`${total}/${max} done — tap to see them`} size={72} />
           <ChevronRight className="h-4 w-4 shrink-0 text-slate-300" />
         </button>
       </Card>
     </Section>
+    </div>
   );
   return (
-    <Section title="This week's plan" action={<Badge tone={total >= max ? "green" : "slate"}>{total}/{max}</Badge>}>
-      <Card className="space-y-3 p-4">
+    <div className="flex h-full flex-col">
+    <Section title="This week's plan" action={<Badge tone={total >= max ? "green" : "slate"}>{total}/{max}</Badge>} className="flex flex-1 flex-col">
+      <Card className="flex flex-1 flex-col space-y-3 p-4">
         <Progress value={(total / Math.max(1, max)) * 100} tone={total >= max ? "green" : "brand"} />
         <ul className="space-y-3">
           {plan.goals.map((g) => {
@@ -98,6 +108,7 @@ export function WeeklyPlanCard({ plan, onChange }: { plan: WeeklyPlan; onChange:
         <button className="text-xs font-medium text-slate-500 hover:text-brand-700" onClick={() => setExpanded(false)}>Collapse</button>
       </Card>
     </Section>
+    </div>
   );
 }
 
