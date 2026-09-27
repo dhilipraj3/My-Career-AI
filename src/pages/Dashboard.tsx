@@ -10,7 +10,8 @@ import { api } from "../lib/api";
 import { firstName } from "../lib/labels";
 import { CountUp } from "../lib/motion";
 import { useNav, type Page } from "../lib/nav";
-import { Button, Card, JobCardSkeleton, Progress, Section, Skeleton, Stat, cn } from "../ui";
+import { readiness } from "../lib/readiness";
+import { Button, Card, Gauge, JobCardSkeleton, Progress, Section, Skeleton, Stat, cn } from "../ui";
 import { JOURNEY_STAGES } from "@shared/career";
 
 const STAGE_LABEL: Record<string, string> = { understanding: "Profile", searching: "Searching", applying: "Applying", interviewing: "Interviewing", offer: "Offer", placed: "Placed" };
@@ -43,16 +44,18 @@ export default function Dashboard({ me, ai }: { me: Me; ai: AiState }) {
   const active = (apps || []).filter((a) => !["rejected", "withdrawn", "expired", "recommended", "saved"].includes(a.status));
 
   const tile = (page: Page) => () => nav.go(page);
+  const ready = summary && co?.journey ? readiness({ profileCompleteness: p.completeness.score, understanding: co.journey.understanding, matches: { total: summary.total, excellent: summary.bands.excellent, good: summary.bands.good } }) : null;
   return (
     <div className="space-y-6">
       <section className="hero-gradient overflow-hidden rounded-3xl border border-white/80 p-6 shadow-[var(--shadow-card)] backdrop-blur-xl sm:p-8">
-        <p className="text-sm font-medium text-brand-700">{greeting()},</p>
-        <h1 className="mt-0.5 text-3xl font-extrabold sm:text-4xl">{firstName(p.fullName) || "there"} 👋</h1>
-        <p className="mt-2 max-w-2xl text-slate-600">
-          {!summary ? "Checking what's new for you…" : summary.newSinceLastVisit > 0 ? <><strong className="text-ink">{summary.newSinceLastVisit} new matches</strong> since your last visit. </> : null}
-          {summary && (summary.bands.excellent > 0 ? <>You have <strong className="text-ink">{summary.bands.excellent} excellent</strong> {summary.bands.excellent === 1 ? "match" : "matches"} waiting.</> : summary.total > 0 ? <>No excellent matches yet — a couple of quick changes below can unlock them.</> : <>I'm searching for jobs that fit you.</>)}
-        </p>
-        <div className="mt-2"><SyncBadge /></div>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-brand-700">{greeting()},</p>
+            <h1 className="mt-0.5 text-3xl font-extrabold sm:text-4xl">{firstName(p.fullName) || "there"} 👋</h1>
+            <div className="mt-2"><SyncBadge /></div>
+          </div>
+          {ready ? <Gauge value={ready.score} label={ready.label} sublabel={ready.detail} /> : <Skeleton className="h-24 w-56 rounded-2xl" />}
+        </div>
         <ol className="mt-6 grid grid-cols-3 gap-2 sm:grid-cols-6" aria-label="Your job search journey">
           {JOURNEY_STAGES.map((k, i) => { const s = STAGE_LABEL[k]; return (
             <li key={s} className="space-y-1.5">

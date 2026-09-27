@@ -124,6 +124,28 @@ export function Stat({ label, value, hint, tone = "slate", onClick, icon }: { la
   );
 }
 
+/** A ring showing one combined number (0–100): "can I get a job right now?" Reads at a glance, no text required. */
+export function Gauge({ value, label, sublabel, size = 96 }: { value: number; label: string; sublabel?: string; size?: number }) {
+  const v = Math.max(0, Math.min(100, Math.round(value)));
+  const tone = v >= 80 ? "text-emerald-500" : v >= 55 ? "text-brand-600" : "text-amber-500";
+  const r = (size - 10) / 2;
+  const c = 2 * Math.PI * r;
+  return (
+    <div className="flex items-center gap-3">
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0 -rotate-90" role="img" aria-label={`${label}: ${v} out of 100`}>
+        <circle cx={size / 2} cy={size / 2} r={r} strokeWidth={8} className="fill-none stroke-slate-100" />
+        <circle cx={size / 2} cy={size / 2} r={r} strokeWidth={8} strokeLinecap="round" className={cn("fill-none transition-[stroke-dashoffset] duration-700", tone)} stroke="currentColor"
+          strokeDasharray={c} strokeDashoffset={c * (1 - v / 100)} />
+        <text x={size / 2} y={size / 2} dy="0.32em" textAnchor="middle" className={cn("rotate-90 font-display text-2xl font-bold tabular-nums", tone)} style={{ transformOrigin: "center", fill: "currentColor" }}>{v}</text>
+      </svg>
+      <div className="min-w-0">
+        <p className="font-display text-sm font-bold text-ink">{label}</p>
+        {sublabel && <p className="text-xs text-slate-500">{sublabel}</p>}
+      </div>
+    </div>
+  );
+}
+
 export const Progress = ({ value, tone = "brand", className }: { value: number; tone?: "brand" | "green" | "amber"; className?: string }) => (
   <div className={cn("h-2 overflow-hidden rounded-full bg-slate-100", className)} role="progressbar" aria-valuenow={Math.round(value)} aria-valuemin={0} aria-valuemax={100}>
     <div className={cn("h-full rounded-full transition-all duration-700", { brand: "bg-brand-600", green: "bg-emerald-500", amber: "bg-amber-500" }[tone])} style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />

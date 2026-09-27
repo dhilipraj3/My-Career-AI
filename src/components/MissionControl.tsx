@@ -3,7 +3,7 @@ import { useState, type ComponentType } from "react";
 import type { ActivityItem, Journey, NextAction, Placement, WeeklyPlan } from "@shared/career";
 import { api, errMsg } from "../lib/api";
 import { useNav, type Page } from "../lib/nav";
-import { Badge, Button, Card, ErrorNote, Modal, Progress, Section, cn, timeAgo } from "../ui";
+import { Badge, Button, Card, ErrorNote, Gauge, Modal, Progress, Section, cn, timeAgo } from "../ui";
 
 export interface CompanionData { journey: Journey | null; plan: WeeklyPlan; activity: ActivityItem[] }
 
@@ -13,18 +13,34 @@ const ICONS: Record<NextAction["kind"], ComponentType<{ className?: string }>> =
 };
 const TONE: Partial<Record<NextAction["kind"], string>> = { interview: "bg-emerald-50 text-emerald-600", offer: "bg-emerald-50 text-emerald-600", follow_up: "bg-amber-50 text-amber-600" };
 
+/** The single most useful thing to do right now, shown large; the rest is one tap away, not printed on the page. */
 export function NextActions({ actions }: { actions: NextAction[] }) {
   const nav = useNav();
+  const [expanded, setExpanded] = useState(false);
   const run = (a: NextAction) => {
     if (a.cta.chat) return nav.openChat(a.cta.chat);
     if (a.cta.jobId) return nav.openJob(a.cta.jobId);
     if (a.cta.page) return nav.go(a.cta.page as Page);
   };
+  if (actions.length === 0) return (
+    <Section title="What to do today"><Card className="p-5 text-sm text-slate-500">You're all caught up. 🎉</Card></Section>
+  );
+  const [first, ...rest] = actions;
+  const FirstIcon = ICONS[first.kind] || Sparkles;
   return (
     <Section title="What to do today">
       <Card className="divide-y divide-slate-100 p-0">
-        {actions.length === 0 && <p className="p-5 text-sm text-slate-500">You're all caught up. 🎉</p>}
-        {actions.slice(0, 5).map((a) => {
+        <button onClick={() => run(first)} className="flex w-full items-start gap-3 p-4 text-left transition hover:bg-slate-50">
+          <span className={cn("mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl", TONE[first.kind] || "bg-brand-50 text-brand-600")}><FirstIcon className="h-5 w-5" /></span>
+          <span className="min-w-0 flex-1"><span className="block font-display text-base font-bold text-ink">{first.title}</span><span className="mt-0.5 block text-sm text-slate-500">{first.detail}</span></span>
+          <span className="mt-2 flex shrink-0 items-center gap-0.5 text-xs font-medium text-brand-700">{first.cta.label}<ChevronRight className="h-4 w-4 text-slate-300" /></span>
+        </button>
+        {rest.length > 0 && !expanded && (
+          <button className="w-full p-3 text-center text-xs font-medium text-slate-500 hover:bg-slate-50 hover:text-brand-700" onClick={() => setExpanded(true)}>
+            {rest.length} more thing{rest.length === 1 ? "" : "s"} to do <ChevronRight className="ml-0.5 inline h-3.5 w-3.5 rotate-90" />
+          </button>
+        )}
+        {expanded && rest.slice(0, 4).map((a) => {
           const Icon = ICONS[a.kind] || Sparkles;
           return (
             <button key={a.id} onClick={() => run(a)} className="flex w-full items-start gap-3 p-4 text-left transition hover:bg-slate-50">
@@ -40,11 +56,22 @@ export function NextActions({ actions }: { actions: NextAction[] }) {
 }
 
 export function WeeklyPlanCard({ plan, onChange }: { plan: WeeklyPlan; onChange: (p: WeeklyPlan) => void }) {
+  const [expanded, setExpanded] = useState(false);
   const total = plan.goals.reduce((n, g) => n + Math.min(g.target, g.done), 0);
   const max = plan.goals.reduce((n, g) => n + g.target, 0);
   async function tick(goal: string, done: number) {
     try { onChange((await api<{ plan: WeeklyPlan }>("/companion/plan/tick", { body: { goal, done: Math.max(0, done) } })).plan); } catch { /* non-critical */ }
   }
+  if (!expanded) return (
+    <Section title="This week's plan">
+      <Card className="p-4">
+        <button className="flex w-full items-center justify-between gap-3 text-left" onClick={() => setExpanded(true)}>
+          <Gauge value={(total / Math.max(1, max)) * 100} label={total >= max ? "Week complete" : `${plan.goals.length} goals this week`} sublabel={`${total}/${max} done — tap to see them`} size={72} />
+          <ChevronRight className="h-4 w-4 shrink-0 text-slate-300" />
+        </button>
+      </Card>
+    </Section>
+  );
   return (
     <Section title="This week's plan" action={<Badge tone={total >= max ? "green" : "slate"}>{total}/{max}</Badge>}>
       <Card className="space-y-3 p-4">
@@ -68,6 +95,7 @@ export function WeeklyPlanCard({ plan, onChange }: { plan: WeeklyPlan; onChange:
             );
           })}
         </ul>
+        <button className="text-xs font-medium text-slate-500 hover:text-brand-700" onClick={() => setExpanded(false)}>Collapse</button>
       </Card>
     </Section>
   );
