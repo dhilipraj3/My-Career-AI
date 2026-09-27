@@ -15,9 +15,10 @@ function containerMB() {
 }
 
 const total = containerMB();
-// ~60% for the JS heap; the rest is for code, network buffers and the operating system.
-const heap = Math.max(192, Math.min(4096, Math.round(total * 0.6)));
+// ~70% for the JS heap on small servers (the data, the search index and the Firebase libraries take most of 512 MB);
+// the rest is for code, network buffers and the operating system.
+const heap = Math.max(192, Math.min(4096, Math.round(total * (total <= 1024 ? 0.7 : 0.6))));
 console.log(`[start] container memory ${Math.round(total)} MB → heap limit ${heap} MB`);
-const child = spawn(process.execPath, [`--max-old-space-size=${heap}`, "--import", "tsx", "server/index.ts"], { stdio: "inherit", env: process.env });
+const child = spawn(process.execPath, [`--max-old-space-size=${heap}`, "--expose-gc", "--import", "tsx", "server/index.ts"], { stdio: "inherit", env: { ...process.env, HEAP_LIMIT_MB: String(heap) } });
 for (const sig of ["SIGTERM", "SIGINT"]) process.on(sig, () => child.kill(sig));
 child.on("exit", (code, signal) => process.exit(code ?? (signal ? 1 : 0)));

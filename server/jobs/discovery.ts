@@ -1,4 +1,5 @@
 import { config } from "../config.js";
+import { tryCollect, waitForMemory } from "../memory.js";
 import { yieldToUsers } from "../busy.js";
 import type { ConnectorHealth } from "../../shared/types.js";
 import { getStore } from "../db/store.js";
@@ -171,7 +172,15 @@ export function runDiscovery(opts: { keywords?: string[]; connectorIds?: string[
         await yieldToUsers(); // wait first, then check what is left: another worker may have taken the last one meanwhile
         if (nextIdx >= chosen.length) break;
         const i = nextIdx++;
+        // Not enough memory to download and parse another source right now: leave it for the next cycle, don't crash.
+        if (!(await waitForMemory(0.75, 20_000))) {
+          console.warn(`[discovery] skipped "${chosen[i].id}": memory is high`);
+          skipped.push(chosen[i].id);
+          results[i] = { run: { id: chosen[i].id, fetched: 0, inserted: 0, merged: 0, rejected: 0, regionFiltered: 0, durationMs: 0, error: "skipped: memory high" }, newIds: [], touched: [] };
+          continue;
+        }
         results[i] = await runConnector(chosen[i], opts.keywords || []);
+        tryCollect();
       }
     }));
     const expiredChanged = await refreshFreshness();

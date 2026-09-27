@@ -7,6 +7,7 @@ import { flushBackups, getStore } from "./db/store.js";
 import { startScheduler } from "./scheduler.js";
 import { loadDiscoverySettings } from "./jobs/settings.js";
 import { indexSize } from "./search/index.js";
+import { memoryLine } from "./memory.js";
 import { notFoundHtml } from "./seo/pages.js";
 import { printConfigWarnings } from "./configCheck.js";
 
@@ -56,6 +57,9 @@ async function main() {
   // Build the job search index now, not on the first visitor's request (it takes a moment on a small server).
   void indexSize().then((n) => console.log(`[search] index ready (${n} jobs)`)).catch((e) => console.warn("[search] warm-up failed", e));
   startScheduler();
+  // A memory line every 10 minutes (and once at start): if a small server ever runs low, the logs show it coming.
+  console.log(memoryLine());
+  setInterval(() => console.log(memoryLine()), 10 * 60_000).unref();
 
   // Render (and most hosts) send SIGTERM before stopping or sleeping an instance: save backups first.
   let stopping = false;

@@ -1,4 +1,5 @@
 import dns from "node:dns/promises";
+import { maxDownloadBytes, maxParallelDownloads } from "../memory.js";
 import net from "node:net";
 import { config } from "../config.js";
 
@@ -10,7 +11,7 @@ export const httpLimits = { timeoutMs: 20_000, maxConcurrent: 6, retries: 2 };
 let active = 0;
 const waiters: Array<() => void> = [];
 async function acquire() {
-  if (active >= httpLimits.maxConcurrent) await new Promise<void>((resolve) => waiters.push(resolve));
+  if (active >= maxParallelDownloads(httpLimits.maxConcurrent)) await new Promise<void>((resolve) => waiters.push(resolve));
   active++;
 }
 function release() {
@@ -39,6 +40,24 @@ export function describeNetError(err: any): string {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/** Read a JSON answer, but refuse one bigger than we can hold (it is parsed in memory, several times its size). */
+export async function readJsonLimited<T>(res: Response, host: string, limit = maxDownloadBytes()): Promise<T> {
+  const declared = Number(res.headers.get("content-length"));
+  if (declared > limit * 3) throw Object.assign(new Error(`answer from ${host} is too large (${Math.round(declared / 1048576)} MB)`), { noRetry: true });
+  if (!res.body) return (await res.json()) as T;
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  const reader = res.body.getReader();
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > limit) { void reader.cancel().catch(() => undefined); throw Object.assign(new Error(`answer from ${host} is too large (over ${Math.round(limit / 1048576)} MB)`), { noRetry: true }); }
+    chunks.push(value);
+  }
+  return JSON.parse(Buffer.concat(chunks).toString("utf8")) as T;
+}
+
 export async function fetchJson<T = any>(url: string, init: RequestInit = {}): Promise<T> {
   const host = new URL(url).hostname;
   const wait = hostCoolingDown(host);
@@ -66,7 +85,7 @@ export async function fetchJson<T = any>(url: string, init: RequestInit = {}): P
           if (res.status < 500) throw Object.assign(err, { noRetry: true }); // 404, 403 etc. won't improve by retrying
           throw err;
         }
-        return (await res.json()) as T;
+        return await readJsonLimited<T>(res, host);
       } catch (err: any) {
         lastErr = err?.noRetry || err instanceof RateLimitedError || /^HTTP /.test(String(err?.message)) ? err : new Error(describeNetError(err), { cause: err });
         if (err?.noRetry) break;

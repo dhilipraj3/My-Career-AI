@@ -2,7 +2,9 @@
 // Connectors rotate through it (least-recently-fetched first) so a large registry is covered over several cycles.
 import fs from "node:fs";
 import type { CompanyAts, CompanyRecord, Job } from "../../shared/types.js";
+import { yieldToUsers } from "../busy.js";
 import { config } from "../config.js";
+import { maxParallelDownloads, waitForMemory } from "../memory.js";
 import { getStore, type Store } from "../db/store.js";
 import { fetchCareersPage, fetchOracle, fetchRecruitee, fetchTeamtailor, fetchWorkable, fetchWorkday, parseOracleBoard, parseWorkdayBoard } from "./ats.js";
 import { fetchAshbyBoard, fetchGreenhouseBoard, fetchLeverSite, fetchSmartRecruiters, type JobConnector } from "./connectors.js";
@@ -163,7 +165,7 @@ export function registryTimeoutMs(ats: CompanyAts): number {
   const boards = boardsPerRunFor(ats);
   const backoffMs = Array.from({ length: httpLimits.retries }, (_, attempt) => 1000 * 3 ** attempt).reduce((a, b) => a + b, 0);
   const worstCasePerBoard = httpLimits.timeoutMs * (httpLimits.retries + 1) + backoffMs;
-  const waves = Math.ceil(boards / Math.max(1, httpLimits.maxConcurrent));
+  const waves = Math.ceil(boards / Math.max(1, maxParallelDownloads(httpLimits.maxConcurrent)));
   return Math.max(90_000, Math.round(waves * worstCasePerBoard * 1.3));
 }
 
@@ -259,8 +261,21 @@ export function registryConnector(ats: CompanyAts): JobConnector {
       const boards = await pickBoards(ats);
       // Keep only India-relevant postings from each board as soon as it arrives: global companies list thousands of
       // jobs elsewhere, and holding them all until the end of the run is what exhausted memory on small servers.
-      const results = await Promise.all(boards.map(async (b) => { const r = await fetchCompany(b); return { error: r.error, jobs: r.jobs.filter(regionOk) }; }));
-      if (boards.length && results.every((r) => r.error)) throw new Error(`All ${boards.length} boards failed; first: ${results[0].error}`);
+      // A few boards at a time, and only while there is memory for them: on a small server the download and parse of a
+      // big board is many times its size, and too many at once ran the heap out.
+      const results: Array<{ error?: string; jobs: RawJob[] }> = [];
+      let next = 0, skippedForMemory = 0;
+      await Promise.all(Array.from({ length: Math.min(boards.length, maxParallelDownloads(httpLimits.maxConcurrent)) }, async () => {
+        while (next < boards.length) {
+          const b = boards[next++];
+          if (!(await waitForMemory())) { skippedForMemory++; continue; } // this board waits for the next cycle
+          await yieldToUsers();
+          const r = await fetchCompany(b);
+          results.push({ error: r.error, jobs: r.jobs.filter(regionOk) });
+        }
+      }));
+      if (skippedForMemory) console.warn(`[registry] ${ats}: skipped ${skippedForMemory} of ${boards.length} boards, memory was high; they go first next cycle`);
+      if (results.length && results.every((r) => r.error)) throw new Error(`All ${results.length} boards failed; first: ${results[0].error}`);
       return results.flatMap((r) => r.jobs);
     },
   };

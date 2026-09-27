@@ -32,7 +32,7 @@ type Doc = { [K in keyof typeof SCHEMA]: any };
 
 // Titles, companies and skills are indexed in full; a short slice of the description is enough for relevance and
 // keeps the index small (the full text made the index the largest thing in memory).
-const BODY_CHARS = 500;
+const BODY_CHARS = 300;
 
 function toDoc(j: Job): Doc {
   return {
