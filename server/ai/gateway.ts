@@ -16,7 +16,8 @@ export type AiTask =
   | "job_analyze"
   | "match_explain"
   | "resume_tailor"
-  | "cover_letter";
+  | "cover_letter"
+  | "why_this_role";
 
 /** Internal credits (scope §38.2). Model choice can change without changing what users see. */
 export const TASK_CREDITS: Record<AiTask, number> = {
@@ -30,6 +31,7 @@ export const TASK_CREDITS: Record<AiTask, number> = {
   interview_prep: 4,
   mock_feedback: 2,
   resume_tailor: 8,
+  why_this_role: 1,
 };
 
 /** Provider-kind preference per task (scope §39): Gemini for heavy reasoning, fast compat models for small jobs. */
@@ -44,6 +46,7 @@ const ROUTES: Record<AiTask, Array<"gemini" | "compat">> = {
   match_explain: ["compat", "gemini"],
   resume_tailor: ["gemini", "compat"],
   cover_letter: ["gemini", "compat"],
+  why_this_role: ["compat", "gemini"],
 };
 const kindOf = (p: AiProvider) => p.kind ?? (p.id === "gemini" ? "gemini" : "compat");
 

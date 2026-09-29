@@ -37,7 +37,7 @@ import { PreferencePatch } from "./profile/preferences.js";
 import { answerProfileQuestion, editProfile, getOrCreateProfile, getProfile, updatePreferences, EDITABLE_SCALARS } from "./profile/service.js";
 import { ResumeError } from "./resume/extract.js";
 import { kickOffMatching, processResume, storeResume } from "./resume/process.js";
-import { approveResumeVersion, generateCoverLetter, generateTailoredResume } from "./resume/tailor.js";
+import { approveResumeVersion, generateCoverLetter, generateTailoredResume, generateWhyThisRole } from "./resume/tailor.js";
 import { fenceUntrusted, UNTRUSTED_NOTICE } from "./nlp/text.js";
 import { applicationSummary } from "./applications/service.js";
 import { indexSize, searchJobs, suggest, syncJobs } from "./search/index.js";
@@ -417,6 +417,12 @@ export function buildRouter(): express.Router {
     const profile = await getProfile(req.user!.uid);
     if (!profile) throw new AppError(409, "Upload a resume first.");
     res.json({ fields: formHelper(profile, await getJobForUser(req.user!.uid, req.params.id)) });
+  }));
+
+  r.post("/jobs/:id/why-this-role", wrap(async (req, res) => {
+    const profile = await getProfile(req.user!.uid);
+    if (!profile) throw new AppError(409, "Upload a resume first.");
+    res.json(await generateWhyThisRole(req.user!.uid, profile, await getJobForUser(req.user!.uid, req.params.id)));
   }));
 
   // ---------------- tailored resume + application ----------------

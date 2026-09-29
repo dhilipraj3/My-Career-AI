@@ -369,4 +369,27 @@ export async function generateCoverLetter(uid: string, p: CandidateProfile, job:
   }
 }
 
+const WhyThisRoleSchema = z.object({ text: z.string().min(20).max(400) });
+
+/** One sharper, specific sentence for "why are you interested in this role?" — grounded in the candidate's real skills, not boilerplate. */
+export async function generateWhyThisRole(uid: string, p: CandidateProfile, job: Job): Promise<{ text: string; generatedBy: "ai" | "deterministic" }> {
+  const relevant = [...p.skills].filter((s) => s.source !== "ai_derived" && job.skills.includes(s.key)).slice(0, 5).map((s) => s.name);
+  const fallback = relevant.length
+    ? `I'm interested in the ${job.title} role at ${job.company} because it uses ${relevant.join(", ")}, which I work with, and it fits the direction I want my career to take.`
+    : `I'm interested in the ${job.title} role at ${job.company} because it fits the direction I want my career to take.`;
+  try {
+    const facts = { currentRole: p.currentRole, years: p.totalExperienceYears, skills: relevant, latestFacts: (p.experience.find((e) => e.current) || p.experience[0])?.achievements.slice(0, 4) || [] };
+    const r = await generateJSON({
+      task: "why_this_role", uid, cache: false, schema: WhyThisRoleSchema, maxTokens: 250,
+      system: `You write one specific, honest sentence answering "why are you interested in this role?" for a job application form. Use ONLY the candidate facts given. Never invent skills, employers, numbers or achievements. No boilerplate ("great opportunity", "passionate about"). ${UNTRUSTED_NOTICE}`,
+      prompt: `Candidate facts: ${JSON.stringify(facts)}\n\nJob:\n${fenceUntrusted("job_posting", `${job.title} at ${job.company}\n${job.description}`, 4000)}\n\nReturn {"text": "one sentence, 1-2 max"}`,
+    });
+    const issues = checkClaims(r.text, p, "whyThisRole").filter((i) => i.severity === "error");
+    if (issues.length) throw new Error("why-this-role failed validation");
+    return { text: r.text, generatedBy: "ai" };
+  } catch {
+    return { text: fallback, generatedBy: "deterministic" };
+  }
+}
+
 export { generateText };
