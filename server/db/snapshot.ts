@@ -85,6 +85,9 @@ export function firestoreBackend(db: FirebaseFirestore.Firestore, collection = "
 }
 
 /** Fill the local data file from the last backup. Skipped when a local file already exists (it is as new or newer). */
+/** Give the collector a real chance between big allocations (only does anything with --expose-gc; scripts/start.mjs sets it). */
+const settle = async () => { (globalThis as { gc?: () => void }).gc?.(); await new Promise((r) => setImmediate(r)); };
+
 export async function restoreSnapshot(backend: SnapshotBackend, filePath: string): Promise<{ restored: boolean; docs: number }> {
   if (fs.existsSync(filePath)) return { restored: false, docs: 0 };
   const data: Record<string, Record<string, unknown>> = {};
@@ -95,13 +98,29 @@ export async function restoreSnapshot(backend: SnapshotBackend, filePath: string
     if (!info?.version) { console.log(`[backup] no saved ${part} data yet`); continue; }
     console.log(`[backup] restoring ${part}: ${info.docs} records in ${info.chunks} piece(s), saved ${info.savedAt}`);
     found = true;
-    const pieces: Buffer[] = [];
+    // The compressed bytes, the decompressed bytes, the JSON string and the parsed object all end up several times
+    // the size of the data itself if they are ever alive at once (this is what pushed a 512 MB server over the edge
+    // as the job pool grew: the *steady state* afterward fit fine, but this one moment didn't). Each step below
+    // drops the previous one's reference and asks for a collection before the next allocation, so at most one
+    // "copy" of the data is on the heap at a time instead of four.
+    let pieces: Buffer[] | null = [];
     for (let i = 0; i < info.chunks; i++) {
       const c = await backend.get(chunkId(part, info.version, i));
       if (!c?.data) throw new Error(`Backup is incomplete: ${part} chunk ${i + 1}/${info.chunks} is missing`);
       pieces.push(Buffer.from(c.data));
     }
-    const cols = JSON.parse((await gunzip(Buffer.concat(pieces))).toString("utf8")) as Record<string, Record<string, unknown>>;
+    let compressed: Buffer | null = Buffer.concat(pieces);
+    pieces = null;
+    await settle();
+    let decompressed: Buffer | null = await gunzip(compressed);
+    compressed = null;
+    await settle();
+    let text: string | null = decompressed.toString("utf8");
+    decompressed = null;
+    await settle();
+    const cols = JSON.parse(text) as Record<string, Record<string, unknown>>;
+    text = null;
+    await settle();
     for (const [c, rows] of Object.entries(cols)) { data[c] = rows; docs += Object.keys(rows).length; }
   }
   if (!found) return { restored: false, docs: 0 };
